@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#12183f" />
+    <meta name="description" content="نموذج واجهة مَظَانّ لبناء حقائب أدلة موثقة وقابلة للمراجعة." />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>مَظَانّ | حقيبة الأدلة</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">انتقل إلى المحتوى</a>
+
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="التنقل الرئيسي">
+        <div class="brand-block">
+          <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div>
+            <strong>مَظَانّ</strong>
+            <small>حقيبة الأدلة</small>
+          </div>
+        </div>
+
+        <nav class="primary-nav">
+          <button class="nav-item active" data-view="workspace" aria-current="page">
+            <span class="nav-index">01</span>
+            <span>مساحة البحث</span>
+          </button>
+          <button class="nav-item" data-view="design-system">
+            <span class="nav-index">02</span>
+            <span>نظام التصميم</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-note">
+          <span class="status-dot"></span>
+          <div>
+            <strong>نموذج قبل التحدي</strong>
+            <small>بيانات توضيحية غير متصلة بالمصادر</small>
+          </div>
+        </div>
+      </aside>
+
+      <main id="main" class="main-content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">مساحة عمل الباحث</p>
+            <h1 id="page-title">حقيبة أدلة جديدة</h1>
+          </div>
+          <div class="topbar-actions">
+            <span class="prototype-badge">نموذج تفاعلي</span>
+            <button class="icon-button" id="theme-toggle" type="button" aria-label="تبديل المظهر" title="تبديل المظهر">◐</button>
+          </div>
+        </header>
+
+        <section id="workspace" class="view active" aria-labelledby="page-title">
+          <ol class="stepper" aria-label="مراحل إعداد حقيبة الأدلة">
+            <li class="active" data-step-marker="1"><span>1</span><b>الموضوع</b></li>
+            <li data-step-marker="2"><span>2</span><b>خطة البحث</b></li>
+            <li data-step-marker="3"><span>3</span><b>جمع الأدلة</b></li>
+            <li data-step-marker="4"><span>4</span><b>المراجعة</b></li>
+            <li data-step-marker="5"><span>5</span><b>التصدير</b></li>
+          </ol>
+
+          <section class="workflow-panel active" data-step="1">
+            <div class="panel-heading">
+              <div>
+                <span class="section-number">01</span>
+                <h2>ما موضوع المادة العلمية؟</h2>
+                <p>ابدأ بموضوع محدد. سيقترح مَظَانّ محاور بحث تراجعها قبل جمع أي دليل.</p>
+              </div>
+              <div class="trust-note"><span>✓</span> لن يبدأ البحث قبل اعتمادك للخطة</div>
+            </div>
+
+            <form id="topic-form" class="topic-form">
+              <label class="field field-wide">
+                <span>موضوع الخطبة أو المادة <em>مطلوب</em></span>
+                <textarea id="topic" rows="3" required>أداء الأمانة وأثرها في حياة المسلم</textarea>
+                <small>اكتب فكرة واحدة قابلة للبحث والمراجعة.</small>
+              </label>
+
+              <div class="field-grid">
+                <label class="field">
+                  <span>الجمهور</span>
+                  <select id="audience">
+                    <option>جمهور عام</option>
+                    <option>شباب</option>
+                    <option>طلاب علم</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>مدة المادة</span>
+                  <select id="duration">
+                    <option>15 دقيقة</option>
+                    <option selected>20 دقيقة</option>
+                    <option>30 دقيقة</option>
+                  </select>
+                </label>
+              </div>
+
+              <fieldset class="goal-options">
+                <legend>الهدف الرئيس</legend>
+                <label><input type="radio" name="goal" value="معرفي" checked /><span><b>معرفي</b><small>شرح المفهوم وتأصيله</small></span></label>
+                <label><input type="radio" name="goal" value="سلوكي" /><span><b>سلوكي</b><small>الحث على ممارسة محددة</small></span></label>
+                <label><input type="radio" name="goal" value="مختلط" /><span><b>مختلط</b><small>فهم يتبعه تطبيق</small></span></label>
+              </fieldset>
+
+              <div class="action-row">
+                <p><strong>الخطوة التالية:</strong> مراجعة المحاور والأسئلة قبل البحث.</p>
+                <button class="primary-button" type="submit">بناء خطة البحث</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="workflow-panel" data-step="2">
+            <div class="panel-heading compact">
+              <div>
+                <span class="section-number">02</span>
+                <h2>راجع خطة البحث</h2>
+                <p>عدّل المحاور قبل اعتمادها. كل محور سيحصل على استعلام مستقل ومؤشر تغطية.</p>
+              </div>
+              <span class="review-badge">بانتظار اعتماد الباحث</span>
+            </div>
+
+            <div class="plan-summary">
+              <span>الموضوع</span>
+              <strong id="plan-topic">أداء الأمانة وأثرها في حياة المسلم</strong>
+              <small id="plan-meta">جمهور عام · 20 دقيقة · هدف معرفي</small>
+            </div>
+
+            <div class="axes-list" id="axes-list">
+              <article class="axis-item">
+                <span class="axis-count">01</span>
+                <div><label for="axis-1">المحور</label><input id="axis-1" value="معنى الأمانة ومكانتها" /></div>
+                <div><label for="question-1">سؤال البحث</label><input id="question-1" value="كيف عرّفت المصادر الأمانة وما منزلتها؟" /></div>
+              </article>
+              <article class="axis-item">
+                <span class="axis-count">02</span>
+                <div><label for="axis-2">المحور</label><input id="axis-2" value="صور أداء الأمانة" /></div>
+                <div><label for="question-2">سؤال البحث</label><input id="question-2" value="ما التطبيقات العملية التي تدعمها الأدلة؟" /></div>
+              </article>
+              <article class="axis-item">
+                <span class="axis-count">03</span>
+                <div><label for="axis-3">المحور</label><input id="axis-3" value="آثار الخيانة والتفريط" /></div>
+                <div><label for="question-3">سؤال البحث</label><input id="question-3" value="ما العواقب الفردية والمجتمعية المثبتة؟" /></div>
+              </article>
+            </div>
+
+            <div class="action-row split">
+              <button class="secondary-button" type="button" data-back="1">العودة إلى الموضوع</button>
+              <button class="primary-button" type="button" id="approve-plan">اعتماد الخطة وجمع الأدلة</button>
+            </div>
+          </section>
+
+          <section class="workflow-panel" data-step="3">
+            <div class="panel-heading compact">
+              <div>
+                <span class="section-number">03</span>
+                <h2>جمع الأدلة من المصادر المحددة</h2>
+                <p>يعرض النموذج مسار البحث المقترح. الربط الفعلي بالمصادر جزء من تطوير أيام التحدي.</p>
+              </div>
+              <span class="demo-badge">محاكاة واجهة</span>
+            </div>
+
+            <div class="search-status" aria-live="polite">
+              <div class="search-orbit" aria-hidden="true"><span></span></div>
+              <div>
+                <strong id="search-title">تهيئة استعلامات المحاور</strong>
+                <p id="search-description">سيُبحث في القرآن والتفسير والحديث والسيرة مع حفظ بيانات المصدر.</p>
+              </div>
+              <span id="search-percentage">0%</span>
+            </div>
+
+            <div class="source-progress">
+              <div data-source-row><span class="source-icon quran">ق</span><div><b>القرآن الكريم</b><small>النص المعتمد والموضوعات المرتبطة</small></div><span class="source-state">في الانتظار</span></div>
+              <div data-source-row><span class="source-icon tafsir">ت</span><div><b>التفسير</b><small>السياق وشرح الآيات</small></div><span class="source-state">في الانتظار</span></div>
+              <div data-source-row><span class="source-icon hadith">ح</span><div><b>الحديث</b><small>النص، المصدر، وحكم المحدث</small></div><span class="source-state">في الانتظار</span></div>
+              <div data-source-row><span class="source-icon sirah">س</span><div><b>السيرة</b><small>وقائع ثابتة مرتبطة بالمحور</small></div><span class="source-state">في الانتظار</span></div>
+            </div>
+
+            <div class="action-row split">
+              <button class="secondary-button" type="button" data-back="2">تعديل الخطة</button>
+              <button class="primary-button" type="button" id="run-search">بدء المحاكاة</button>
+            </div>
+          </section>
+
+          <section class="workflow-panel" data-step="4">
+            <div class="panel-heading compact">
+              <div>
+                <span class="section-number">04</span>
+                <h2>راجع الأدلة والتغطية</h2>
+                <p>افصل النص المنقول عن شرح الصلة، وافتح المصدر قبل اعتماد البطاقة.</p>
+              </div>
+              <div class="results-count"><strong>6</strong><span>بطاقات تجريبية</span></div>
+            </div>
+
+            <div class="review-layout">
+              <div class="evidence-column">
+                <div class="filter-row" aria-label="تصفية الأدلة">
+                  <button class="filter-chip active" data-filter="all">الكل <span>6</span></button>
+                  <button class="filter-chip" data-filter="quran">القرآن <span>2</span></button>
+                  <button class="filter-chip" data-filter="tafsir">التفسير <span>1</span></button>
+                  <button class="filter-chip" data-filter="hadith">الحديث <span>2</span></button>
+                  <button class="filter-chip" data-filter="sirah">السيرة <span>1</span></button>
+                </div>
+
+                <article class="evidence-card featured" data-type="quran">
+                  <header><span class="source-pill quran">قرآن</span><span class="verified-label">موثق بالمصدر</span></header>
+                  <p class="axis-label">المحور: معنى الأمانة ومكانتها</p>
+                  <blockquote>﴿إِنَّ اللَّهَ يَأْمُرُكُمْ أَنْ تُؤَدُّوا الْأَمَانَاتِ إِلَىٰ أَهْلِهَا﴾</blockquote>
+                  <div class="citation"><b>سورة النساء، الآية 58</b><span>صلة مباشرة · السياق متاح</span></div>
+                  <div class="generated-note"><span>شرح الصلة المقترح</span><p>تؤسس الآية لأصل أداء الحقوق إلى أصحابها، وهي دليل مباشر للمحور الأول.</p></div>
+                  <footer><button type="button" class="text-button">فتح المصدر</button><label class="approve-control"><input type="checkbox" /><span>اعتماد البطاقة</span></label></footer>
+                </article>
+
+                <article class="evidence-card" data-type="hadith">
+                  <header><span class="source-pill hadith">حديث</span><span class="review-label">يتطلب مراجعة</span></header>
+                  <p class="axis-label">المحور: صور أداء الأمانة</p>
+                  <p class="evidence-text">نص تجريبي يحجز مكان الحديث حتى اكتمال الاتصال بالمصدر والتحقق من الحكم.</p>
+                  <div class="citation"><b>مرجع تجريبي غير معتمد</b><span>لا يُستخدم في الحقيبة النهائية</span></div>
+                  <footer><button type="button" class="text-button">عرض بيانات التحقق</button><label class="approve-control disabled"><input type="checkbox" disabled /><span>الاعتماد غير متاح</span></label></footer>
+                </article>
+
+                <article class="evidence-card" data-type="tafsir">
+                  <header><span class="source-pill tafsir">تفسير</span><span class="verified-label">السياق متاح</span></header>
+                  <p class="axis-label">المحور: معنى الأمانة ومكانتها</p>
+                  <p class="evidence-text">مقتطف تجريبي يوضح موضع تفسير الآية، مع فصل كلام المفسر عن النص القرآني.</p>
+                  <div class="citation"><b>مصدر التفسير · الموضع</b><span>بيانات تجريبية</span></div>
+                  <footer><button type="button" class="text-button">فتح المصدر</button><label class="approve-control"><input type="checkbox" /><span>اعتماد البطاقة</span></label></footer>
+                </article>
+
+                <article class="evidence-card" data-type="sirah">
+                  <header><span class="source-pill sirah">سيرة</span><span class="gap-label">صلة غير كافية</span></header>
+                  <p class="axis-label">المحور: آثار الخيانة والتفريط</p>
+                  <p class="evidence-text">لم يعثر النموذج على واقعة موثقة تحقق معيار الصلة المحدد لهذا المحور.</p>
+                  <div class="generated-note caution"><span>سلوك الأمان</span><p>أظهر الفجوة بدل توليد واقعة أو نسبة قصة بلا مصدر.</p></div>
+                </article>
+              </div>
+
+              <aside class="coverage-panel" aria-labelledby="coverage-title">
+                <div class="coverage-heading"><div><span>خريطة التغطية</span><h3 id="coverage-title">جاهزية المادة</h3></div><strong>68%</strong></div>
+                <div class="coverage-bar"><span style="width:68%"></span></div>
+
+                <div class="coverage-axis"><div><b>معنى الأمانة</b><span class="coverage-state ready">جاهز للمراجعة</span></div><div class="mini-sources"><i class="on">ق</i><i class="on">ت</i><i>ح</i><i>س</i></div></div>
+                <div class="coverage-axis"><div><b>صور الأداء</b><span class="coverage-state partial">تغطية جزئية</span></div><div class="mini-sources"><i class="on">ق</i><i>ت</i><i class="warn">ح</i><i>س</i></div></div>
+                <div class="coverage-axis"><div><b>آثار التفريط</b><span class="coverage-state gap">توجد فجوة</span></div><div class="mini-sources"><i>ق</i><i>ت</i><i class="on">ح</i><i class="warn">س</i></div></div>
+
+                <div class="coverage-alert"><b>قبل التصدير</b><p>تحقق من مرجع الحديث، وأضف دليلاً موثقًا للمحور الثالث أو صرّح بعدم كفاية التغطية.</p></div>
+                <button class="primary-button full" id="continue-export" type="button">متابعة إلى التصدير</button>
+              </aside>
+            </div>
+          </section>
+
+          <section class="workflow-panel" data-step="5">
+            <div class="panel-heading compact">
+              <div>
+                <span class="section-number">05</span>
+                <h2>الحقيبة جاهزة للمراجعة النهائية</h2>
+                <p>التصدير يحفظ الأدلة المعتمدة والمراجع والفجوات ونقاط المراجعة البشرية.</p>
+              </div>
+              <span class="review-badge">ليست مادة للنشر المباشر</span>
+            </div>
+
+            <div class="export-layout">
+              <div class="document-preview">
+                <div class="document-top"><div class="mini-brand">مَظَانّ</div><span>حقيبة أدلة · نسخة تجريبية</span></div>
+                <h3 id="export-topic">أداء الأمانة وأثرها في حياة المسلم</h3>
+                <p>جمهور عام · 20 دقيقة · هدف معرفي</p>
+                <div class="document-stats"><span><b>3</b> محاور</span><span><b>4</b> بطاقات ظاهرة</span><span><b>2</b> نقاط مراجعة</span></div>
+                <div class="document-lines"><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="document-warning">تتضمن الحقيبة فجوة معلنة ومادة تحتاج إلى تحقق قبل الاستخدام.</div>
+              </div>
+
+              <div class="export-options">
+                <h3>ما الذي سيظهر في الملف؟</h3>
+                <label><input type="checkbox" checked /><span><b>النصوص والمراجع</b><small>بيانات المصدر والموضع والرابط</small></span></label>
+                <label><input type="checkbox" checked /><span><b>السياق وشرح الصلة</b><small>مع تمييز الشرح المولد بصريًا</small></span></label>
+                <label><input type="checkbox" checked /><span><b>الفجوات ونقاط المراجعة</b><small>لا تُخفى الأدلة الناقصة أو غير المعتمدة</small></span></label>
+                <label><input type="checkbox" /><span><b>البطاقات غير المعتمدة</b><small>تُضاف في ملحق منفصل عند الحاجة</small></span></label>
+
+                <div class="export-actions">
+                  <button class="primary-button full" type="button" id="export-demo">معاينة التصدير</button>
+                  <button class="secondary-button full" type="button" data-back="4">العودة إلى المراجعة</button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section id="design-system" class="view" aria-labelledby="design-title">
+          <div class="design-hero">
+            <div><p class="eyebrow">هوية المنتج</p><h2 id="design-title">نظام تصميم مَظَانّ</h2><p>امتداد رقمي لهوية العرض: معرفة موثقة، واجهة هادئة، وتفاعل يترك القرار للباحث.</p></div>
+            <div class="brand-display"><div class="brand-mark large"><span></span><span></span><span></span></div><strong>مَظَانّ</strong></div>
+          </div>
+
+          <div class="design-grid">
+            <article class="design-section colors-section">
+              <div class="design-heading"><span>01</span><div><h3>الألوان</h3><p>البنفسجي للحركة، والنعناعي للتحقق، والكحلي للثقة.</p></div></div>
+              <div class="swatches">
+                <div><i style="--swatch:#12183f"></i><b>ليل المعرفة</b><code>#12183F</code></div>
+                <div><i style="--swatch:#1b2458"></i><b>سطح عميق</b><code>#1B2458</code></div>
+                <div><i style="--swatch:#6150ea"></i><b>بنفسجي المسار</b><code>#6150EA</code></div>
+                <div><i style="--swatch:#2ef2c2"></i><b>نعناع التحقق</b><code>#2EF2C2</code></div>
+                <div><i style="--swatch:#f2f4ff"></i><b>ورق بارد</b><code>#F2F4FF</code></div>
+                <div><i style="--swatch:#aeb5db"></i><b>نص مساعد</b><code>#AEB5DB</code></div>
+              </div>
+            </article>
+
+            <article class="design-section type-section">
+              <div class="design-heading"><span>02</span><div><h3>الخط والصوت</h3><p>Readex Pro للواجهة، مع تدرج واضح ومفردات دقيقة.</p></div></div>
+              <div class="type-samples">
+                <div><small>عنوان رئيسي · 40/48</small><strong>الأدلة قبل الكتابة</strong></div>
+                <div><small>عنوان قسم · 26/36</small><h4>راجع خطة البحث</h4></div>
+                <div><small>نص أساسي · 16/28</small><p>يعرض مَظَانّ المرجع والسياق وحالة الدليل، ويصرّح بما لم يجده.</p></div>
+              </div>
+            </article>
+
+            <article class="design-section controls-section">
+              <div class="design-heading"><span>03</span><div><h3>التحكم</h3><p>أفعال صريحة، وحدود تركيز ظاهرة، وحالة واحدة أساسية في كل مشهد.</p></div></div>
+              <div class="control-samples">
+                <button class="primary-button" type="button">إجراء أساسي</button>
+                <button class="secondary-button" type="button">إجراء ثانوي</button>
+                <button class="text-button" type="button">إجراء نصي</button>
+                <label class="field sample-field"><span>حقل نصي</span><input value="موضوع المادة العلمية" /></label>
+              </div>
+            </article>
+
+            <article class="design-section states-section">
+              <div class="design-heading"><span>04</span><div><h3>حالات الدليل</h3><p>كل لون يعبّر عن قرار معرفي، لا عن الزينة.</p></div></div>
+              <div class="state-list">
+                <div><span class="verified-label">موثق بالمصدر</span><p>مرجع قابل للفتح والتحقق.</p></div>
+                <div><span class="review-label">يتطلب مراجعة</span><p>المرجع موجود لكن الاستخدام يحتاج مختصًا.</p></div>
+                <div><span class="gap-label">صلة غير كافية</span><p>تظهر الفجوة ولا تُملأ بتوليد غير موثق.</p></div>
+                <div><span class="referral-label">إحالة إلى مختص</span><p>فتوى أو حالة شخصية خارج نطاق النظام.</p></div>
+              </div>
+            </article>
+
+            <article class="design-section principles-section">
+              <div class="design-heading"><span>05</span><div><h3>مبادئ التجربة</h3><p>قواعد يجب أن تبقى ثابتة عند تطوير المنتج.</p></div></div>
+              <ol class="principles">
+                <li><b>الاعتماد بيد الباحث</b><span>لا يجمع النظام الأدلة قبل مراجعة الخطة.</span></li>
+                <li><b>النص غير الشرح</b><span>يفصل الاقتباس الأصلي بصريًا عن أي تفسير مولد.</span></li>
+                <li><b>الفجوة معلومة</b><span>عدم العثور نتيجة يجب عرضها بوضوح.</span></li>
+                <li><b>المصدر قريب</b><span>كل بطاقة تتيح الوصول إلى المرجع دون رحلة إضافية.</span></li>
+              </ol>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>
