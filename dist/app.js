@@ -1,109 +1,105 @@
-const state = { step: 1, view: "workspace", searching: false };
-
+const state = { stage: 1, busy: false };
 const qs = (selector, root = document) => root.querySelector(selector);
 const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
 
-function showToast(message) {
-  const toast = qs("#toast");
-  toast.textContent = message;
-  toast.classList.add("show");
-  window.clearTimeout(showToast.timer);
-  showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2800);
+function setStage(stage) {
+  state.stage = stage;
+  qsa('.stage').forEach((button) => {
+    const number = Number(button.dataset.stage);
+    button.classList.toggle('active', number === stage);
+    button.classList.toggle('complete', number < stage);
+  });
+  qs('.status-number').textContent = String(stage).padStart(2, '0');
 }
 
-function setStep(nextStep) {
-  state.step = nextStep;
-  qsa(".workflow-panel").forEach((panel) => panel.classList.toggle("active", Number(panel.dataset.step) === nextStep));
-  qsa("[data-step-marker]").forEach((marker) => {
-    const markerStep = Number(marker.dataset.stepMarker);
-    marker.classList.toggle("active", markerStep === nextStep);
-    marker.classList.toggle("complete", markerStep < nextStep);
-  });
-  window.scrollTo({ top: 0, behavior: "smooth" });
+function reset() {
+  state.busy = false;
+  setStage(1);
+  qs('#conversation').replaceChildren();
+  qs('#welcome').hidden = false;
+  qs('#message').value = '';
+  qs('#evidence-count').textContent = '0';
+  qs('#inspector-content').innerHTML = `
+    <div class="empty-evidence">
+      <div class="empty-icon" aria-hidden="true">⌁</div>
+      <strong>لا توجد أدلة بعد</strong>
+      <p>ابدأ بموضوع محدد. ستظهر هنا النصوص والمراجع وحالة التحقق.</p>
+    </div>`;
 }
 
-function setView(view) {
-  state.view = view;
-  qsa(".view").forEach((section) => section.classList.toggle("active", section.id === view));
-  qsa("[data-view]").forEach((button) => {
-    const active = button.dataset.view === view;
-    button.classList.toggle("active", active);
-    button.toggleAttribute("aria-current", active);
-  });
-  qs("#page-title").textContent = view === "workspace" ? "حقيبة أدلة جديدة" : "مرجع الهوية والتجربة";
+function addUserMessage(text) {
+  const message = document.createElement('div');
+  message.className = 'user-message';
+  message.textContent = text;
+  qs('#conversation').append(message);
 }
 
-qsa("[data-view]").forEach((button) => button.addEventListener("click", () => setView(button.dataset.view)));
-qsa("[data-back]").forEach((button) => button.addEventListener("click", () => setStep(Number(button.dataset.back))));
+function addLoading() {
+  const fragment = qs('#loading-template').content.cloneNode(true);
+  qs('#conversation').append(fragment);
+}
 
-qs("#topic-form").addEventListener("submit", (event) => {
-  event.preventDefault();
-  const topic = qs("#topic").value.trim();
-  if (!topic) return;
-  const audience = qs("#audience").value;
-  const duration = qs("#duration").value;
-  const goal = qs('input[name="goal"]:checked').value;
-  qs("#plan-topic").textContent = topic;
-  qs("#export-topic").textContent = topic;
-  qs("#plan-meta").textContent = `${audience} · ${duration} · هدف ${goal}`;
-  setStep(2);
+function addPlan() {
+  qs('.loading-message')?.remove();
+  const fragment = qs('#result-template').content.cloneNode(true);
+  qs('#conversation').append(fragment);
+  qs('#approve-plan').addEventListener('click', collectEvidence);
+}
+
+function submitTopic(text) {
+  const clean = text.trim();
+  if (!clean || state.busy) return;
+  state.busy = true;
+  qs('#welcome').hidden = true;
+  qs('#message').value = '';
+  addUserMessage(clean);
+  addLoading();
+  setStage(2);
+  qs('#workspace-body').scrollTop = qs('#workspace-body').scrollHeight;
+  window.setTimeout(() => {
+    addPlan();
+    state.busy = false;
+    qs('#workspace-body').scrollTop = qs('#workspace-body').scrollHeight;
+  }, 850);
+}
+
+function collectEvidence() {
+  setStage(3);
+  qs('#evidence-count').textContent = '3';
+  qs('#inspector-content').innerHTML = `
+    <article class="source-card">
+      <header><span class="source-type">قرآن</span><span class="source-state">موثق</span></header>
+      <blockquote>﴿إِنَّ اللَّهَ يَأْمُرُكُمْ أَنْ تُؤَدُّوا الْأَمَانَاتِ إِلَىٰ أَهْلِهَا﴾</blockquote>
+      <b>سورة النساء، الآية 58</b><small>صلة مباشرة · السياق متاح</small>
+    </article>
+    <article class="source-card">
+      <header><span class="source-type">تفسير</span><span class="source-state">سياق متاح</span></header>
+      <blockquote>موضع توضيحي لتفسير الآية مع فصل كلام المفسر عن النص القرآني.</blockquote>
+      <b>مصدر تجريبي غير متصل</b><small>يتطلب مطابقة المصدر قبل الاعتماد</small>
+    </article>
+    <article class="source-card">
+      <header><span class="source-type">حديث</span><span class="source-state" style="color:#8b5a00;background:#fff0cc">مراجعة</span></header>
+      <blockquote>حجز تصميمي لنتيجة الحديث حتى اكتمال الاتصال بالمصدر وحكم المحدث.</blockquote>
+      <b>لا يوجد مرجع فعلي في النموذج</b><small>لا يعتمد في الحقيبة النهائية</small>
+    </article>
+    <section class="coverage-box">
+      <header><h3>تغطية الموضوع</h3><strong>68%</strong></header>
+      <div class="coverage-track"><span></span></div>
+      <p>توجد بداية موثقة للمحور الأول. المحوران الثاني والثالث يحتاجان إلى أدلة ومراجعة إضافية.</p>
+    </section>`;
+  qs('#approve-plan').textContent = 'تم اعتماد الخطة';
+  qs('#approve-plan').disabled = true;
+  window.setTimeout(() => setStage(4), 650);
+}
+
+qsa('[data-prompt]').forEach((button) => button.addEventListener('click', () => submitTopic(button.dataset.prompt)));
+qsa('.stage').forEach((button) => button.addEventListener('click', () => setStage(Number(button.dataset.stage))));
+qs('#composer').addEventListener('submit', (event) => { event.preventDefault(); submitTopic(qs('#message').value); });
+qs('#message').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); qs('#composer').requestSubmit(); }
 });
-
-qs("#approve-plan").addEventListener("click", () => {
-  setStep(3);
-  showToast("تم اعتماد الخطة. أصبحت جاهزة لجمع الأدلة.");
+qs('#message').addEventListener('input', (event) => {
+  event.target.style.height = 'auto';
+  event.target.style.height = `${Math.min(event.target.scrollHeight, 130)}px`;
 });
-
-qs("#run-search").addEventListener("click", () => {
-  if (state.searching) return;
-  state.searching = true;
-  const status = qs(".search-status");
-  const rows = qsa("[data-source-row]");
-  const button = qs("#run-search");
-  status.classList.add("running");
-  button.disabled = true;
-  button.textContent = "المحاكاة جارية";
-  rows.forEach((row) => { row.classList.remove("complete"); qs(".source-state", row).textContent = "في الانتظار"; });
-
-  const stages = [
-    [18, "تحليل المحاور وتكوين الاستعلامات", 0],
-    [38, "فحص النص القرآني والسياق", 1],
-    [61, "مطابقة الشروح والأحاديث", 2],
-    [82, "ترتيب الأدلة وفحص المراجع", 3],
-    [100, "اكتملت المحاكاة", 4],
-  ];
-
-  stages.forEach(([percent, title, completed], index) => {
-    window.setTimeout(() => {
-      qs("#search-percentage").textContent = `${percent}%`;
-      qs("#search-title").textContent = title;
-      rows.slice(0, completed).forEach((row) => { row.classList.add("complete"); qs(".source-state", row).textContent = "اكتمل"; });
-      if (percent === 100) {
-        status.classList.remove("running");
-        state.searching = false;
-        button.disabled = false;
-        button.textContent = "عرض الأدلة التجريبية";
-        button.onclick = () => setStep(4);
-        showToast("اكتملت المحاكاة. النتائج المعروضة بيانات تصميمية فقط.");
-      }
-    }, index * 600);
-  });
-});
-
-qsa(".filter-chip").forEach((chip) => chip.addEventListener("click", () => {
-  qsa(".filter-chip").forEach((item) => item.classList.remove("active"));
-  chip.classList.add("active");
-  const filter = chip.dataset.filter;
-  qsa(".evidence-card").forEach((card) => { card.hidden = filter !== "all" && card.dataset.type !== filter; });
-}));
-
-qs("#continue-export").addEventListener("click", () => setStep(5));
-qs("#export-demo").addEventListener("click", () => showToast("المعاينة جاهزة. إنشاء الملف الفعلي سيُربط في مرحلة التطوير."));
-qs("#theme-toggle").addEventListener("click", () => {
-  document.body.classList.toggle("light");
-  showToast(document.body.classList.contains("light") ? "تم تفعيل المظهر الفاتح" : "تم تفعيل المظهر الداكن");
-});
-
-qsa(".approve-control input:not(:disabled)").forEach((input) => input.addEventListener("change", () => {
-  showToast(input.checked ? "تم اعتماد البطاقة في النموذج" : "أُزيل اعتماد البطاقة");
-}));
+qs('#new-session').addEventListener('click', reset);
