@@ -1,105 +1,34 @@
-const state = { stage: 1, busy: false };
-const qs = (selector, root = document) => root.querySelector(selector);
-const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
+const state={view:'start',theme:'light',reviewed:2};
+const qs=(selector,root=document)=>root.querySelector(selector);
+const qsa=(selector,root=document)=>[...root.querySelectorAll(selector)];
+const labels={start:'لم يبدأ جمع الأدلة بعد',plan:'الخطة جاهزة للمراجعة',evidence:'مراجعة المصادر والسياق',coverage:'الحقيبة جاهزة للمراجعة'};
 
-function setStage(stage) {
-  state.stage = stage;
-  qsa('.stage').forEach((button) => {
-    const number = Number(button.dataset.stage);
-    button.classList.toggle('active', number === stage);
-    button.classList.toggle('complete', number < stage);
-  });
-  qs('.status-number').textContent = String(stage).padStart(2, '0');
+function showView(view){
+  state.view=view;
+  qsa('.screen').forEach(el=>el.classList.toggle('active',el.dataset.screen===view));
+  qsa('.nav-item').forEach((el,index)=>{const active=el.dataset.view===view;el.classList.toggle('active',active);el.classList.toggle('complete',index<['start','plan','evidence','coverage'].indexOf(view));});
+  qs('#context-label').textContent=labels[view];
+  qs('.sidebar').classList.remove('open');
+  window.scrollTo({top:0,behavior:'smooth'});
 }
-
-function reset() {
-  state.busy = false;
-  setStage(1);
-  qs('#conversation').replaceChildren();
-  qs('#welcome').hidden = false;
-  qs('#message').value = '';
-  qs('#evidence-count').textContent = '0';
-  qs('#inspector-content').innerHTML = `
-    <div class="empty-evidence">
-      <div class="empty-icon" aria-hidden="true">⌁</div>
-      <strong>لا توجد أدلة بعد</strong>
-      <p>ابدأ بموضوع محدد. ستظهر هنا النصوص والمراجع وحالة التحقق.</p>
-    </div>`;
-}
-
-function addUserMessage(text) {
-  const message = document.createElement('div');
-  message.className = 'user-message';
-  message.textContent = text;
-  qs('#conversation').append(message);
-}
-
-function addLoading() {
-  const fragment = qs('#loading-template').content.cloneNode(true);
-  qs('#conversation').append(fragment);
-}
-
-function addPlan() {
-  qs('.loading-message')?.remove();
-  const fragment = qs('#result-template').content.cloneNode(true);
-  qs('#conversation').append(fragment);
-  qs('#approve-plan').addEventListener('click', collectEvidence);
-}
-
-function submitTopic(text) {
-  const clean = text.trim();
-  if (!clean || state.busy) return;
-  state.busy = true;
-  qs('#welcome').hidden = true;
-  qs('#message').value = '';
-  addUserMessage(clean);
-  addLoading();
-  setStage(2);
-  qs('#workspace-body').scrollTop = qs('#workspace-body').scrollHeight;
-  window.setTimeout(() => {
-    addPlan();
-    state.busy = false;
-    qs('#workspace-body').scrollTop = qs('#workspace-body').scrollHeight;
-  }, 850);
-}
-
-function collectEvidence() {
-  setStage(3);
-  qs('#evidence-count').textContent = '3';
-  qs('#inspector-content').innerHTML = `
-    <article class="source-card">
-      <header><span class="source-type">قرآن</span><span class="source-state">موثق</span></header>
-      <blockquote>﴿إِنَّ اللَّهَ يَأْمُرُكُمْ أَنْ تُؤَدُّوا الْأَمَانَاتِ إِلَىٰ أَهْلِهَا﴾</blockquote>
-      <b>سورة النساء، الآية 58</b><small>صلة مباشرة · السياق متاح</small>
-    </article>
-    <article class="source-card">
-      <header><span class="source-type">تفسير</span><span class="source-state">سياق متاح</span></header>
-      <blockquote>موضع توضيحي لتفسير الآية مع فصل كلام المفسر عن النص القرآني.</blockquote>
-      <b>مصدر تجريبي غير متصل</b><small>يتطلب مطابقة المصدر قبل الاعتماد</small>
-    </article>
-    <article class="source-card">
-      <header><span class="source-type">حديث</span><span class="source-state" style="color:#8b5a00;background:#fff0cc">مراجعة</span></header>
-      <blockquote>حجز تصميمي لنتيجة الحديث حتى اكتمال الاتصال بالمصدر وحكم المحدث.</blockquote>
-      <b>لا يوجد مرجع فعلي في النموذج</b><small>لا يعتمد في الحقيبة النهائية</small>
-    </article>
-    <section class="coverage-box">
-      <header><h3>تغطية الموضوع</h3><strong>68%</strong></header>
-      <div class="coverage-track"><span></span></div>
-      <p>توجد بداية موثقة للمحور الأول. المحوران الثاني والثالث يحتاجان إلى أدلة ومراجعة إضافية.</p>
-    </section>`;
-  qs('#approve-plan').textContent = 'تم اعتماد الخطة';
-  qs('#approve-plan').disabled = true;
-  window.setTimeout(() => setStage(4), 650);
-}
-
-qsa('[data-prompt]').forEach((button) => button.addEventListener('click', () => submitTopic(button.dataset.prompt)));
-qsa('.stage').forEach((button) => button.addEventListener('click', () => setStage(Number(button.dataset.stage))));
-qs('#composer').addEventListener('submit', (event) => { event.preventDefault(); submitTopic(qs('#message').value); });
-qs('#message').addEventListener('keydown', (event) => {
-  if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); qs('#composer').requestSubmit(); }
-});
-qs('#message').addEventListener('input', (event) => {
-  event.target.style.height = 'auto';
-  event.target.style.height = `${Math.min(event.target.scrollHeight, 130)}px`;
-});
-qs('#new-session').addEventListener('click', reset);
+function toast(message){const el=qs('#toast');el.textContent=message;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2800)}
+qsa('[data-view]').forEach(button=>button.addEventListener('click',()=>showView(button.dataset.view)));
+qsa('[data-example]').forEach(button=>button.addEventListener('click',()=>{qs('#topic').value=button.dataset.example;qs('#topic').focus()}));
+qs('#research-form').addEventListener('submit',event=>{event.preventDefault();const topic=qs('#topic').value.trim()||'أثر الأمانة في بناء الثقة داخل المجتمع';qs('#summary-topic').textContent=topic;showView('plan')});
+qs('#approve-plan').addEventListener('click',()=>{toast('تم اعتماد الخطة · جُمعت نتائج تجريبية للمراجعة');setTimeout(()=>showView('evidence'),500)});
+qsa('.plan-card').forEach(card=>card.addEventListener('click',()=>{qsa('.plan-card').forEach(c=>c.classList.remove('selected'));card.classList.add('selected')}));
+qsa('.filter').forEach(button=>button.addEventListener('click',()=>{qsa('.filter').forEach(b=>b.classList.remove('active'));button.classList.add('active');const type=button.dataset.filter;qsa('.evidence-card').forEach(card=>card.hidden=type!=='all'&&card.dataset.type!==type)}));
+const inspectorContent={
+  verse:{title:'سورة النساء، الآية 58',text:'﴿إِنَّ اللَّهَ يَأْمُرُكُمْ أَنْ تُؤَدُّوا الْأَمَانَاتِ إِلَىٰ أَهْلِهَا﴾',source:'النص القرآني المعتمد',location:'النساء · 58',reason:'تؤسس الآية للأمانة بوصفها أداءً للحق إلى صاحبه، وهو المدخل الأنسب للمحور الأول.'},
+  tafsir:{title:'تفسير السعدي، النساء 58',text:'الأمانات تشمل كل ما اؤتمن عليه الإنسان وأُمر بالقيام به.',source:'تفسير السعدي',location:'النساء · 58',reason:'يوسّع التفسير دائرة الأمانة، لكن العبارة الأصلية يجب أن تُراجع في المصدر قبل الاقتباس.'},
+  hadith:{title:'صحيح البخاري، حديث 33',text:'آية المنافق ثلاث: إذا حدث كذب، وإذا وعد أخلف، وإذا اؤتمن خان.',source:'صحيح البخاري',location:'كتاب الإيمان · 33',reason:'يقدم صورة تطبيقية للخيانة، ويحتاج عرضه إلى تخريج ظاهر وسياق مناسب.'},
+  study:{title:'مرجع اجتماعي مساعد',text:'الثقة عنصر بنيوي في تماسك العلاقات والمؤسسات.',source:'بيانات توضيحية',location:'غير متصل',reason:'يساعد في تأطير الأثر الاجتماعي، ولا يقدم بوصفه دليلًا شرعيًا.'}
+};
+qsa('.evidence-card').forEach(card=>card.addEventListener('click',event=>{if(event.target.closest('button'))return;qsa('.evidence-card').forEach(c=>c.classList.remove('selected'));card.classList.add('selected');const item=inspectorContent[card.dataset.evidence];const panel=qs('#source-inspector');qs('h2',panel).textContent=item.title;qs('.original-text p',panel).textContent=item.text;const meta=qsa('.source-meta b',panel);meta[0].textContent=item.source;meta[1].textContent=item.location;qs('.relevance p',panel).textContent=item.reason}));
+qs('#accept-evidence').addEventListener('click',()=>{if(state.reviewed<6)state.reviewed++;qs('#reviewed-count').textContent=state.reviewed;toast('أُضيف الدليل إلى الحقيبة مع بيانات مصدره')});
+qs('#export-button').addEventListener('click',()=>toast('محاكاة فقط: التصدير الفعلي غير متصل في هذه النسخة'));
+qs('#theme-toggle').addEventListener('click',()=>{state.theme=state.theme==='light'?'dark':'light';document.body.classList.toggle('dark',state.theme==='dark');qs('#theme-label').textContent=state.theme==='dark'?'داكن':'فاتح'});
+qs('#mobile-menu').addEventListener('click',()=>qs('.sidebar').classList.toggle('open'));
+qs('#prototype-info').addEventListener('click',()=>{qs('#info-modal').hidden=false;qs('.modal-close').focus()});
+qsa('[data-close-modal]').forEach(el=>el.addEventListener('click',()=>{qs('#info-modal').hidden=true;qs('#prototype-info').focus()}));
+document.addEventListener('keydown',event=>{if(event.key==='Escape'){qs('#info-modal').hidden=true;qs('.sidebar').classList.remove('open')}});

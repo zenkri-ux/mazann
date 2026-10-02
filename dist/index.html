@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#12183f" />
-    <meta name="description" content="مَظَانّ — مساحة بحث لبناء حقائب أدلة موثقة وقابلة للمراجعة." />
+    <meta name="theme-color" content="#11183f" />
+    <meta name="description" content="مَظَانّ — مساحة بحث تبني حقيبة أدلة موثقة، من السؤال إلى المراجعة." />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,104 +13,79 @@
     <title>مَظَانّ | مساحة إعداد الأدلة</title>
   </head>
   <body>
-    <a class="skip-link" href="#workspace">انتقل إلى مساحة العمل</a>
-
+    <a class="skip-link" href="#main-content">انتقل إلى المحتوى</a>
     <div class="app-shell">
-      <aside class="journey-rail" aria-label="رحلة إعداد الحقيبة">
-        <header class="brand">
-          <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
-          <div><strong>مَظَانّ</strong><small>مساحة إعداد الأدلة</small></div>
+      <aside class="sidebar" aria-label="التنقل الرئيسي">
+        <header class="brand-lockup">
+          <svg class="mazann-mark" viewBox="0 0 64 64" role="img" aria-label="شعار مَظَانّ">
+            <defs><linearGradient id="markGradient" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#5d4ff2"/><stop offset="1" stop-color="#31d9cf"/></linearGradient></defs>
+            <path d="M32 6C22 6 14 14 14 24c0 13 18 28 18 28s18-15 18-28C50 14 42 6 32 6Z" fill="none" stroke="url(#markGradient)" stroke-width="4"/>
+            <path d="M17 20c9-1 15 3 15 12M47 20c-9-1-15 3-15 12M23 43c4-5 9-7 18 0" fill="none" stroke="url(#markGradient)" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="32" cy="31" r="4.5" fill="#31d9cf"/>
+          </svg>
+          <div><strong>مَظَانّ</strong><span>مساحة إعداد الأدلة</span></div>
         </header>
-
-        <p class="rail-label">رحلة البحث</p>
-        <nav class="stage-list" id="stage-list">
-          <button class="stage active" type="button" data-stage="1"><span>1</span><b>تحديد الموضوع</b></button>
-          <button class="stage" type="button" data-stage="2"><span>2</span><b>خطة البحث</b></button>
-          <button class="stage" type="button" data-stage="3"><span>3</span><b>جمع الأدلة</b></button>
-          <button class="stage" type="button" data-stage="4"><span>4</span><b>المراجعة والتغطية</b></button>
-          <button class="stage" type="button" data-stage="5"><span>5</span><b>الحقيبة النهائية</b></button>
+        <nav class="primary-nav" aria-label="شاشات النموذج">
+          <p>مسار العمل</p>
+          <button class="nav-item active" type="button" data-view="start"><span class="nav-icon">⌕</span><span><b>بدء البحث</b><small>تحديد الموضوع والسياق</small></span><i>01</i></button>
+          <button class="nav-item" type="button" data-view="plan"><span class="nav-icon">◫</span><span><b>خطة البحث</b><small>المحاور وأسئلة التحقق</small></span><i>02</i></button>
+          <button class="nav-item" type="button" data-view="evidence"><span class="nav-icon">◇</span><span><b>مراجعة الأدلة</b><small>النص والمصدر والسياق</small></span><i>03</i></button>
+          <button class="nav-item" type="button" data-view="coverage"><span class="nav-icon">◎</span><span><b>التغطية والحقيبة</b><small>الفجوات قبل التصدير</small></span><i>04</i></button>
         </nav>
-
-        <div class="rail-status">
-          <span class="pulse" aria-hidden="true"></span>
-          <div><strong>النموذج جاهز</strong><small>نسخة تصميمية قبل التحدي</small></div>
-          <span class="status-number">01</span>
+        <div class="sidebar-foot">
+          <div class="trust-card"><span></span><div><b>بيئة مراجعة</b><small>لا يُعتمد محتوى دون مصدر</small></div></div>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="تبديل المظهر"><span>◐</span><b>المظهر</b><small id="theme-label">فاتح</small></button>
         </div>
       </aside>
-
-      <main id="workspace" class="workspace">
-        <header class="workspace-header">
-          <div><h1>مساحة إعداد الأدلة</h1><p>ابدأ بالموضوع، راجع الخطة، ثم افحص كل دليل قبل اعتماده.</p></div>
-          <button class="new-session" id="new-session" type="button"><span aria-hidden="true">↻</span> بحث جديد</button>
+      <main id="main-content" class="main-content">
+        <header class="topbar">
+          <button class="mobile-menu" id="mobile-menu" type="button" aria-label="فتح القائمة">☰</button>
+          <div class="project-context"><span class="context-dot"></span><div><b>حقيبة بحث جديدة</b><small id="context-label">لم يبدأ جمع الأدلة بعد</small></div></div>
+          <div class="top-actions"><button class="ghost-button" id="prototype-info" type="button">عن النموذج</button><button class="profile-button" type="button" aria-label="حساب الباحث">ز</button></div>
         </header>
-
-        <div class="workspace-body" id="workspace-body">
-          <section class="welcome" id="welcome" aria-labelledby="welcome-title">
-            <div class="challenge-kicker"><i></i><span>تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي</span></div>
-            <h2 id="welcome-title">من الموضوع إلى حقيبة أدلة<br /><em>قابلة للمراجعة</em></h2>
-            <p class="welcome-copy">يحوّل مَظَانّ موضوع المادة إلى محاور بحث، ثم يجمع الأدلة مع سياقها ومراجعها، ويكشف ما يزال ناقصًا قبل الكتابة.</p>
-
-            <div class="prompt-grid" aria-label="أمثلة للبدء">
-              <button type="button" data-prompt="أداء الأمانة وأثرها في حياة المسلم"><small>موضوع قيمي</small><strong>أداء الأمانة وأثرها في حياة المسلم</strong></button>
-              <button type="button" data-prompt="الرحمة في التعامل مع الضعفاء"><small>موضوع سلوكي</small><strong>الرحمة في التعامل مع الضعفاء</strong></button>
-              <button type="button" data-prompt="مكانة الصدق وآثاره في المجتمع"><small>بحث موضوعي</small><strong>مكانة الصدق وآثاره في المجتمع</strong></button>
-              <button type="button" data-prompt="كيف يبني المسلم علاقته بالقرآن؟"><small>رحلة معرفية</small><strong>كيف يبني المسلم علاقته بالقرآن؟</strong></button>
-            </div>
-          </section>
-
-          <section class="conversation" id="conversation" aria-live="polite" aria-label="نتائج البحث"></section>
-        </div>
-
-        <footer class="composer-wrap">
-          <form class="composer" id="composer">
-            <textarea id="message" rows="1" aria-label="موضوع المادة العلمية" placeholder="اكتب موضوع الخطبة أو المادة العلمية..."></textarea>
-            <button type="submit" aria-label="إرسال الموضوع"><span aria-hidden="true">↑</span></button>
-          </form>
-          <p>Enter للإرسال · Shift + Enter لسطر جديد · النتائج التجريبية ليست مادة جاهزة للنشر</p>
-        </footer>
-      </main>
-
-      <aside class="evidence-inspector" aria-labelledby="inspector-title">
-        <header>
-          <div><h2 id="inspector-title">مفتش الأدلة</h2><p>راجع ما وصل إلى الحقيبة ومصدر كل نتيجة.</p></div>
-          <span class="evidence-count" id="evidence-count">0</span>
-        </header>
-
-        <div class="inspector-content" id="inspector-content">
-          <div class="empty-evidence">
-            <div class="empty-icon" aria-hidden="true">⌁</div>
-            <strong>لا توجد أدلة بعد</strong>
-            <p>ابدأ بموضوع محدد. ستظهر هنا النصوص والمراجع وحالة التحقق.</p>
+        <section class="screen active" id="screen-start" data-screen="start" aria-labelledby="start-title">
+          <div class="start-hero pattern-field">
+            <div class="hero-copy"><div class="eyebrow"><span></span>ابدأ بسؤال، لا بإجابة جاهزة</div><h1 id="start-title">ابنِ مادةً يمكنك<br><em>الرجوع إلى مظانّها.</em></h1><p>حوّل موضوعك إلى خطة بحث واضحة، ثم اجمع النصوص مع مصادرها وسياقها وحدود استخدامها قبل البدء في الكتابة.</p></div>
+            <div class="identity-orbit" aria-hidden="true"><span></span><span></span><span></span><b>م</b></div>
           </div>
-        </div>
-      </aside>
+          <form class="research-brief" id="research-form">
+            <div class="field topic-field"><label for="topic">ما الموضوع الذي تعمل عليه؟</label><textarea id="topic" rows="2" placeholder="مثال: أثر الأمانة في بناء الثقة داخل المجتمع"></textarea><small>اكتب موضوعًا محددًا؛ يمكنك تحسينه في الخطوة التالية.</small></div>
+            <div class="brief-row"><div class="field"><label for="audience">الجمهور</label><select id="audience"><option>جمهور عام</option><option>طلاب جامعيون</option><option>ناشئة</option><option>باحثون</option></select></div><div class="field"><label for="format">نوع المادة</label><select id="format"><option>خطبة جمعة</option><option>مقال</option><option>درس قصير</option><option>حلقة صوتية</option></select></div><div class="field"><label for="duration">المدة</label><select id="duration"><option>15–20 دقيقة</option><option>5–10 دقائق</option><option>30–45 دقيقة</option></select></div></div>
+            <div class="brief-footer"><p><span>i</span> سيقترح مَظَانّ خطة أولية. لن يبدأ البحث قبل اعتمادك لها.</p><button class="primary-button" type="submit">بناء خطة البحث</button></div>
+          </form>
+          <div class="scenario-strip" aria-label="أمثلة للاستخدام"><p>أو ابدأ بمثال</p><button type="button" data-example="أثر الأمانة في بناء الثقة داخل المجتمع"><span>01</span><b>موضوع قيمي</b><small>الأمانة وبناء الثقة</small></button><button type="button" data-example="الرحمة في التعامل مع الضعفاء"><span>02</span><b>موضوع سلوكي</b><small>الرحمة في التعامل</small></button><button type="button" data-example="كيف يبني المسلم علاقته بالقرآن؟"><span>03</span><b>رحلة معرفية</b><small>العلاقة بالقرآن</small></button></div>
+        </section>
+        <section class="screen" id="screen-plan" data-screen="plan" aria-labelledby="plan-title">
+          <div class="section-heading"><div><span class="step-chip">الخطوة 02 · خطة البحث</span><h1 id="plan-title">راجع مسار البحث قبل جمع الأدلة</h1><p>هذه الخطة قابلة للتعديل. كل محور يوضح السؤال الذي سيجيب عنه ونوع الدليل المطلوب.</p></div><div class="completion-ring"><span>3</span><small>محاور</small></div></div>
+          <div class="plan-layout"><div class="plan-list" id="plan-list">
+            <article class="plan-card selected"><button class="drag-handle" type="button" aria-label="ترتيب المحور">⋮⋮</button><span class="plan-number">01</span><div><label>المحور المؤسس</label><h2>معنى الأمانة ومكانتها</h2><p>ما المفهوم الذي تؤسسه النصوص؟ وما حدوده في هذا السياق؟</p><div class="source-pills"><span>قرآن</span><span>تفسير</span></div></div><button class="icon-button" type="button" aria-label="تعديل المحور">✎</button></article>
+            <article class="plan-card"><button class="drag-handle" type="button" aria-label="ترتيب المحور">⋮⋮</button><span class="plan-number">02</span><div><label>المحور التطبيقي</label><h2>صور الأمانة في حياة المسلم</h2><p>كيف تظهر الأمانة في الحقوق، والعمل، والكلمة، والمسؤولية؟</p><div class="source-pills"><span>حديث</span><span>سيرة</span></div></div><button class="icon-button" type="button" aria-label="تعديل المحور">✎</button></article>
+            <article class="plan-card"><button class="drag-handle" type="button" aria-label="ترتيب المحور">⋮⋮</button><span class="plan-number">03</span><div><label>محور الأثر</label><h2>الأمانة أساس الثقة المجتمعية</h2><p>ما الآثار الفردية والاجتماعية؟ وما الذي يحتاج إلى تقييد؟</p><div class="source-pills"><span>قرآن</span><span>حديث</span><span>دراسات</span></div></div><button class="icon-button" type="button" aria-label="تعديل المحور">✎</button></article>
+            <button class="add-axis" type="button">＋ إضافة محور</button>
+          </div><aside class="plan-summary"><h2>ملخص التكليف</h2><dl><div><dt>الموضوع</dt><dd id="summary-topic">أثر الأمانة في بناء الثقة داخل المجتمع</dd></div><div><dt>الجمهور</dt><dd>جمهور عام</dd></div><div><dt>نوع المادة</dt><dd>خطبة جمعة · 15–20 دقيقة</dd></div></dl><div class="boundary-note"><span>!</span><p><b>حدود البحث</b>النتائج مادة مساعدة للباحث، وليست فتوى أو نصًا جاهزًا للنشر.</p></div><button class="primary-button full" id="approve-plan" type="button">اعتماد الخطة وبدء البحث</button><button class="text-button" data-view="start" type="button">العودة لتعديل التكليف</button></aside></div>
+        </section>
+        <section class="screen evidence-screen" id="screen-evidence" data-screen="evidence" aria-labelledby="evidence-title">
+          <div class="evidence-top"><div><span class="step-chip dark">الخطوة 03 · مراجعة الأدلة</span><h1 id="evidence-title">المعنى واضح. الآن افحص السند والسياق.</h1></div><div class="evidence-progress"><small>تمت مراجعة</small><b><span id="reviewed-count">2</span> / 6</b></div></div>
+          <div class="filter-row" role="toolbar" aria-label="تصفية الأدلة"><button class="filter active" data-filter="all" type="button">الكل <span>6</span></button><button class="filter" data-filter="quran" type="button">القرآن <span>2</span></button><button class="filter" data-filter="hadith" type="button">الحديث <span>2</span></button><button class="filter" data-filter="tafsir" type="button">التفسير <span>1</span></button><button class="filter" data-filter="study" type="button">دراسة <span>1</span></button></div>
+          <div class="evidence-layout"><div class="evidence-feed" id="evidence-feed">
+            <article class="evidence-card selected" data-type="quran" data-evidence="verse"><header><div><span class="type-badge quran">قرآن</span><span class="verified-badge">✓ مطابق للنص</span></div><button class="more-button" type="button" aria-label="المزيد">•••</button></header><blockquote>﴿إِنَّ اللَّهَ يَأْمُرُكُمْ أَنْ تُؤَدُّوا الْأَمَانَاتِ إِلَىٰ أَهْلِهَا﴾</blockquote><p>أصل مباشر في وجوب أداء الحقوق إلى أصحابها، ويؤسس للمعنى قبل الانتقال إلى صوره التطبيقية.</p><footer><span>النساء · 58</span><button type="button">فتح في المصحف</button></footer></article>
+            <article class="evidence-card" data-type="tafsir" data-evidence="tafsir"><header><div><span class="type-badge tafsir">تفسير</span><span class="verified-badge">✓ المصدر متاح</span></div><button class="more-button" type="button" aria-label="المزيد">•••</button></header><h2>الأمانات تشمل حقوق الله وحقوق العباد</h2><p>خلاصة تفسيرية توضع منفصلة عن النص القرآني، مع الرجوع إلى العبارة الأصلية في المصدر قبل الاقتباس.</p><footer><span>تفسير السعدي · النساء 58</span><button type="button">عرض الموضع</button></footer></article>
+            <article class="evidence-card warning" data-type="hadith" data-evidence="hadith"><header><div><span class="type-badge hadith">حديث</span><span class="review-badge">! يحتاج مراجعة</span></div><button class="more-button" type="button" aria-label="المزيد">•••</button></header><h2>علامة المنافق ثلاث...</h2><p>صلة الحديث بالموضوع قوية، لكن استخدامه يحتاج إظهار التخريج والحكم وموضع الشاهد كاملًا.</p><footer><span>صحيح البخاري · 33</span><button type="button">مراجعة التخريج</button></footer></article>
+            <article class="evidence-card" data-type="study" data-evidence="study"><header><div><span class="type-badge study">دراسة</span><span class="neutral-badge">مرجع مساعد</span></div><button class="more-button" type="button" aria-label="المزيد">•••</button></header><h2>الثقة كأصل من أصول التماسك الاجتماعي</h2><p>مرجع معاصر لتأطير الأثر الاجتماعي، ولا يُقدّم بوصفه دليلًا شرعيًا.</p><footer><span>بيانات تجريبية للنموذج</span><button type="button">تفاصيل المرجع</button></footer></article>
+          </div><aside class="source-inspector" id="source-inspector"><header><div><span class="inspector-kicker">مفتش المصدر</span><h2>سورة النساء، الآية 58</h2></div><span class="verified-seal">✓</span></header><div class="original-text"><label>النص الأصلي</label><p>﴿إِنَّ اللَّهَ يَأْمُرُكُمْ أَنْ تُؤَدُّوا الْأَمَانَاتِ إِلَىٰ أَهْلِهَا﴾</p></div><div class="source-meta"><div><span>المصدر</span><b>النص القرآني المعتمد</b></div><div><span>الموضع</span><b>النساء · 58</b></div><div><span>المطابقة</span><b class="mint-text">كاملة</b></div></div><div class="relevance"><label>سبب الصلة</label><p>تؤسس الآية للأمانة بوصفها أداءً للحق إلى صاحبه، وهو المدخل الأنسب للمحور الأول.</p><small>هذا الشرح مولّد ويجب مراجعته. النص الأصلي أعلاه منفصل عنه.</small></div><div class="inspector-actions"><button class="accept-button" id="accept-evidence" type="button">✓ اعتماد في الحقيبة</button><button class="reject-button" type="button">استبعاد</button></div></aside></div>
+        </section>
+        <section class="screen" id="screen-coverage" data-screen="coverage" aria-labelledby="coverage-title">
+          <div class="section-heading"><div><span class="step-chip">الخطوة 04 · التغطية والحقيبة</span><h1 id="coverage-title">حقيبتك قوية في التأصيل، وتحتاج شاهدًا تطبيقيًا.</h1><p>الفجوات تبقى ظاهرة في التصدير حتى لا تبدو المادة أكمل مما هي عليه.</p></div><div class="score-block"><strong>78<small>%</small></strong><span>اكتمال الحقيبة</span></div></div>
+          <div class="coverage-grid"><section class="coverage-map"><header><div><h2>خريطة التغطية</h2><p>3 محاور · 6 أدلة · فجوة واحدة</p></div><div class="legend"><span><i class="good"></i>موثق</span><span><i class="review"></i>مراجعة</span><span><i class="gap"></i>فجوة</span></div></header><div class="axis-row"><div><span>01</span><div><b>معنى الأمانة ومكانتها</b><small>3 أدلة معتمدة</small></div></div><div class="coverage-cells"><i class="good"></i><i class="good"></i><i class="good"></i><i></i><i></i></div><strong>100%</strong></div><div class="axis-row"><div><span>02</span><div><b>صور الأمانة في الحياة</b><small>دليلان · أحدهما قيد المراجعة</small></div></div><div class="coverage-cells"><i class="good"></i><i class="review"></i><i></i><i></i><i></i></div><strong>72%</strong></div><div class="axis-row"><div><span>03</span><div><b>الأمانة والثقة المجتمعية</b><small>دليل واحد · شاهد تطبيقي مفقود</small></div></div><div class="coverage-cells"><i class="good"></i><i class="gap"></i><i></i><i></i><i></i></div><strong>61%</strong></div></section>
+            <aside class="export-panel"><span class="export-icon">⇩</span><h2>الحقيبة جاهزة للمراجعة</h2><p>يتضمن التصدير النصوص المعتمدة، بيانات المصادر، ملاحظات السياق، والفجوات الحالية.</p><ul><li><span>✓</span>فصل النص الأصلي عن الشرح</li><li><span>✓</span>إظهار حالة كل دليل</li><li><span>✓</span>إبقاء الفجوات ظاهرة</li></ul><button class="primary-button full" id="export-button" type="button">تصدير مسودة الحقيبة</button><small>مسودة بحثية · ليست مادة جاهزة للنشر</small></aside>
+            <section class="gap-card"><span class="gap-symbol">!</span><div><small>فجوة ذات أولوية</small><h2>لا يوجد مثال تطبيقي موثق للمحور الثالث</h2><p>أضف شاهدًا من السيرة أو دراسة محكمة، أو قيّد الاستنتاج في المادة النهائية.</p></div><button data-view="evidence" type="button">العودة إلى الأدلة</button></section>
+            <section class="checklist"><header><h2>قبل التصدير</h2><span>4 / 5</span></header><label><input checked type="checkbox"> <span>مراجعة مطابقة الآيات</span></label><label><input checked type="checkbox"> <span>إظهار أحكام الأحاديث</span></label><label><input checked type="checkbox"> <span>تمييز الشرح المولد</span></label><label><input checked type="checkbox"> <span>تسجيل بيانات المصادر</span></label><label><input type="checkbox"> <span>مراجعة باحث متخصص</span></label></section>
+          </div>
+        </section>
+      </main>
     </div>
-
-    <template id="loading-template">
-      <div class="assistant-message loading-message">
-        <div class="assistant-avatar"><span></span><span></span><span></span></div>
-        <div><small>مَظَانّ يرتب خطة البحث</small><div class="typing"><i></i><i></i><i></i></div></div>
-      </div>
-    </template>
-
-    <template id="result-template">
-      <article class="assistant-message result-message">
-        <div class="assistant-avatar"><span></span><span></span><span></span></div>
-        <div class="message-content">
-          <div class="message-meta"><b>مَظَانّ</b><span>خطة بحث تجريبية</span></div>
-          <h3>خطة أولية قبل جمع الأدلة</h3>
-          <p>قسّمت الموضوع إلى ثلاثة محاور قابلة للمراجعة. اعتمد الخطة أو عدّلها قبل الانتقال إلى المصادر.</p>
-          <ol class="research-plan">
-            <li><span>01</span><div><b>التأصيل والمعنى</b><small>تحديد المفهوم والنصوص المؤسسة له</small></div></li>
-            <li><span>02</span><div><b>الصور والتطبيقات</b><small>ربط المعنى بسلوك المستفيد وحياته</small></div></li>
-            <li><span>03</span><div><b>الآثار والفجوات</b><small>تحديد النتائج وما يحتاج إلى دليل إضافي</small></div></li>
-          </ol>
-          <div class="message-actions"><button type="button" class="primary-action" id="approve-plan">اعتماد الخطة وجمع الأدلة</button><button type="button" class="secondary-action">تعديل المحاور</button></div>
-          <p class="demo-note">هذه خطة واجهة توضيحية. البحث الفعلي بالمصادر غير متصل في نسخة ما قبل التحدي.</p>
-        </div>
-      </article>
-    </template>
-
+    <div class="modal" id="info-modal" hidden><div class="modal-backdrop" data-close-modal></div><section role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" data-close-modal type="button" aria-label="إغلاق">×</button><span class="step-chip">نموذج تجربة</span><h2 id="modal-title">هذا نموذج تفاعلي للمراجعة</h2><p>البيانات والأدلة المعروضة توضيحية. لا توجد حاليًا اتصالات بمصادر أو تحقق آلي أو تصدير فعلي.</p><button class="primary-button" data-close-modal type="button">فهمت</button></section></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="./app.js"></script>
   </body>
 </html>
