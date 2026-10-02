@@ -10,6 +10,8 @@ Purpose: tell engineering exactly which source to use, for what, and under which
 
 ## Integration order for the competition build
 
+The judged slice is Arabic and uses the Friday-sermon research package as its complete workflow. The registry remains multilingual so expansion does not require a new identity model, but cross-language delivery must not delay the Arabic P0 journey.
+
 | Priority | Deliverable | Why it matters |
 |---|---|---|
 | P0 | King Fahd Quran identity + QuranEnc translations; HadeethEnc + Dorar grading; ICADB IDs/alignment; approved terminology | Powers the core evidence journey with canonical IDs, approved multilingual text, and traceability. |

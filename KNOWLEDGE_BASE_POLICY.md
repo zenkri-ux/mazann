@@ -4,7 +4,7 @@ Status: competition build policy
 
 Authority: `المرجعية والحزمة العلمية والبيانات`, pp. 2–15 (updated 2 October 2026)
 
-Scope: every ingestion, retrieval, generation, translation, and display path in Mazann
+Scope: every ingestion, retrieval, generation, translation, persistence, and display path in Mazann. The competition use case is an Arabic research package for a Friday preacher or Islamic-content researcher; broader formats and languages remain an architectural expansion unless explicitly implemented and tested.
 
 ## 1. Non-negotiable principles
 
@@ -103,9 +103,12 @@ Do not infer unnecessary religious or sensitive traits about a person. Ask only 
    - explanatory axes;
    - audience-specific vocabulary and examples;
    - disagreement, sensitivity, and referral boundaries;
-   - success criterion for the finished content.
-5. Adapt clarity and depth to the audience without distorting meaning or hiding relevant disagreement.
-6. Require human approval of the topic map before the system assembles evidence.
+   - success criterion for the finished content;
+   - expected share of the available duration.
+5. Attach to every axis its research question, purpose, required evidence, preferred source families, content level, audience note, and review boundary.
+6. Check the proposal for duplicated axes, missing foundations, unsupported contemporary claims, excessive scope, unsuitable sequencing, and content requiring qualification or referral.
+7. Adapt clarity and depth to the audience without distorting meaning or hiding relevant disagreement.
+8. Require human approval of the topic map before the system assembles evidence. Regenerating one axis must not silently replace the rest of an approved plan.
 
 This is Mazann's product methodology, not a claim that the competition mandated one universal outline for every Islamic topic.
 
@@ -146,4 +149,12 @@ Integrate the official Association MCP at `mcp.islamiccontent.org` as the primar
 
 Keep a versioned canonical cache/snapshot of the records needed by the judging journey, including upstream IDs, retrieval time, version, and checksums. The live MCP/API path gives breadth and current multilingual access; the cache gives predictable latency, repeatable evaluation, and an outage-safe demo. If the connector and cache differ, show the recorded version and do not silently blend them.
 
+The Day 1 gate is an Arabic end-to-end journey. Approved multilingual identity and translation fields remain in the schema, but a second-language demonstration is a stretch goal after the Arabic workflow, validation suite, and fallback path are stable.
+
 No unapproved corpus may silently enter prompts through web search, model memory, or a general-purpose MCP connector.
+
+## 9. Saved-research integrity
+
+Saving a research project must preserve the approved plan version, source scope, retrieval runs, evidence decisions, coverage state, upstream record IDs, source versions, and checksums. Reopening a project must reproduce the reviewed state rather than silently refreshing it from live sources.
+
+When an upstream record changes, show that an update exists and let the researcher compare or refresh intentionally. Filtering a source changes only the visible cards. Excluding evidence or disabling a source is a separate, reversible action and must trigger coverage recalculation when accepted evidence is affected.
