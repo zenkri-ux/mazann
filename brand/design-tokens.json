@@ -1,0 +1,145 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "meta": {
+    "brand": "مَظَانّ",
+    "latinName": "Mazann",
+    "version": "1.0.0",
+    "direction": "rtl",
+    "primaryLocale": "ar",
+    "description": "Design tokens for an Arabic Islamic research workspace focused on traceable evidence and review."
+  },
+  "color": {
+    "navy": {
+      "950": { "$value": "#0D1233", "$type": "color" },
+      "900": { "$value": "#11183F", "$type": "color" },
+      "800": { "$value": "#182052", "$type": "color" },
+      "700": { "$value": "#222B68", "$type": "color" }
+    },
+    "violet": {
+      "700": { "$value": "#4E3ED3", "$type": "color" },
+      "600": { "$value": "#5D4FF2", "$type": "color" },
+      "500": { "$value": "#796DF7", "$type": "color" }
+    },
+    "mint": {
+      "500": { "$value": "#19D9AE", "$type": "color" },
+      "400": { "$value": "#31D9CF", "$type": "color" },
+      "100": { "$value": "#D9FAF6", "$type": "color" }
+    },
+    "neutral": {
+      "paper": { "$value": "#F8F8FD", "$type": "color" },
+      "surface": { "$value": "#FFFFFF", "$type": "color" },
+      "surfaceAlt": { "$value": "#F1F2FA", "$type": "color" },
+      "ink": { "$value": "#171A38", "$type": "color" },
+      "muted": { "$value": "#70758F", "$type": "color" },
+      "line": { "$value": "#E2E4EF", "$type": "color" },
+      "darkText": { "$value": "#F5F6FF", "$type": "color" },
+      "darkMuted": { "$value": "#AEB5D6", "$type": "color" }
+    },
+    "status": {
+      "verified": { "$value": "#31D9CF", "$type": "color" },
+      "review": { "$value": "#E9A63D", "$type": "color" },
+      "gap": { "$value": "#DB6575", "$type": "color" },
+      "neutral": { "$value": "#AEB5D6", "$type": "color" }
+    },
+    "semantic": {
+      "backgroundLight": { "$value": "{color.neutral.paper}", "$type": "color" },
+      "backgroundDark": { "$value": "{color.navy.900}", "$type": "color" },
+      "surfaceLight": { "$value": "{color.neutral.surface}", "$type": "color" },
+      "surfaceDark": { "$value": "{color.navy.800}", "$type": "color" },
+      "textLight": { "$value": "{color.neutral.ink}", "$type": "color" },
+      "textDark": { "$value": "{color.neutral.darkText}", "$type": "color" },
+      "action": { "$value": "{color.violet.600}", "$type": "color" },
+      "focus": { "$value": "{color.mint.400}", "$type": "color" },
+      "borderLight": { "$value": "{color.neutral.line}", "$type": "color" }
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "primary": {
+        "$value": ["Readex Pro", "Noto Sans Arabic", "Tahoma", "Arial", "sans-serif"],
+        "$type": "fontFamily"
+      }
+    },
+    "fontWeight": {
+      "regular": { "$value": 400, "$type": "fontWeight" },
+      "medium": { "$value": 500, "$type": "fontWeight" },
+      "semibold": { "$value": 600, "$type": "fontWeight" },
+      "bold": { "$value": 700, "$type": "fontWeight" }
+    },
+    "fontSize": {
+      "xs": { "$value": "0.75rem", "$type": "dimension" },
+      "sm": { "$value": "0.875rem", "$type": "dimension" },
+      "base": { "$value": "1rem", "$type": "dimension" },
+      "lg": { "$value": "1.125rem", "$type": "dimension" },
+      "xl": { "$value": "1.5rem", "$type": "dimension" },
+      "2xl": { "$value": "2rem", "$type": "dimension" },
+      "3xl": { "$value": "3rem", "$type": "dimension" },
+      "hero": { "$value": "5.4rem", "$type": "dimension" }
+    },
+    "lineHeight": {
+      "tight": { "$value": 1.15, "$type": "number" },
+      "heading": { "$value": 1.28, "$type": "number" },
+      "ui": { "$value": 1.6, "$type": "number" },
+      "body": { "$value": 1.9, "$type": "number" }
+    }
+  },
+  "space": {
+    "1": { "$value": "4px", "$type": "dimension" },
+    "2": { "$value": "8px", "$type": "dimension" },
+    "3": { "$value": "12px", "$type": "dimension" },
+    "4": { "$value": "16px", "$type": "dimension" },
+    "5": { "$value": "20px", "$type": "dimension" },
+    "6": { "$value": "24px", "$type": "dimension" },
+    "8": { "$value": "32px", "$type": "dimension" },
+    "10": { "$value": "40px", "$type": "dimension" },
+    "12": { "$value": "48px", "$type": "dimension" },
+    "16": { "$value": "64px", "$type": "dimension" },
+    "18": { "$value": "72px", "$type": "dimension" }
+  },
+  "radius": {
+    "badge": { "$value": "6px", "$type": "dimension" },
+    "control": { "$value": "11px", "$type": "dimension" },
+    "navigation": { "$value": "14px", "$type": "dimension" },
+    "card": { "$value": "16px", "$type": "dimension" },
+    "panel": { "$value": "20px", "$type": "dimension" }
+  },
+  "border": {
+    "light": {
+      "$value": { "color": "{color.neutral.line}", "width": "1px", "style": "solid" },
+      "$type": "border"
+    },
+    "dark": {
+      "$value": { "color": "#FFFFFF1A", "width": "1px", "style": "solid" },
+      "$type": "border"
+    }
+  },
+  "shadow": {
+    "card": { "$value": "0 12px 30px rgba(22, 25, 71, 0.06)", "$type": "shadow" },
+    "workspace": { "$value": "0 22px 55px rgba(24, 28, 76, 0.07)", "$type": "shadow" },
+    "action": { "$value": "0 10px 25px rgba(93, 79, 242, 0.18)", "$type": "shadow" }
+  },
+  "motion": {
+    "duration": {
+      "fast": { "$value": "150ms", "$type": "duration" },
+      "normal": { "$value": "250ms", "$type": "duration" },
+      "screen": { "$value": "350ms", "$type": "duration" }
+    },
+    "easing": {
+      "standard": { "$value": "ease", "$type": "cubicBezier" }
+    }
+  },
+  "layout": {
+    "sidebarWidth": { "$value": "282px", "$type": "dimension" },
+    "sidebarWidthCompact": { "$value": "230px", "$type": "dimension" },
+    "contentMax": { "$value": "1200px", "$type": "dimension" },
+    "evidenceContentMax": { "$value": "1300px", "$type": "dimension" },
+    "mobileBreakpoint": { "$value": "800px", "$type": "dimension" },
+    "smallBreakpoint": { "$value": "540px", "$type": "dimension" },
+    "controlHeight": { "$value": "46px", "$type": "dimension" },
+    "minimumTarget": { "$value": "44px", "$type": "dimension" }
+  },
+  "assets": {
+    "logoMark": "../dist/logo-mark.svg",
+    "favicon": "../dist/favicon.svg"
+  }
+}
