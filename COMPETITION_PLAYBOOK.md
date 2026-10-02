@@ -23,9 +23,12 @@ If selected for final judging, the session is 5 minutes for presentation and 3 m
 ### Knowledge and content
 
 - [ ] Approve `KNOWLEDGE_BASE_POLICY.md` as the project-wide ingestion and output contract.
+- [ ] Approve `KNOWLEDGE_SOURCE_REGISTRY.md` and freeze the P0/P1 sources for the judging journey.
 - [ ] Create a source manifest with edition/URL, authority, language, rights/licence, retrieval date, version, and checksum.
-- [ ] Obtain or prepare machine-readable, legally usable snapshots from the approved source allowlist.
+- [ ] Test the official `mcp.islamiccontent.org` connector and the P0 REST APIs; record available tools, IDs, rate limits, and failure behavior.
+- [ ] Obtain or prepare a legally usable, versioned judging cache from the approved source allowlist so the demo survives connector outages.
 - [ ] Define canonical schemas for ayah, Hadith, tafsir passage, Sirah event, term, and source.
+- [ ] Add multilingual identity and provenance fields: source/translation/alignment IDs, originating platform, review stage, authority tier, and responsibility note.
 - [ ] Prepare the competition's twelve scientific-safety test cases plus Mazann retrieval and chunk-integrity tests.
 - [ ] Identify a qualified content reviewer and a fast review workflow for levels C/D and low-confidence cases.
 
@@ -54,12 +57,13 @@ All official times are Saudi time. Tunisia is two hours behind Saudi Arabia on t
 Official window: 09:00–22:00 Saudi / 07:00–20:00 Tunisia.
 
 - Freeze and tag the accepted starting version.
-- Implement canonical schemas and approved-source ingestion.
+- Implement canonical schemas, the official Association MCP adapter, P0 API adapters, and the versioned judging cache.
 - Enforce whole-ayah and whole-Hadith boundaries.
-- Build hybrid retrieval: lexical + semantic + metadata filters + reranking.
+- Resolve multilingual evidence through shared source IDs and sentence alignment; reject unapproved ad-hoc translations.
+- Build hybrid retrieval: exact IDs + lexical + semantic + authority/language metadata filters + reranking.
 - Connect retrieval hits back to full canonical records and citations.
 - Run the first safety/retrieval suite and use mentor hours for source, grading, and methodology questions.
-- End-of-day gate: one complete topic can return intact, approved, traceable evidence with a correct “not found” path.
+- End-of-day gate: one complete topic can return intact, approved, traceable evidence in at least two languages, with a correct cached fallback and “not found” path.
 
 ### Day 2 — Monday 5 October: guided product and safety
 
@@ -69,7 +73,7 @@ Official window: 09:00–22:00 Saudi / 07:00–20:00 Tunisia.
 - Add content-level A–D classification, warnings, abstention, and referral behavior.
 - Separate scripture, sourced explanation, and AI-generated organization in the UI.
 - Complete the evidence workspace, source drawer, outline/export flow, loading/error/empty states, and accessibility checks.
-- Test with paraphrases, multilingual terms, hostile wording, conflicting evidence, and missing evidence.
+- Test with paraphrases, multilingual terms, cross-language alignment, hostile wording, conflicting evidence, unofficial Shamela material, and missing evidence.
 - End-of-day gate: the primary journey works end to end for multiple test cases and all critical safety tests pass.
 
 ### Day 3 — Tuesday 6 October: verification and submission

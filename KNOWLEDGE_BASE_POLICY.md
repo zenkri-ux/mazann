@@ -1,7 +1,9 @@
 # Mazann Knowledge Base and Sacred-Content Policy
 
-Status: competition build policy  
-Authority: `المرجعية والحزمة العلمية والبيانات`, especially pp. 2–8  
+Status: competition build policy
+
+Authority: `المرجعية والحزمة العلمية والبيانات`, pp. 2–15 (updated 2 October 2026)
+
 Scope: every ingestion, retrieval, generation, translation, and display path in Mazann
 
 ## 1. Non-negotiable principles
@@ -13,23 +15,22 @@ Scope: every ingestion, retrieval, generation, translation, and display path in 
 5. Mazann does not issue an independent personal fatwa, judge individuals or groups, or decide private disputes.
 6. Audience adaptation may change vocabulary, depth, sequence, examples, and explanation. It must never alter the Islamic meaning or source authority.
 
-## 2. Competition-approved source allowlist
+## 2. Approved sources and authority hierarchy
 
-Only the following source families may feed the competition knowledge base. Availability through an API, dataset, MCP server, search engine, or model does not make another source approved.
+Only sources named in the official reference may feed the competition knowledge base. A general web result, model memory, or unrelated MCP server is not an approved source. The operational catalog, endpoints, priorities, and constraints are maintained in `KNOWLEDGE_SOURCE_REGISTRY.md`.
 
-| Domain | Approved sources | Required control |
-|---|---|---|
-| Da'wah topics and Islamic-content vocabulary | Digital Da'wah Repository (`dawa.center`) and Al-Jamhara (`islamic-content.com`) | Use for topics, terminology, and adaptation by country, religion, language, and audience category. |
-| Quran | Approved Arabic text/rasm and approved translations from the King Fahd Glorious Qur'an Printing Complex, or material carried by `quranpedia.net` | Verify every verse quotation and preserve surah/ayah identity. |
-| Tafsir | Islamic sources from the first three centuries, or `dorar.net/tafseer` | Visually and structurally separate Quran text from the mufassir's words. |
-| Hadith | Sahih al-Bukhari and Sahih Muslim; other Sunnah collections only after authenticity is verified through `dorar.net/hadith` or approved editions on `shamela.ws` | Never attribute a Hadith without a source and an authoritative grading in the data. |
-| Aqeedah and introducing Islam | Islamic sources from the first three centuries, or `dorar.net/aqeeda` | Remain within the approved doctrinal scope. |
-| General fiqh | A recognized work in one of the four madhhabs, or `dorar.net/feqhia` | No personal fatwa and no independent automated preference between positions. |
-| Sirah and history | Islamic sources from the first three centuries, or `dorar.net/history` | Use established events and record the caution level for material that needs qualification. |
-| Doubts and frequently asked questions | Bayyinat: Questions and Answers about Islam (`dawa.center/file/7937`) | Primary source for dialogical handling of common doubts. |
-| Translation and terminology | Al-Jamhara dictionary (`islamic-content.com/dictionary`) | Prefer it to automatic translation for sensitive Islamic terminology. |
+Use this hierarchy when sources overlap:
 
-Before ingestion, record the exact edition, URL or bibliographic reference, retrieval date, language, rights/licence, and content checksum in a source manifest. If reuse or redistribution rights are unclear, link or retrieve from the source without republishing its corpus until permission is confirmed.
+1. **Canonical scripture identity:** King Fahd Glorious Qur'an Printing Complex data for Quran text, rasm, ayah/word IDs, fonts, and riwayah metadata; canonical Hadith collections with a verified record and grading.
+2. **Approved multilingual structured content:** the Association for Islamic Content in Languages platforms and central database—QuranEnc, HadeethEnc, Byenah, IslamHouse, IslamEnc, TerminologyEnc, and ICADB—plus Risala for its approved visitor guidance. These are the default authorities for approved translations.
+3. **Domain-specialist references:** the approved tafsir, Quran-science, fiqh, fatwa, Arabic-language, Dorar, and official Shamela resources listed in the registry.
+4. **Media and discovery services:** for example MP3Quran for recitation, stream, reader, riwayah, and timing metadata. These do not replace the canonical Arabic text or interpretation authority.
+
+The six Association platforms identified in the reference expose the official MCP endpoint `mcp.islamiccontent.org`; several platforms also expose dedicated APIs. MCP/API delivery is a transport, not an authority level. Preserve the originating platform, work, author/reviewer, record ID, language, edition, and review status for every item.
+
+The reference explicitly distinguishes external specialist platforms from Association-owned content: they are recommended within their fields, but the Association does not assume responsibility for their content. For approved translations, prefer the Association platforms and Risala. Never flatten that distinction into one generic “verified” badge.
+
+Before ingestion, record the exact edition, URL or bibliographic reference, publisher, source family, authority tier, retrieval date, language, rights/licence, review status, upstream version, and content checksum in a source manifest. If reuse or redistribution rights are unclear, link or retrieve from the source without republishing its corpus until permission is confirmed.
 
 ## 3. Canonical content units: never split sacred text
 
@@ -63,11 +64,12 @@ Mazann should use evidence-first hybrid retrieval rather than lexical search alo
 1. Normalize Arabic search variants for matching while preserving the original query and canonical source text.
 2. Classify the request by intent, audience, language, and content level A–D from the competition reference.
 3. Retrieve with a combination of exact identifiers and quotations, BM25/lexical matching, semantic embeddings, and structured metadata filters.
-4. Apply source-authority and content-level constraints before semantic ranking.
-5. Rerank for topical relevance, source authority, audience suitability, and diversity of evidence.
-6. Expand any matched fragment to its complete canonical ayah, Hadith, or authored semantic unit.
-7. Validate citations and required metadata before allowing content into the final outline.
-8. If the evidence threshold is not met, return a clear “not found in the approved sources” state instead of generated evidence.
+4. For multilingual material, resolve the query to the shared source identity and Arabic original through ICADB's unified IDs and sentence alignment. Do not treat an independently machine-translated passage as an approved translation.
+5. Apply source-authority, language, translation-approval, content-level, madhhab/position, and audience constraints before semantic ranking.
+6. Rerank for topical relevance, source authority, audience suitability, translation status, and diversity of evidence.
+7. Expand any matched fragment to its complete canonical ayah, Hadith, or authored semantic unit.
+8. Validate citations, cross-language alignment, and required metadata before allowing content into the final outline.
+9. If the evidence threshold is not met, return a clear “not found in the approved sources” state instead of generated evidence.
 
 Retrieval quality must be measured separately for lexical, paraphrased, multilingual, ambiguous, and adversarial queries. At minimum track citation validity, source coverage, Recall@k or hit rate, abstention precision, and whole-unit integrity.
 
@@ -128,10 +130,20 @@ Every generated output must expose: source links/references, quotation versus ex
 - Route levels C and D, low-confidence cases, conflicts, and sensitive translations to review or referral.
 - Log source IDs, retrieval scores, model version, prompt/policy version, output, reviewer action, and timestamp without collecting unnecessary personal data.
 
-The competition's twelve safety examples on p. 6 of the scientific reference are the minimum acceptance suite. Add Mazann-specific tests for intact ayat, intact Hadith records, paraphrase retrieval, multilingual terminology, conflicting sources, citation mismatch, and empty-corpus abstention.
+The competition's twelve safety examples on p. 6 of the scientific reference are the minimum acceptance suite. Add Mazann-specific tests for intact ayat, intact Hadith records, paraphrase retrieval, multilingual terminology, conflicting sources, citation mismatch, and empty-corpus abstention. The updated source package also requires tests for:
+
+- a translation resolving to the correct Arabic source identity and sentence alignment;
+- the same canonical record resolving consistently across languages;
+- Association-owned content remaining distinguishable from recommended external platforms;
+- riwayah, reciter, audio timing, and Quran text identities never being conflated;
+- only official Shamela editions entering the store, excluding unofficial additions distributed under the same name;
+- a fiqh or fatwa reference never being converted into an automated personal ruling;
+- conflicting scholarly answers being surfaced as qualified disagreement rather than silently merged.
 
 ## 8. Competition-day implementation decision
 
-Prefer a versioned local or hosted canonical snapshot plus source-specific adapters over a separate MCP server for every corpus. This gives predictable performance, enables checksums and repeatable evaluation, and avoids a live third-party outage during judging. MCP connectors can be optional ingestion or update adapters, but they are not the authority; the approved source and recorded edition are.
+Integrate the official Association MCP at `mcp.islamiccontent.org` as the primary discovery and update connector for its first six platforms, and use the named REST APIs for deterministic ingestion and record lookup. Do **not** build a separate MCP server per corpus during the competition.
+
+Keep a versioned canonical cache/snapshot of the records needed by the judging journey, including upstream IDs, retrieval time, version, and checksums. The live MCP/API path gives breadth and current multilingual access; the cache gives predictable latency, repeatable evaluation, and an outage-safe demo. If the connector and cache differ, show the recorded version and do not silently blend them.
 
 No unapproved corpus may silently enter prompts through web search, model memory, or a general-purpose MCP connector.
