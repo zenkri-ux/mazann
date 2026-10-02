@@ -2,16 +2,16 @@
   color-scheme: light;
 
   --mz-color-navy-950: #0d1233;
-  --mz-color-navy-900: #11183f;
-  --mz-color-navy-800: #182052;
+  --mz-color-navy-900: #12183f;
+  --mz-color-navy-800: #1b2458;
   --mz-color-navy-700: #222b68;
 
   --mz-color-violet-700: #4e3ed3;
-  --mz-color-violet-600: #5d4ff2;
+  --mz-color-violet-600: #6150ea;
   --mz-color-violet-500: #796df7;
 
   --mz-color-mint-500: #19d9ae;
-  --mz-color-mint-400: #31d9cf;
+  --mz-color-mint-400: #2ef2c2;
   --mz-color-mint-100: #d9faf6;
 
   --mz-color-paper: #f8f8fd;
@@ -23,9 +23,9 @@
   --mz-color-dark-text: #f5f6ff;
   --mz-color-dark-muted: #aeb5d6;
 
-  --mz-color-verified: #31d9cf;
-  --mz-color-review: #e9a63d;
-  --mz-color-gap: #db6575;
+  --mz-color-verified: #2ef2c2;
+  --mz-color-review: #f4bd5b;
+  --mz-color-gap: #ff7285;
 
   --mz-font-family: "Readex Pro", "Noto Sans Arabic", Tahoma, Arial, sans-serif;
   --mz-font-regular: 400;
@@ -53,7 +53,7 @@
 
   --mz-shadow-card: 0 12px 30px rgba(22, 25, 71, 0.06);
   --mz-shadow-workspace: 0 22px 55px rgba(24, 28, 76, 0.07);
-  --mz-shadow-action: 0 10px 25px rgba(93, 79, 242, 0.18);
+  --mz-shadow-action: 0 10px 25px rgba(97, 80, 234, 0.2);
 
   --mz-sidebar-width: 282px;
   --mz-content-max: 1200px;
@@ -70,7 +70,7 @@
 .mz-theme-dark {
   color-scheme: dark;
   --mz-color-paper: #0d1233;
-  --mz-color-surface: #182052;
+  --mz-color-surface: #1b2458;
   --mz-color-surface-alt: #222b68;
   --mz-color-ink: #f5f6ff;
   --mz-color-muted: #aeb5d6;
