@@ -58,7 +58,8 @@
 | تشغيل آمن داخل Docker | healthcheck، non-root، read-only، `cap_drop: ALL` | `PASS` |
 | خارطة موضوع ديناميكية بمنهجية وبوابة تعليمات | commit `13aa307` وعقد `topic-roadmap.schema.json` | `PASS` |
 | استرجاع كامل من أسئلة المحاور مع تتبع وتنوع مصادر | commit `7d24fd1` واختبار حي لموضوع الرحمة | `PASS` — 5 سجلات صالحة، 0 غير صالح |
-| فحوص آلية | `npm test` | `24/24 PASS` |
+| توضيح التعليمات الحاكمة بالكشف التدريجي | commit `2f463f3` ولقطة UX | `PASS` |
+| فحوص آلية | `npm test` | `25/25 PASS` |
 | تكامل مستمر عام | GitHub Actions على `main` | `PASS` |
 
 ### قيود معلنة
