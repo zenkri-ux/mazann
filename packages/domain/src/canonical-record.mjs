@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 const BEGIN_RETRIEVED = /──────── RETRIEVED FROM ([A-Z]+).*?────────/;
 const SOURCE_URL = /(?:^|\n)Source:\s*(https:\/\/[^\s]+)/;
 const CITE_URL = /(?:^|\n)(https:\/\/[^\s]+)\s*\nCopy it exactly/;
+const surahNames = ["الفاتحة","البقرة","آل عمران","النساء","المائدة","الأنعام","الأعراف","الأنفال","التوبة","يونس","هود","يوسف","الرعد","إبراهيم","الحجر","النحل","الإسراء","الكهف","مريم","طه","الأنبياء","الحج","المؤمنون","النور","الفرقان","الشعراء","النمل","القصص","العنكبوت","الروم","لقمان","السجدة","الأحزاب","سبأ","فاطر","يس","الصافات","ص","الزمر","غافر","فصلت","الشورى","الزخرف","الدخان","الجاثية","الأحقاف","محمد","الفتح","الحجرات","ق","الذاريات","الطور","النجم","القمر","الرحمن","الواقعة","الحديد","المجادلة","الحشر","الممتحنة","الصف","الجمعة","المنافقون","التغابن","الطلاق","التحريم","الملك","القلم","الحاقة","المعارج","نوح","الجن","المزمل","المدثر","القيامة","الإنسان","المرسلات","النبأ","النازعات","عبس","التكوير","الانفطار","المطففين","الانشقاق","البروج","الطارق","الأعلى","الغاشية","الفجر","البلد","الشمس","الليل","الضحى","الشرح","التين","العلق","القدر","البينة","الزلزلة","العاديات","القارعة","التكاثر","العصر","الهمزة","الفيل","قريش","الماعون","الكوثر","الكافرون","النصر","المسد","الإخلاص","الفلق","الناس"];
 
 function sha256(value) {
   return createHash("sha256").update(value, "utf8").digest("hex");
@@ -25,7 +26,50 @@ function sourceUrl(text) {
   return text.match(SOURCE_URL)?.[1] ?? text.match(CITE_URL)?.[1] ?? null;
 }
 
-function commonRecord({ id, sourceFamily, originPlatform, contentType, language, text, url, metadata }) {
+function hadithReference(label, providerId) {
+  const value = label?.trim() ?? "";
+  if (value.includes("متفق عليه")) return {
+    key: "hadith:bukhari-muslim", work_title_ar: "صحيح البخاري وصحيح مسلم",
+    locator_ar: "متفق عليه", source_label_ar: "صحيح البخاري وصحيح مسلم",
+    precision: "collection_level", primary_locator_available: false,
+    verification_note_ar: "اسم الكتابين ثابت من وسم «متفق عليه»، لكن رقم الموضع داخلهما غير متاح من الموصل الحالي.",
+  };
+  const collection = value.includes("البخاري") ? "صحيح البخاري" : value.includes("مسلم") ? "صحيح مسلم" : null;
+  if (collection) return {
+    key: collection === "صحيح البخاري" ? "hadith:bukhari" : "hadith:muslim",
+    work_title_ar: collection, locator_ar: value, source_label_ar: collection,
+    precision: "collection_level", primary_locator_available: false,
+    verification_note_ar: "رقم الموضع داخل الكتاب الأصلي غير متاح من الموصل الحالي.",
+  };
+  return {
+    key: `hadith:provider:${providerId}`, work_title_ar: "لم يحدد الكتاب الحديثي في بيانات الموصل",
+    locator_ar: `سجل HadeethEnc رقم ${providerId}`, source_label_ar: "مرجع حديثي يحتاج استكمالًا",
+    precision: "provider_record_only", primary_locator_available: false,
+    verification_note_ar: "لا يعتمد في الحقيبة النهائية حتى يضاف اسم الكتاب والباب أو رقم الحديث من مصدر موثوق.",
+  };
+}
+
+function quranReference(surah, ayah) {
+  const name = surahNames[surah - 1] ?? `رقم ${surah}`;
+  return {
+    key: `quran:${surah}`, work_title_ar: "القرآن الكريم",
+    locator_ar: `سورة ${name}، الآية ${ayah}`, source_label_ar: `القرآن الكريم — سورة ${name}`,
+    precision: "exact_unit", primary_locator_available: true, verification_note_ar: null,
+  };
+}
+
+export function ensureReferenceProvenance(record) {
+  if (record?.reference && record?.access) return record;
+  if (record?.source_family === "quran") {
+    record.reference = quranReference(Number(record.metadata?.surah), Number(record.metadata?.ayah));
+  } else if (record?.source_family === "hadith") {
+    record.reference = hadithReference(record.metadata?.publisher_attribution_label, record.metadata?.hadith_id);
+  }
+  record.access = { provider_name: record.origin_platform, provider_record_id: record.id, url: record.citation_url };
+  return record;
+}
+
+function commonRecord({ id, sourceFamily, originPlatform, contentType, language, text, url, metadata, reference }) {
   const checks = {
     has_canonical_id: Boolean(id),
     has_complete_text: Boolean(text?.trim()),
@@ -33,7 +77,7 @@ function commonRecord({ id, sourceFamily, originPlatform, contentType, language,
     has_no_ellipsis: !text?.includes("..."),
   };
 
-  return {
+  return ensureReferenceProvenance({
     schema_version: "1.0.0",
     id,
     canonical_id: id,
@@ -49,11 +93,13 @@ function commonRecord({ id, sourceFamily, originPlatform, contentType, language,
     upstream_version: null,
     publication_status: "blocked_until_upstream_version_is_recorded",
     metadata,
+    reference,
+    access: { provider_name: originPlatform, provider_record_id: id, url },
     validation: {
       checks,
       status: Object.values(checks).every(Boolean) ? "valid" : "blocked",
     },
-  };
+  });
 }
 
 export function normalizeQuranResponse(result, { surah, ayah, language = "ar" }) {
@@ -90,6 +136,7 @@ export function normalizeQuranResponse(result, { surah, ayah, language = "ar" })
       translation_key: text.match(/translation \"([^\"]+)\"/)?.[1] ?? null,
       publisher_marker: "QURANENC",
     },
+    reference: quranReference(surah, ayah),
   });
 
   record.validation.checks.locator_matches = Boolean(url?.includes(expectedPath));
@@ -131,6 +178,7 @@ export function normalizeHadithResponse(result, { id, language = "ar" }) {
       published_languages: languagesText ? languagesText.split(",").map((item) => item.trim()) : [],
       publisher_marker: "HADEETHENC",
     },
+    reference: hadithReference(attributionLabel, String(id)),
   });
 
   record.validation.checks.locator_matches = Boolean(url?.includes(`/hadith/${id}`));

@@ -9,6 +9,8 @@
     "canonical_id",
     "source_family",
     "origin_platform",
+    "reference",
+    "access",
     "content_type",
     "language",
     "text",
@@ -25,6 +27,30 @@
     "canonical_id": { "type": "string", "minLength": 1 },
     "source_family": { "enum": ["quran", "hadith", "tafsir", "sirah", "library"] },
     "origin_platform": { "type": "string", "minLength": 1 },
+    "reference": {
+      "type": "object",
+      "required": ["key", "work_title_ar", "locator_ar", "source_label_ar", "precision", "primary_locator_available", "verification_note_ar"],
+      "properties": {
+        "key": { "type": "string", "minLength": 1 },
+        "work_title_ar": { "type": "string", "minLength": 1 },
+        "locator_ar": { "type": "string", "minLength": 1 },
+        "source_label_ar": { "type": "string", "minLength": 1 },
+        "precision": { "enum": ["exact_unit", "collection_level", "provider_record_only"] },
+        "primary_locator_available": { "type": "boolean" },
+        "verification_note_ar": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "access": {
+      "type": "object",
+      "required": ["provider_name", "provider_record_id", "url"],
+      "properties": {
+        "provider_name": { "type": "string", "minLength": 1 },
+        "provider_record_id": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "format": "uri", "pattern": "^https://" }
+      },
+      "additionalProperties": false
+    },
     "authority_tier": { "type": "string" },
     "content_type": { "type": "string", "minLength": 1 },
     "language": { "type": "string", "minLength": 2 },

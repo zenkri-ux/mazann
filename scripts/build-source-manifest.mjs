@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { config } from "../apps/api/src/config.mjs";
+import { ensureReferenceProvenance } from "@mazann/domain";
 
 const entries = await fs.readdir(config.seedCacheDir, { withFileTypes: true });
 const records = [];
@@ -8,11 +9,13 @@ const records = [];
 for (const entry of entries) {
   if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
   const payload = JSON.parse(await fs.readFile(path.join(config.seedCacheDir, entry.name), "utf8"));
-  const record = payload.record;
+  const record = ensureReferenceProvenance(payload.record);
   records.push({
     canonical_id: record.canonical_id,
     source_family: record.source_family,
     origin_platform: record.origin_platform,
+    reference: record.reference,
+    access: record.access,
     citation_url: record.citation_url,
     language: record.language,
     content_type: record.content_type,

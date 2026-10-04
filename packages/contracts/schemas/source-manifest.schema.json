@@ -29,6 +29,8 @@
           "canonical_id": { "type": "string" },
           "source_family": { "type": "string" },
           "origin_platform": { "type": "string" },
+          "reference": { "type": "object" },
+          "access": { "type": "object" },
           "citation_url": { "type": "string", "format": "uri" },
           "language": { "type": "string" },
           "content_type": { "type": "string" },

@@ -1,4 +1,4 @@
-import { normalizeHadithResponse, normalizeQuranResponse, normalizeSearchResponse } from "@mazann/domain";
+import { ensureReferenceProvenance, normalizeHadithResponse, normalizeQuranResponse, normalizeSearchResponse } from "@mazann/domain";
 
 function selectDiverseCandidates(candidateMap, axes, maxRecords) {
   const available = [...candidateMap.values()];
@@ -169,7 +169,7 @@ export class EvidenceService {
           retrieval_mode: "cache",
           cached_at: cached.cached_at,
           upstream_error: { code: error.code ?? "UPSTREAM_ERROR", message: error.message },
-          record: cached.record,
+          record: ensureReferenceProvenance(cached.record),
         };
       }
       throw new EvidenceUnavailableError("تعذر جلب الدليل ولا توجد نسخة مخزنة صالحة", {

@@ -14,6 +14,20 @@
       "canonical_id": "hadith:3016:ar",
       "source_family": "hadith",
       "origin_platform": "HadeethEnc via Islamic Content MCP",
+      "reference": {
+        "key": "hadith:bukhari-muslim",
+        "work_title_ar": "صحيح البخاري وصحيح مسلم",
+        "locator_ar": "متفق عليه",
+        "source_label_ar": "صحيح البخاري وصحيح مسلم",
+        "precision": "collection_level",
+        "primary_locator_available": false,
+        "verification_note_ar": "اسم الكتابين ثابت من وسم «متفق عليه»، لكن رقم الموضع داخلهما غير متاح من الموصل الحالي."
+      },
+      "access": {
+        "provider_name": "HadeethEnc via Islamic Content MCP",
+        "provider_record_id": "hadith:3016:ar",
+        "url": "https://hadeethenc.com/ar/browse/hadith/3016"
+      },
       "citation_url": "https://hadeethenc.com/ar/browse/hadith/3016",
       "language": "ar",
       "content_type": "hadith",
@@ -28,6 +42,20 @@
       "canonical_id": "quran:4:58:ar",
       "source_family": "quran",
       "origin_platform": "QuranEnc via Islamic Content MCP",
+      "reference": {
+        "key": "quran:4",
+        "work_title_ar": "القرآن الكريم",
+        "locator_ar": "سورة النساء، الآية 58",
+        "source_label_ar": "القرآن الكريم — سورة النساء",
+        "precision": "exact_unit",
+        "primary_locator_available": true,
+        "verification_note_ar": null
+      },
+      "access": {
+        "provider_name": "QuranEnc via Islamic Content MCP",
+        "provider_record_id": "quran:4:58:ar",
+        "url": "https://islamenc.com/ar/quran/4/58"
+      },
       "citation_url": "https://islamenc.com/ar/quran/4/58",
       "language": "ar",
       "content_type": "ayah",

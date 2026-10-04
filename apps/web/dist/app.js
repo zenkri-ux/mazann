@@ -26,11 +26,16 @@ qs('#approve-plan').addEventListener('click',async()=>{if(!state.roadmap||state.
 qs('#plan-list').addEventListener('click',event=>{const card=event.target.closest('.plan-card');if(!card)return;qsa('.plan-card').forEach(item=>item.classList.remove('selected'));card.classList.add('selected')});
 function filterEvidence(type){
   qsa('.filter').forEach(button=>button.classList.toggle('active',button.dataset.filter===type));
-  qsa('.source-item').forEach(button=>button.classList.toggle('active',button.dataset.sourceFilter===type));
+  qsa('.source-item').forEach(button=>button.classList.toggle('active',button.dataset.referenceFilter==='all'));
   qsa('.evidence-card').forEach(card=>card.hidden=type!=='all'&&card.dataset.type!==type);
 }
+function filterReferenceEvidence(key){
+  qsa('.filter').forEach(button=>button.classList.toggle('active',button.dataset.filter==='all'));
+  qsa('.source-item').forEach(button=>button.classList.toggle('active',button.dataset.referenceFilter===key));
+  qsa('.evidence-card').forEach(card=>card.hidden=key!=='all'&&card.dataset.referenceKey!==key);
+}
 qsa('.filter').forEach(button=>button.addEventListener('click',()=>filterEvidence(button.dataset.filter)));
-qs('#source-list').addEventListener('click',event=>{const button=event.target.closest('[data-source-filter]');if(button)filterEvidence(button.dataset.sourceFilter)});
+qs('#source-list').addEventListener('click',event=>{const button=event.target.closest('[data-reference-filter]');if(button)filterReferenceEvidence(button.dataset.referenceFilter)});
 
 async function api(path,body){
   const response=await fetch(path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
@@ -121,9 +126,10 @@ function evidenceTitle(item){
   return item.record.metadata.title||`حديث رقم ${item.record.metadata.hadith_id}`;
 }
 function evidenceLocation(item){
-  if(item.record.content_type==='ayah')return `النساء · ${item.record.metadata.ayah}`;
-  return `HadeethEnc · ${item.record.metadata.hadith_id}`;
+  return item.record.reference?.locator_ar||(item.record.content_type==='ayah'?`السورة ${item.record.metadata.surah}، الآية ${item.record.metadata.ayah}`:`سجل الحديث ${item.record.metadata.hadith_id}`);
 }
+function referenceLabel(item){return item.record.reference?.source_label_ar||'مرجع يحتاج استكمالًا'}
+function referenceKey(item){return item.record.reference?.key||`unknown:${item.record.id}`}
 function updateEvidenceCounts(){
   const counts={all:state.evidence.length,quran:0,hadith:0};
   state.evidence.forEach(item=>counts[item.record.source_family]++);
@@ -132,15 +138,18 @@ function updateEvidenceCounts(){
   state.reviewed=state.evidence.filter(item=>item.decision).length;
   qs('#reviewed-count').textContent=state.reviewed;
   qs('#source-rail h2').textContent=state.evidence.length===2?'موضعان موثقان':`${state.evidence.length} مواضع موثقة`;
-  qs('#source-list').innerHTML=`<button class="source-item active" data-source-filter="all" type="button"><span class="source-glyph">✦</span><span><b>جميع المصادر</b><small>${state.evidence.length} سجل كامل · ${state.evidence.filter(item=>item.decision==='accepted').length} معتمد</small></span><i>${state.evidence.length}</i></button>${counts.quran?`<button class="source-item" data-source-filter="quran" type="button"><span class="source-glyph quran">ق</span><span><b>القرآن الكريم</b><small>QuranEnc · سجل كامل</small></span><i>${counts.quran}</i></button>`:''}${counts.hadith?`<button class="source-item" data-source-filter="hadith" type="button"><span class="source-glyph hadith">ح</span><span><b>موسوعة الأحاديث</b><small>HadeethEnc · حكم ظاهر</small></span><i>${counts.hadith}</i></button>`:''}`;
+  const groups=new Map();state.evidence.forEach(item=>{const key=referenceKey(item);const group=groups.get(key)||{key,label:referenceLabel(item),family:item.record.source_family,count:0,precise:true};group.count++;group.precise=group.precise&&Boolean(item.record.reference?.primary_locator_available);groups.set(key,group)});
+  const sources=[...groups.values()].map(group=>`<button class="source-item" data-reference-filter="${escapeHtml(group.key)}" type="button"><span class="source-glyph ${escapeHtml(group.family)}">${group.family==='quran'?'ق':'ح'}</span><span><b>${escapeHtml(group.label)}</b><small>${group.precise?'موضع أصلي محدد':'اسم المصدر متاح · الموضع يحتاج استكمالًا'}</small></span><i>${group.count}</i></button>`).join('');
+  qs('#source-list').innerHTML=`<button class="source-item active" data-reference-filter="all" type="button"><span class="source-glyph">✦</span><span><b>جميع المراجع</b><small>${state.evidence.length} سجل كامل · ${state.evidence.filter(item=>item.decision==='accepted').length} معتمد</small></span><i>${state.evidence.length}</i></button>${sources}`;
 }
 function renderEvidence(){
   const feed=qs('#evidence-feed');
   if(!state.evidence.length){feed.innerHTML='<div class="evidence-empty"><b>لم يصل سجل صالح</b><p>لم يعوض النظام النقص من ذاكرته. راجع حالة المصدر أو حاول لاحقًا.</p></div>';updateEvidenceCounts();return}
   feed.innerHTML=state.evidence.map(item=>{
-    const record=item.record;const type=record.source_family;const mode=item.retrieval_mode==='live'?'اتصال حي':'نسخة مخزنة';const accepted=item.decision==='accepted'?' is-accepted':'';const selected=item.record.id===state.selectedEvidence?' selected':'';
-    const body=record.content_type==='ayah'?`<blockquote>${escapeHtml(record.text)}</blockquote><p>${escapeHtml(record.metadata.translation||'لا يوجد شرح منشور في السجل.')}</p>`:`<h2>${escapeHtml(evidenceTitle(item))}</h2><p>المتن الكامل متاح في مفتش المصدر. الحكم المنشور: <b>${escapeHtml(record.metadata.grade||'غير متاح')}</b>.</p>`;
-    return `<article class="evidence-card${accepted}${selected}" data-type="${escapeHtml(type)}" data-record-id="${escapeHtml(record.id)}"><header><div><span class="type-badge ${escapeHtml(type)}">${type==='quran'?'قرآن':'حديث'}</span><span class="verified-badge">✓ سجل كامل · ${mode}</span></div></header>${body}<footer><span>${escapeHtml(evidenceLocation(item))}</span><a href="${escapeHtml(safeExternalUrl(record.citation_url))}" target="_blank" rel="noreferrer">فتح المصدر</a></footer></article>`;
+    const record=item.record;const type=record.source_family;const mode=item.retrieval_mode==='live'?'اتصال حي':'نسخة مخزنة';const accepted=item.decision==='accepted'?' is-accepted':'';const warning=record.reference?.primary_locator_available===false?' warning':'';const selected=item.record.id===state.selectedEvidence?' selected':'';
+    const body=record.content_type==='ayah'?`<blockquote>${escapeHtml(record.text)}</blockquote><p>${escapeHtml(record.metadata.translation||'لا يوجد شرح منشور في السجل.')}</p>`:`<h2>${escapeHtml(evidenceTitle(item))}</h2><p>المتن الكامل متاح في مفتش المرجع. الحكم المنشور: <b>${escapeHtml(record.metadata.grade||'غير متاح')}</b>.</p>`;
+    const locatorBadge=record.reference?.primary_locator_available===false?'<span class="review-badge">موضع الكتاب يحتاج استكمالًا</span>':'';
+    return `<article class="evidence-card${accepted}${warning}${selected}" data-type="${escapeHtml(type)}" data-reference-key="${escapeHtml(referenceKey(item))}" data-record-id="${escapeHtml(record.id)}"><header><div><span class="type-badge ${escapeHtml(type)}">${escapeHtml(referenceLabel(item))}</span><span class="verified-badge">✓ سجل كامل · ${mode}</span>${locatorBadge}</div></header>${body}<footer><span>${escapeHtml(evidenceLocation(item))}</span><a href="${escapeHtml(safeExternalUrl(record.citation_url))}" target="_blank" rel="noreferrer">فتح سجل الإتاحة</a></footer></article>`;
   }).join('');
   updateEvidenceCounts();
   qsa('.evidence-card',feed).forEach(card=>card.addEventListener('click',event=>{if(event.target.closest('a'))return;selectEvidence(card.dataset.recordId)}));
@@ -150,9 +159,9 @@ function selectEvidence(id){
   qsa('.evidence-card').forEach(card=>card.classList.toggle('selected',card.dataset.recordId===id));
   const panel=qs('#source-inspector');panel.classList.remove('is-refreshing');void panel.offsetWidth;panel.classList.add('is-refreshing');
   qs('h2',panel).textContent=evidenceTitle(item);qs('.original-text p',panel).textContent=item.record.text;qs('.verified-seal',panel).textContent='✓';
-  const meta=qsa('.source-meta b',panel);meta[0].textContent=item.record.origin_platform;meta[1].textContent=evidenceLocation(item);meta[2].textContent=item.retrieval_mode==='live'?'حي من المصدر':'نسخة مخزنة موثقة';meta[2].classList.add('mint-text');
-  qs('.relevance p',panel).textContent=item.record.content_type==='ayah'?`التفسير المنشور محفوظ منفصلًا عن نص الآية. البصمة: ${item.record.checksum_sha256.slice(0,12)}…`:`الحكم المنشور: ${item.record.metadata.grade||'غير متاح'}. الشرح محفوظ منفصلًا عن المتن. البصمة: ${item.record.checksum_sha256.slice(0,12)}…`;
-  qs('#accept-evidence').disabled=false;qs('#reject-evidence').disabled=false;
+  const meta=qsa('.source-meta b',panel);meta[0].textContent=referenceLabel(item);meta[1].textContent=evidenceLocation(item);meta[2].textContent=item.record.access?.provider_name||item.record.origin_platform;meta[3].textContent=item.retrieval_mode==='live'?'حي من منصة الإتاحة':'نسخة مخزنة موثقة';meta[3].classList.add('mint-text');
+  const referenceNote=item.record.reference?.verification_note_ar;qs('.relevance p',panel).textContent=referenceNote|| (item.record.content_type==='ayah'?`موضع الآية محدد، والتفسير المنشور محفوظ منفصلًا عن نصها. البصمة: ${item.record.checksum_sha256.slice(0,12)}…`:`الحكم المنشور: ${item.record.metadata.grade||'غير متاح'}. الشرح محفوظ منفصلًا عن المتن. البصمة: ${item.record.checksum_sha256.slice(0,12)}…`);
+  qs('#accept-evidence').disabled=false;qs('#accept-evidence').textContent=item.record.reference?.primary_locator_available===false?'✓ اعتماد مبدئي — استكمال الموضع':'✓ اعتماد في الحقيبة';qs('#reject-evidence').disabled=false;
 }
 async function loadRoadmapEvidence(){
   state.loadingEvidence=true;state.evidence=[];state.selectedEvidence=null;
@@ -179,7 +188,7 @@ async function loadDemoEvidence(){
   qs('#retrieval-status').textContent=`وصل ${state.evidence.length} سجل كامل صالح${cacheCount?` · ${cacheCount} من النسخة المخزنة`:''}${failures.length?` · تعذر ${failures.length} ولم يُستبدل بمحتوى مولد`:''}.`;
   renderEvidence();if(state.evidence[0])selectEvidence(state.evidence[0].record.id);state.loadingEvidence=false;
 }
-qs('#accept-evidence').addEventListener('click',()=>{const item=state.evidence.find(entry=>entry.record.id===state.selectedEvidence);if(!item)return;item.decision='accepted';renderEvidence();selectEvidence(item.record.id);toast('أُضيف السجل الكامل إلى الحقيبة مع مرجعه وبصمته')});
+qs('#accept-evidence').addEventListener('click',()=>{const item=state.evidence.find(entry=>entry.record.id===state.selectedEvidence);if(!item)return;const complete=item.record.reference?.primary_locator_available!==false;item.decision=complete?'accepted':'needs_reference';renderEvidence();selectEvidence(item.record.id);toast(complete?'أُضيف السجل الكامل إلى الحقيبة مع مرجعه وبصمته':'حُفظ مبدئيًا، ولن يعد مرجعًا نهائيًا حتى يستكمل موضعه في الكتاب')});
 qs('#reject-evidence').addEventListener('click',()=>{const item=state.evidence.find(entry=>entry.record.id===state.selectedEvidence);if(!item)return;item.decision='excluded';renderEvidence();selectEvidence(item.record.id);toast('استُبعد الدليل وبقي قرار الاستبعاد قابلًا للمراجعة')});
 qs('#export-button').addEventListener('click',()=>toast('محاكاة فقط: التصدير الفعلي غير متصل في هذه النسخة'));
 qs('#theme-toggle').addEventListener('click',()=>{state.theme=state.theme==='light'?'dark':'light';document.body.classList.toggle('dark',state.theme==='dark');qs('#theme-label').textContent=state.theme==='dark'?'داكن':'فاتح'});
