@@ -1,4 +1,4 @@
-const state={view:'start',theme:'light',reviewed:0,demoScene:0,demo:false,evidence:[],selectedEvidence:null,loadingEvidence:false,roadmap:null,loadingRoadmap:false};
+const state={view:'start',theme:'light',reviewed:0,demoScene:0,demo:false,evidence:[],selectedEvidence:null,loadingEvidence:false,roadmap:null,loadingRoadmap:false,projectId:null,savingProject:false};
 const qs=(selector,root=document)=>root.querySelector(selector);
 const qsa=(selector,root=document)=>[...root.querySelectorAll(selector)];
 const labels={start:'لم يبدأ جمع الأدلة بعد',plan:'الخطة جاهزة للمراجعة',evidence:'مراجعة المصادر والسياق',coverage:'الحقيبة جاهزة للمراجعة'};
@@ -38,8 +38,17 @@ async function api(path,body){
   if(!response.ok)throw new Error(data.message||'تعذر إكمال الطلب');
   return data;
 }
+async function apiGet(path){
+  const response=await fetch(path,{headers:{accept:'application/json'}});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.message||'تعذر إكمال الطلب');
+  return data;
+}
 function escapeHtml(value){
   return String(value).replace(/[&<>'"]/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+}
+function safeExternalUrl(value){
+  try{const url=new URL(value);return url.protocol==='https:'?url.href:'#'}catch{return '#'}
 }
 const axisLabels={foundation:'المحور المؤسس',context:'محور السياق',application:'المحور التطبيقي',outcome:'محور الأثر'};
 const sourceLabels={quran:'قرآن',hadith:'حديث',tafsir:'تفسير',sirah:'سيرة',approved_research:'دراسات معتمدة'};
@@ -62,29 +71,46 @@ async function buildRoadmap(event){
   const button=qs('#build-roadmap');
   state.loadingRoadmap=true;button.disabled=true;button.textContent='جارٍ بناء الخارطة…';
   try{
-    const instructionState=qs('input[name="instruction-state"]:checked').value;
-    const instruction=instructionState==='verified'?{
-      issuing_authority:qs('#instruction-authority').value,
-      title:qs('#instruction-title').value,
-      reference:qs('#instruction-reference').value,
-      required_points:qs('#instruction-points').value
-    }:undefined;
-    const roadmap=await api('/api/research/roadmap',{
-      topic:qs('#topic').value,
-      target_audience:qs('#audience').value,
-      country_or_context:qs('#context').value,
-      format:qs('#format').value,
-      duration:qs('#duration').value,
-      official_instruction_state:instructionState,
-      governing_instruction:instruction,
-      language:'ar'
-    });
+    const roadmap=await api('/api/research/roadmap',currentBrief());
     state.roadmap=roadmap;renderRoadmap(roadmap);showView('plan');
   }catch(error){
     toast(error.message);qs('#topic').focus();
   }finally{
     state.loadingRoadmap=false;button.disabled=false;button.textContent='بناء خطة البحث';
   }
+}
+function currentBrief(){
+  const instructionState=qs('input[name="instruction-state"]:checked').value;
+  return {
+    topic:qs('#topic').value,
+    target_audience:qs('#audience').value,
+    country_or_context:qs('#context').value,
+    format:qs('#format').value,
+    duration:qs('#duration').value,
+    official_instruction_state:instructionState,
+    governing_instruction:instructionState==='verified'?{
+      issuing_authority:qs('#instruction-authority').value,
+      title:qs('#instruction-title').value,
+      reference:qs('#instruction-reference').value,
+      required_points:qs('#instruction-points').value
+    }:undefined,
+    language:'ar'
+  };
+}
+function restoreBrief(brief={}){
+  if(brief.topic)qs('#topic').value=brief.topic;
+  if(brief.target_audience)qs('#audience').value=brief.target_audience;
+  if(brief.country_or_context)qs('#context').value=brief.country_or_context;
+  if(brief.format)qs('#format').value=brief.format;
+  if(brief.duration)qs('#duration').value=brief.duration;
+  const instructionState=brief.official_instruction_state||'none_declared';
+  const radio=qs(`input[name="instruction-state"][value="${instructionState}"]`);if(radio)radio.checked=true;
+  const instruction=brief.governing_instruction||{};
+  qs('#instruction-authority').value=instruction.issuing_authority||'';
+  qs('#instruction-title').value=instruction.title||'';
+  qs('#instruction-reference').value=instruction.reference||'';
+  qs('#instruction-points').value=Array.isArray(instruction.required_points)?instruction.required_points.join('\n'):(instruction.required_points||'');
+  syncInstructionFields();
 }
 function evidenceTitle(item){
   if(item.record.content_type==='ayah')return `سورة النساء، الآية ${item.record.metadata.ayah}`;
@@ -109,8 +135,8 @@ function renderEvidence(){
   if(!state.evidence.length){feed.innerHTML='<div class="evidence-empty"><b>لم يصل سجل صالح</b><p>لم يعوض النظام النقص من ذاكرته. راجع حالة المصدر أو حاول لاحقًا.</p></div>';updateEvidenceCounts();return}
   feed.innerHTML=state.evidence.map(item=>{
     const record=item.record;const type=record.source_family;const mode=item.retrieval_mode==='live'?'اتصال حي':'نسخة مخزنة';const accepted=item.decision==='accepted'?' is-accepted':'';const selected=item.record.id===state.selectedEvidence?' selected':'';
-    const body=record.content_type==='ayah'?`<blockquote>${record.text}</blockquote><p>${record.metadata.translation||'لا يوجد شرح منشور في السجل.'}</p>`:`<h2>${evidenceTitle(item)}</h2><p>المتن الكامل متاح في مفتش المصدر. الحكم المنشور: <b>${record.metadata.grade||'غير متاح'}</b>.</p>`;
-    return `<article class="evidence-card${accepted}${selected}" data-type="${type}" data-record-id="${record.id}"><header><div><span class="type-badge ${type}">${type==='quran'?'قرآن':'حديث'}</span><span class="verified-badge">✓ سجل كامل · ${mode}</span></div></header>${body}<footer><span>${evidenceLocation(item)}</span><a href="${record.citation_url}" target="_blank" rel="noreferrer">فتح المصدر</a></footer></article>`;
+    const body=record.content_type==='ayah'?`<blockquote>${escapeHtml(record.text)}</blockquote><p>${escapeHtml(record.metadata.translation||'لا يوجد شرح منشور في السجل.')}</p>`:`<h2>${escapeHtml(evidenceTitle(item))}</h2><p>المتن الكامل متاح في مفتش المصدر. الحكم المنشور: <b>${escapeHtml(record.metadata.grade||'غير متاح')}</b>.</p>`;
+    return `<article class="evidence-card${accepted}${selected}" data-type="${escapeHtml(type)}" data-record-id="${escapeHtml(record.id)}"><header><div><span class="type-badge ${escapeHtml(type)}">${type==='quran'?'قرآن':'حديث'}</span><span class="verified-badge">✓ سجل كامل · ${mode}</span></div></header>${body}<footer><span>${escapeHtml(evidenceLocation(item))}</span><a href="${escapeHtml(safeExternalUrl(record.citation_url))}" target="_blank" rel="noreferrer">فتح المصدر</a></footer></article>`;
   }).join('');
   updateEvidenceCounts();
   qsa('.evidence-card',feed).forEach(card=>card.addEventListener('click',event=>{if(event.target.closest('a'))return;selectEvidence(card.dataset.recordId)}));
@@ -155,8 +181,45 @@ qs('#export-button').addEventListener('click',()=>toast('محاكاة فقط: ا
 qs('#theme-toggle').addEventListener('click',()=>{state.theme=state.theme==='light'?'dark':'light';document.body.classList.toggle('dark',state.theme==='dark');qs('#theme-label').textContent=state.theme==='dark'?'داكن':'فاتح'});
 qs('#mobile-menu').addEventListener('click',()=>qs('.sidebar').classList.toggle('open'));
 qs('#prototype-info').addEventListener('click',()=>{qs('#info-modal').hidden=false;qs('.modal-close').focus()});
-qsa('[data-close-modal]').forEach(el=>el.addEventListener('click',()=>{qs('#info-modal').hidden=true;qs('#prototype-info').focus()}));
-document.addEventListener('keydown',event=>{if(event.key==='Escape'){qs('#info-modal').hidden=true;qs('.sidebar').classList.remove('open')}});
+qsa('[data-close-modal]').forEach(el=>el.addEventListener('click',()=>{const modal=qs(`#${el.dataset.closeModal}`);if(modal)modal.hidden=true}));
+async function saveProject(){
+  if(state.savingProject)return;
+  const brief=currentBrief();
+  if(brief.topic.trim().length<3){toast('اكتب موضوع البحث قبل الحفظ');qs('#topic').focus();return}
+  state.savingProject=true;const button=qs('#save-project');button.disabled=true;button.textContent='جارٍ الحفظ…';
+  try{
+    const project=await api('/api/projects',{
+      project_id:state.projectId,
+      title:brief.topic.trim(),
+      current_view:state.view,
+      brief,
+      roadmap:state.roadmap,
+      evidence:state.evidence
+    });
+    state.projectId=project.project_id;qs('#project-title').textContent=project.title;button.textContent='حفظ التغييرات';toast('حُفظ البحث ويمكن استكماله لاحقًا');
+  }catch(error){toast(error.message);button.textContent=state.projectId?'حفظ التغييرات':'حفظ البحث'}
+  finally{state.savingProject=false;button.disabled=false}
+}
+async function showSavedProjects(){
+  const modal=qs('#projects-modal');const list=qs('#projects-list');modal.hidden=false;list.innerHTML='<div class="project-empty">جارٍ تحميل الأبحاث…</div>';
+  try{
+    const result=await apiGet('/api/projects');
+    list.innerHTML=result.projects.length?result.projects.map(project=>`<button class="project-row" type="button" data-project-id="${escapeHtml(project.project_id)}"><span><b>${escapeHtml(project.title)}</b><small>${project.axis_count} محاور · ${project.evidence_count} أدلة · ${project.accepted_count} معتمدة</small></span><span>متابعة ←</span></button>`).join(''):'<div class="project-empty">لا توجد أبحاث محفوظة بعد.</div>';
+  }catch(error){list.innerHTML=`<div class="project-empty">${escapeHtml(error.message)}</div>`}
+}
+async function openProject(projectId){
+  try{
+    const project=await apiGet(`/api/projects/${encodeURIComponent(projectId)}`);
+    state.projectId=project.project_id;state.roadmap=project.roadmap;state.evidence=project.evidence||[];state.selectedEvidence=state.evidence[0]?.record?.id||null;
+    restoreBrief(project.brief);if(state.roadmap)renderRoadmap(state.roadmap);renderEvidence();if(state.selectedEvidence)selectEvidence(state.selectedEvidence);
+    qs('#project-title').textContent=project.title;qs('#save-project').textContent='حفظ التغييرات';qs('#projects-modal').hidden=true;
+    const safeView=['start','plan','evidence','coverage'].includes(project.current_view)?project.current_view:'start';showView(safeView);toast('فُتح البحث من آخر حالة محفوظة');
+  }catch(error){toast(error.message)}
+}
+qs('#save-project').addEventListener('click',saveProject);
+qs('#saved-projects').addEventListener('click',showSavedProjects);
+qs('#projects-list').addEventListener('click',event=>{const button=event.target.closest('[data-project-id]');if(button)openProject(button.dataset.projectId)});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'){qsa('.modal').forEach(modal=>modal.hidden=true);qs('.sidebar').classList.remove('open')}});
 
 const motionGroups={
   start:['.hero-copy','.identity-emblem','.research-brief','.scenario-strip button'],

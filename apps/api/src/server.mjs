@@ -5,12 +5,14 @@ import { pathToFileURL } from "node:url";
 import { config } from "./config.mjs";
 import { IslamicContentMcpClient } from "@mazann/islamic-content-connector";
 import { RecordCache } from "./lib/record-cache.mjs";
+import { ProjectStore } from "./lib/project-store.mjs";
 import { EvidenceService, EvidenceUnavailableError } from "./services/evidence-service.mjs";
 import { createTopicRoadmap } from "@mazann/domain/topic-roadmap";
 
 const client = new IslamicContentMcpClient({ endpoint: config.mcpUrl, timeoutMs: config.mcpTimeoutMs });
 const cache = new RecordCache(config.cacheDir, { fallbackDirectories: [config.seedCacheDir] });
 const evidence = new EvidenceService({ client, cache, cacheWrite: config.cacheWrite });
+const projects = new ProjectStore(config.projectDir);
 const distDir = config.webDir;
 const startedAt = new Date().toISOString();
 
@@ -32,12 +34,12 @@ function sendJson(response, status, data) {
   response.end(JSON.stringify(data));
 }
 
-async function readJson(request) {
+async function readJson(request, maxBytes = 65_536) {
   const chunks = [];
   let size = 0;
   for await (const chunk of request) {
     size += chunk.length;
-    if (size > 65_536) throw Object.assign(new Error("الطلب أكبر من الحد المسموح"), { status: 413 });
+    if (size > maxBytes) throw Object.assign(new Error("الطلب أكبر من الحد المسموح"), { status: 413 });
     chunks.push(chunk);
   }
   const body = Buffer.concat(chunks).toString("utf8");
@@ -66,8 +68,21 @@ async function handleApi(request, response, url) {
     });
   }
 
+  if (request.method === "GET" && url.pathname === "/api/projects") {
+    return sendJson(response, 200, { projects: await projects.list() });
+  }
+
+  const projectMatch = /^\/api\/projects\/(project_[a-f0-9-]{36})$/.exec(url.pathname);
+  if (request.method === "GET" && projectMatch) {
+    return sendJson(response, 200, await projects.get(projectMatch[1]));
+  }
+
   if (request.method !== "POST") return sendJson(response, 405, { error: "METHOD_NOT_ALLOWED" });
-  const body = await readJson(request);
+  const body = await readJson(request, url.pathname === "/api/projects" ? 1_000_000 : 65_536);
+
+  if (url.pathname === "/api/projects") {
+    return sendJson(response, body.project_id ? 200 : 201, await projects.save(body));
+  }
 
   if (url.pathname === "/api/research/roadmap") {
     return sendJson(response, 200, createTopicRoadmap(body));

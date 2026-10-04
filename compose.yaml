@@ -17,6 +17,7 @@ services:
       MCP_TIMEOUT_MS: ${MCP_TIMEOUT_MS:-12000}
       MAZANN_CACHE_DIR: /app/data/runtime/cache
       MAZANN_SEED_CACHE_DIR: /app/data/cache
+      MAZANN_PROJECT_DIR: /app/data/runtime/projects
       MAZANN_CACHE_WRITE: ${MAZANN_CACHE_WRITE:-true}
     volumes:
       - mazann-runtime:/app/data/runtime
