@@ -36,6 +36,16 @@ curl -u 'reviewer:A-LONG-UNIQUE-BETA-PASSWORD' https://preview.example.com/api/h
 
 The first request must return `401`; the authenticated health request must return JSON with `status: ok`.
 
+## Server with an existing Caddy gateway
+
+When ports 80/443 are already owned by a trusted Caddy container, do not start a second gateway or expose the application directly. Use `compose.shared-caddy.yaml`, set `SHARED_GATEWAY_NETWORK` to the existing Caddy network, and add the reviewed block from `Caddyfile.shared-snippet.example` to that gateway. Validate the complete Caddyfile before reloading it.
+
+```bash
+docker compose --env-file deploy/.env.production -f deploy/compose.shared-caddy.yaml up --build -d
+docker exec <existing-caddy-container> caddy validate --config /etc/caddy/Caddyfile
+docker exec <existing-caddy-container> caddy reload --config /etc/caddy/Caddyfile
+```
+
 ## Update and rollback
 
 Before an update, record the healthy commit. Pull and deploy only a tested commit:

@@ -1,0 +1,20 @@
+# Add this block to the existing server Caddyfile. Replace the hostname,
+# username and bcrypt hash on the server; never commit the plaintext password.
+mazann.example.com {
+	encode zstd gzip
+
+	basic_auth {
+		reviewer <bcrypt-hash>
+	}
+
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
+
+	reverse_proxy mazann-app:8090
+}

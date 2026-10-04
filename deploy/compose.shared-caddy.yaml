@@ -1,0 +1,55 @@
+name: mazann
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: mazann:${MAZANN_IMAGE_TAG:-latest}
+    init: true
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8090
+      MCP_ISLAMIC_CONTENT_URL: ${MCP_ISLAMIC_CONTENT_URL:-https://mcp.islamiccontent.org/mcp}
+      MCP_TIMEOUT_MS: ${MCP_TIMEOUT_MS:-12000}
+      MAZANN_CACHE_DIR: /app/data/runtime/cache
+      MAZANN_SEED_CACHE_DIR: /app/data/cache
+      MAZANN_PROJECT_DIR: /app/data/runtime/projects
+      MAZANN_CACHE_WRITE: ${MAZANN_CACHE_WRITE:-true}
+      MAZANN_PLANNER_PROVIDER: ${MAZANN_PLANNER_PROVIDER:-openai}
+      MAZANN_PLANNER_TIMEOUT_MS: ${MAZANN_PLANNER_TIMEOUT_MS:-30000}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY is required}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-6-luna}
+      OPENAI_RESPONSES_URL: ${OPENAI_RESPONSES_URL:-https://api.openai.com/v1/responses}
+    volumes:
+      - mazann-runtime:/app/data/runtime
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      shared-gateway:
+        aliases:
+          - mazann-app
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:8090/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+networks:
+  shared-gateway:
+    external: true
+    name: ${SHARED_GATEWAY_NETWORK:-icicuisine_private}
+
+volumes:
+  mazann-runtime:
