@@ -156,3 +156,9 @@ body.dark .identity-emblem img{content:url("./assets/mazann-symbol-dark.svg")}
 @media(max-width:1100px){.identity-emblem{display:none}}
 @media(max-width:800px){.sidebar{padding-inline:16px}.brand-lockup{padding-inline:6px}.nav-item{min-height:62px}.main-content{margin-right:0}}
 @media(max-width:540px){.hero-copy h1{font-size:2.35rem}.project-context small{display:none}.research-brief{padding:18px}.screen{padding-inline:16px}}
+.brief-row{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.plan-empty{min-height:220px;display:grid;place-content:center;text-align:center;padding:32px;border:1px dashed var(--line);border-radius:18px;color:var(--muted)}
+.plan-empty b{color:var(--ink);font-size:.9rem}.plan-empty p{margin:7px 0 0;font-size:.72rem}
+.primary-button:disabled{cursor:not-allowed;opacity:.55;transform:none}
+@media(max-width:1000px){.brief-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.brief-row{grid-template-columns:1fr}}

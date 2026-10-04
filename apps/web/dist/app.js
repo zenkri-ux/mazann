@@ -1,4 +1,4 @@
-const state={view:'start',theme:'light',reviewed:0,demoScene:0,demo:false,evidence:[],selectedEvidence:null,loadingEvidence:false};
+const state={view:'start',theme:'light',reviewed:0,demoScene:0,demo:false,evidence:[],selectedEvidence:null,loadingEvidence:false,roadmap:null,loadingRoadmap:false};
 const qs=(selector,root=document)=>root.querySelector(selector);
 const qsa=(selector,root=document)=>[...root.querySelectorAll(selector)];
 const labels={start:'لم يبدأ جمع الأدلة بعد',plan:'الخطة جاهزة للمراجعة',evidence:'مراجعة المصادر والسياق',coverage:'الحقيبة جاهزة للمراجعة'};
@@ -14,9 +14,9 @@ function showView(view){
 function toast(message){const el=qs('#toast');el.textContent=message;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2800)}
 qsa('[data-view]').forEach(button=>button.addEventListener('click',()=>showView(button.dataset.view)));
 qsa('[data-example]').forEach(button=>button.addEventListener('click',()=>{qs('#topic').value=button.dataset.example;qs('#topic').focus()}));
-qs('#research-form').addEventListener('submit',event=>{event.preventDefault();const topic=qs('#topic').value.trim()||'أثر الأمانة في بناء الثقة داخل المجتمع';if(!topic.includes('أمان')){toast('نسخة اليوم الأول المتصلة تدعم سيناريو الأمانة فقط؛ توسيع التخطيط ضمن العمل الجاري');return}qs('#summary-topic').textContent=topic;showView('plan')});
-qs('#approve-plan').addEventListener('click',async()=>{if(state.loadingEvidence)return;showView('evidence');await loadDemoEvidence()});
-qsa('.plan-card').forEach(card=>card.addEventListener('click',()=>{qsa('.plan-card').forEach(c=>c.classList.remove('selected'));card.classList.add('selected')}));
+qs('#research-form').addEventListener('submit',buildRoadmap);
+qs('#approve-plan').addEventListener('click',async()=>{if(!state.roadmap||state.loadingEvidence)return;showView('evidence');await loadDemoEvidence()});
+qs('#plan-list').addEventListener('click',event=>{const card=event.target.closest('.plan-card');if(!card)return;qsa('.plan-card').forEach(item=>item.classList.remove('selected'));card.classList.add('selected')});
 function filterEvidence(type){
   qsa('.filter').forEach(button=>button.classList.toggle('active',button.dataset.filter===type));
   qsa('.source-item').forEach(button=>button.classList.toggle('active',button.dataset.sourceFilter===type));
@@ -30,6 +30,46 @@ async function api(path,body){
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data.message||'تعذر إكمال الطلب');
   return data;
+}
+function escapeHtml(value){
+  return String(value).replace(/[&<>'"]/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+}
+const axisLabels={foundation:'المحور المؤسس',context:'محور السياق',application:'المحور التطبيقي',outcome:'محور الأثر'};
+const sourceLabels={quran:'قرآن',hadith:'حديث',tafsir:'تفسير',sirah:'سيرة',approved_research:'دراسات معتمدة'};
+function renderRoadmap(roadmap){
+  const list=qs('#plan-list');
+  list.innerHTML=roadmap.axes.map((axis,index)=>`<article class="plan-card${index===0?' selected':''}" data-axis-id="${escapeHtml(axis.axis_id)}"><span class="drag-handle" aria-hidden="true">⋮⋮</span><span class="plan-number">${String(index+1).padStart(2,'0')}</span><div><label>${escapeHtml(axisLabels[axis.role]||'محور بحث')}</label><h2>${escapeHtml(axis.title)}</h2><p>${escapeHtml(axis.research_question)}</p><div class="source-pills">${axis.evidence_requirements.map(source=>`<span>${escapeHtml(sourceLabels[source]||source)}</span>`).join('')}<span>${axis.time_minutes} د</span></div></div><button class="icon-button" type="button" aria-label="تفاصيل المحور" title="وظيفة المحور: ${escapeHtml(axis.purpose)}">i</button></article>`).join('');
+  qs('#axis-count').textContent=roadmap.axes.length;
+  qs('#summary-topic').textContent=roadmap.brief.topic;
+  qs('#summary-audience').textContent=`${roadmap.brief.target_audience} · ${roadmap.brief.country_or_context}`;
+  qs('#summary-format').textContent=`${roadmap.brief.format} · ${roadmap.brief.duration}`;
+  const gateOpen=roadmap.policy_gate.decision!=='hold_for_verification';
+  qs('#policy-note').innerHTML=`<b>بوابة التعليمات · ${gateOpen?'تصريح المستخدم مسجل':'تحتاج تحققًا'}</b>${escapeHtml(roadmap.policy_gate.note)}`;
+  qs('#plan-status').textContent='بُنيت الخارطة بمنهجية مَظَانّ الحتمية؛ لم تُولد إحالات أو أحكام من ذاكرة نموذج. راجعها قبل جمع الأدلة.';
+  qs('#approve-plan').disabled=!gateOpen;
+  qs('#approve-plan').title=gateOpen?'اعتماد الخطة وبدء الاسترجاع':'ارجع إلى التكليف وسجل أنك تحققت من حالة التوجيه الرسمي';
+}
+async function buildRoadmap(event){
+  event.preventDefault();
+  if(state.loadingRoadmap)return;
+  const button=qs('#build-roadmap');
+  state.loadingRoadmap=true;button.disabled=true;button.textContent='جارٍ بناء الخارطة…';
+  try{
+    const roadmap=await api('/api/research/roadmap',{
+      topic:qs('#topic').value,
+      target_audience:qs('#audience').value,
+      country_or_context:qs('#context').value,
+      format:qs('#format').value,
+      duration:qs('#duration').value,
+      official_instruction_state:qs('#official-instruction').value,
+      language:'ar'
+    });
+    state.roadmap=roadmap;renderRoadmap(roadmap);showView('plan');
+  }catch(error){
+    toast(error.message);qs('#topic').focus();
+  }finally{
+    state.loadingRoadmap=false;button.disabled=false;button.textContent='بناء خطة البحث';
+  }
 }
 function evidenceTitle(item){
   if(item.record.content_type==='ayah')return `سورة النساء، الآية ${item.record.metadata.ayah}`;

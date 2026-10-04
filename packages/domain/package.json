@@ -3,5 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": "./src/canonical-record.mjs"
+  "exports": {
+    ".": "./src/canonical-record.mjs",
+    "./topic-roadmap": "./src/topic-roadmap.mjs"
+  }
 }

@@ -6,6 +6,7 @@ import { config } from "./config.mjs";
 import { IslamicContentMcpClient } from "@mazann/islamic-content-connector";
 import { RecordCache } from "./lib/record-cache.mjs";
 import { EvidenceService, EvidenceUnavailableError } from "./services/evidence-service.mjs";
+import { createTopicRoadmap } from "@mazann/domain/topic-roadmap";
 
 const client = new IslamicContentMcpClient({ endpoint: config.mcpUrl, timeoutMs: config.mcpTimeoutMs });
 const cache = new RecordCache(config.cacheDir, { fallbackDirectories: [config.seedCacheDir] });
@@ -67,6 +68,10 @@ async function handleApi(request, response, url) {
 
   if (request.method !== "POST") return sendJson(response, 405, { error: "METHOD_NOT_ALLOWED" });
   const body = await readJson(request);
+
+  if (url.pathname === "/api/research/roadmap") {
+    return sendJson(response, 200, createTopicRoadmap(body));
+  }
 
   if (url.pathname === "/api/evidence/search") {
     if (typeof body.query !== "string" || !body.query.trim()) {
