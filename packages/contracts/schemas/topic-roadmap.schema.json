@@ -40,7 +40,16 @@
       "properties": {
         "official_instruction_state": { "enum": ["none_declared", "unverified", "verified"] },
         "decision": { "enum": ["proceed_with_visible_caveat", "proceed", "hold_for_verification"] },
-        "content_level": { "enum": ["requires_classification", "a", "b", "c", "d"] }
+        "content_level": { "enum": ["requires_classification", "a", "b", "c", "d"] },
+        "governing_instruction": {
+          "type": ["object", "null"],
+          "properties": {
+            "issuing_authority": { "type": "string" },
+            "title": { "type": "string" },
+            "reference": { "type": "string" },
+            "required_points": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+          }
+        }
       }
     },
     "axes": {

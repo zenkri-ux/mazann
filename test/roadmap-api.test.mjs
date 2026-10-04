@@ -34,7 +34,7 @@ test("roadmap API returns a reviewable plan without external model access", asyn
     assert.equal(response.status, 200);
     const roadmap = await response.json();
     assert.equal(roadmap.generation_mode, "methodology_template");
-    assert.equal(roadmap.policy_gate.decision, "proceed_with_visible_caveat");
+    assert.equal(roadmap.policy_gate.decision, "proceed");
     assert.equal(roadmap.axes.length, 3);
   });
 });

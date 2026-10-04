@@ -43,6 +43,27 @@ function roadmapId(brief) {
   return `roadmap_${digest}`;
 }
 
+function governingInstruction(input, state) {
+  if (state !== "verified") return null;
+  const value = input.governing_instruction;
+  if (!value || typeof value !== "object") {
+    throw new RoadmapInputError("أضف بيانات التعميم أو الموضوع الرسمي", { field: "governing_instruction" });
+  }
+  const requiredPoints = Array.isArray(value.required_points)
+    ? value.required_points.map((item) => cleanText(item, "required_points", { max: 240 })).slice(0, 8)
+    : cleanText(value.required_points ?? "", "required_points", { min: 4, max: 1_000 })
+      .split(/\r?\n|[؛;]/).map((item) => item.trim()).filter(Boolean).slice(0, 8);
+  if (!requiredPoints.length) {
+    throw new RoadmapInputError("أضف نقطة واحدة على الأقل مطلوبة في التوجيه", { field: "required_points" });
+  }
+  return {
+    issuing_authority: cleanText(value.issuing_authority, "issuing_authority", { min: 2, max: 160 }),
+    title: cleanText(value.title, "instruction_title", { min: 4, max: 240 }),
+    reference: cleanText(value.reference, "instruction_reference", { min: 3, max: 500 }),
+    required_points: requiredPoints,
+  };
+}
+
 export function createTopicRoadmap(input = {}) {
   const topic = cleanText(input.topic, "topic", { min: 8, max: 240 });
   const targetAudience = cleanText(input.target_audience ?? "جمهور عام", "target_audience", { max: 100 });
@@ -57,6 +78,7 @@ export function createTopicRoadmap(input = {}) {
   if (!allowedInstructionStates.has(instructionState)) {
     throw new RoadmapInputError("حالة التوجيه الرسمي غير صالحة", { field: "official_instruction_state" });
   }
+  const instruction = governingInstruction(input, instructionState);
 
   const brief = {
     topic,
@@ -68,14 +90,10 @@ export function createTopicRoadmap(input = {}) {
     language,
   };
   const minutes = allocate(durationMinutes(duration), [0.3, 0.4, 0.3]);
-  const policyDecision = instructionState === "verified"
-    ? "proceed"
-    : instructionState === "none_declared"
-      ? "proceed_with_visible_caveat"
-      : "hold_for_verification";
+  const policyDecision = instructionState === "unverified" ? "proceed_with_visible_caveat" : "proceed";
 
   return {
-    roadmap_id: roadmapId({ ...brief, official_instruction_state: instructionState }),
+    roadmap_id: roadmapId({ ...brief, official_instruction_state: instructionState, governing_instruction: instruction }),
     methodology: { id: "friday_sermon_research", version: "1.0.0" },
     generation_mode: "methodology_template",
     brief,
@@ -83,9 +101,12 @@ export function createTopicRoadmap(input = {}) {
       official_instruction_state: instructionState,
       decision: policyDecision,
       content_level: "requires_classification",
+      governing_instruction: instruction,
       note: instructionState === "verified"
-        ? "سُجل وجود توجيه متحقق؛ يجب إرفاق مرجعه ونطاقه قبل جمع الأدلة."
-        : "لم يتحقق النظام من توجيه رسمي نافذ؛ تبقى هذه نقطة مراجعة ظاهرة ولا يُفترض عدم وجوده.",
+        ? `تراعي الخطة التوجيه «${instruction.title}» الصادر عن ${instruction.issuing_authority}، وتبقى مرجعيته منفصلة عن الأدلة الشرعية.`
+        : instructionState === "none_declared"
+          ? "سجل المستخدم أن الموضوع من اختياره ولا يعمل بناءً على تعميم خاص."
+          : "لم يتحقق المستخدم بعد من وجود تعميم خاص؛ يمكن متابعة البحث مع إبقاء التذكير ظاهرًا قبل اعتماد الحقيبة.",
     },
     axes: [
       {

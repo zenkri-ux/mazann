@@ -14,6 +14,13 @@ function showView(view){
 function toast(message){const el=qs('#toast');el.textContent=message;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2800)}
 qsa('[data-view]').forEach(button=>button.addEventListener('click',()=>showView(button.dataset.view)));
 qsa('[data-example]').forEach(button=>button.addEventListener('click',()=>{qs('#topic').value=button.dataset.example;qs('#topic').focus()}));
+function syncInstructionFields(){
+  const supplied=qs('input[name="instruction-state"]:checked').value==='verified';
+  qs('#instruction-fields').hidden=!supplied;
+  qsa('#instruction-fields input,#instruction-fields textarea').forEach(field=>field.required=supplied);
+}
+qsa('input[name="instruction-state"]').forEach(input=>input.addEventListener('change',syncInstructionFields));
+syncInstructionFields();
 qs('#research-form').addEventListener('submit',buildRoadmap);
 qs('#approve-plan').addEventListener('click',async()=>{if(!state.roadmap||state.loadingEvidence)return;showView('evidence');await loadRoadmapEvidence()});
 qs('#plan-list').addEventListener('click',event=>{const card=event.target.closest('.plan-card');if(!card)return;qsa('.plan-card').forEach(item=>item.classList.remove('selected'));card.classList.add('selected')});
@@ -43,11 +50,11 @@ function renderRoadmap(roadmap){
   qs('#summary-topic').textContent=roadmap.brief.topic;
   qs('#summary-audience').textContent=`${roadmap.brief.target_audience} · ${roadmap.brief.country_or_context}`;
   qs('#summary-format').textContent=`${roadmap.brief.format} · ${roadmap.brief.duration}`;
-  const gateOpen=roadmap.policy_gate.decision!=='hold_for_verification';
-  qs('#policy-note').innerHTML=`<b>بوابة التعليمات · ${gateOpen?'تصريح المستخدم مسجل':'تحتاج تحققًا'}</b>${escapeHtml(roadmap.policy_gate.note)}`;
+  const instructionLabels={none_declared:'موضوع اختاره المستخدم',verified:'الخطة تراعي تعميمًا رسميًا',unverified:'حالة التعميم تحتاج تحققًا'};
+  qs('#policy-note').innerHTML=`<b>${escapeHtml(instructionLabels[roadmap.policy_gate.official_instruction_state])}</b>${escapeHtml(roadmap.policy_gate.note)}`;
   qs('#plan-status').textContent='بُنيت الخارطة بمنهجية مَظَانّ الحتمية؛ لم تُولد إحالات أو أحكام من ذاكرة نموذج. راجعها قبل جمع الأدلة.';
-  qs('#approve-plan').disabled=!gateOpen;
-  qs('#approve-plan').title=gateOpen?'اعتماد الخطة وبدء الاسترجاع':'ارجع إلى التكليف وسجل أنك تحققت من حالة التوجيه الرسمي';
+  qs('#approve-plan').disabled=false;
+  qs('#approve-plan').title='اعتماد الخطة وبدء الاسترجاع';
 }
 async function buildRoadmap(event){
   event.preventDefault();
@@ -55,13 +62,21 @@ async function buildRoadmap(event){
   const button=qs('#build-roadmap');
   state.loadingRoadmap=true;button.disabled=true;button.textContent='جارٍ بناء الخارطة…';
   try{
+    const instructionState=qs('input[name="instruction-state"]:checked').value;
+    const instruction=instructionState==='verified'?{
+      issuing_authority:qs('#instruction-authority').value,
+      title:qs('#instruction-title').value,
+      reference:qs('#instruction-reference').value,
+      required_points:qs('#instruction-points').value
+    }:undefined;
     const roadmap=await api('/api/research/roadmap',{
       topic:qs('#topic').value,
       target_audience:qs('#audience').value,
       country_or_context:qs('#context').value,
       format:qs('#format').value,
       duration:qs('#duration').value,
-      official_instruction_state:qs('#official-instruction').value,
+      official_instruction_state:instructionState,
+      governing_instruction:instruction,
       language:'ar'
     });
     state.roadmap=roadmap;renderRoadmap(roadmap);showView('plan');
