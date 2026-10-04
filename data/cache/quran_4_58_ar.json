@@ -1,0 +1,39 @@
+{
+  "cache_schema_version": "1.0.0",
+  "cached_at": "2026-10-04T10:07:19.116Z",
+  "record": {
+    "schema_version": "1.0.0",
+    "id": "quran:4:58:ar",
+    "canonical_id": "quran:4:58:ar",
+    "source_family": "quran",
+    "origin_platform": "QuranEnc via Islamic Content MCP",
+    "authority_tier": "official_association_source",
+    "content_type": "ayah",
+    "language": "ar",
+    "text": "۞ إِنَّ ٱللَّهَ يَأۡمُرُكُمۡ أَن تُؤَدُّواْ ٱلۡأَمَٰنَٰتِ إِلَىٰٓ أَهۡلِهَا وَإِذَا حَكَمۡتُم بَيۡنَ ٱلنَّاسِ أَن تَحۡكُمُواْ بِٱلۡعَدۡلِۚ إِنَّ ٱللَّهَ نِعِمَّا يَعِظُكُم بِهِۦٓۗ إِنَّ ٱللَّهَ كَانَ سَمِيعَۢا بَصِيرٗا",
+    "citation_url": "https://islamenc.com/ar/quran/4/58",
+    "checksum_sha256": "bc8195c4a6a621165d3c60af49e9b21803036ea3a4c9f463f0c573bcdced4d58",
+    "fetched_at": "2026-10-04T10:07:19.113Z",
+    "upstream_version": null,
+    "publication_status": "blocked_until_upstream_version_is_recorded",
+    "metadata": {
+      "surah": 4,
+      "ayah": 58,
+      "requested_language": "ar",
+      "translation": "إن الله تعالى يأمركم بأداء مختلف الأمانات، التي اؤتمنتم عليها إلى أصحابها، فلا تفرطوا فيها، ويأمركم بالقضاء بين الناس بالعدل والقسط، إذا قضيتم بينهم، ونِعْمَ ما يعظكم الله به ويهديكم إليه. إن الله تعالى كان سميعًا لأقوالكم، مُطَّلعًا على سائر أعمالكم، بصيرًا بها.",
+      "translation_key": "arabic_moyassar",
+      "publisher_marker": "QURANENC"
+    },
+    "validation": {
+      "checks": {
+        "has_canonical_id": true,
+        "has_complete_text": true,
+        "has_citation_url": true,
+        "has_no_ellipsis": true,
+        "locator_matches": true,
+        "single_complete_ayah": true
+      },
+      "status": "valid"
+    }
+  }
+}

@@ -8,6 +8,8 @@ Reference snapshot SHA-256: `446911252F2012D36AFE52DB3E9AFAF0DAE52615DA34E134AA4
 
 Purpose: tell engineering exactly which source to use, for what, and under which constraint
 
+This registry governs knowledge content. Institutional directives and research-method references are maintained as a separate control-plane registry in `METHODOLOGY_AND_INSTRUCTION_ENGINE.md`; they may shape workflow but may not be cited as religious evidence unless independently approved for that role.
+
 ## Integration order for the competition build
 
 The judged slice is Arabic and uses the Friday-sermon research package as its complete workflow. The registry remains multilingual so expansion does not require a new identity model, but cross-language delivery must not delay the Arabic P0 journey.
@@ -111,3 +113,16 @@ network failure
 ```
 
 Never fall back from an unavailable approved connector to open web search or model memory. The correct fallback is the approved cache or an explicit unavailable/not-found state.
+
+## External workflow references
+
+The following do not enter the Islamic evidence corpus:
+
+| Reference | Permitted role | Provenance requirement |
+|---|---|---|
+| Saudi Ministry of Islamic Affairs directives | Verified institutional constraints for an applicable Friday-sermon scenario | Primary ministry URL, issue/validity date, jurisdiction, audience, extracted obligation, reviewer and checksum. |
+| PRISMA 2020 | Reporting profile for an applicable systematic review | Official PRISMA source, profile version and explicit note that reporting guidance is not the complete conduct methodology. |
+| JBI Manual for Evidence Synthesis | Procedure profile for a selected evidence-synthesis type | Official JBI chapter/version and applicability decision. |
+| EQUATOR Network | Selector for an applicable research reporting guideline | Exact guideline, study type, version and licence; never use the directory as a content authority. |
+
+Using any external workflow reference must be disclosed in the final source/tool/licence documentation with its purpose and limits.

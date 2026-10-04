@@ -2,18 +2,25 @@
 
 Status: competition implementation contract
 
+## Repository architecture
+
+Mazann is implemented as a modular monolith in an npm-workspaces monorepo. `apps/web` owns the Arabic product surface, `apps/api` owns HTTP and orchestration, `packages/domain` owns canonical evidence rules, `packages/connectors` isolates external protocols, and `packages/contracts` versions schemas, methodology and instruction profiles. One container deploys the complete judged slice; package boundaries allow later extraction without premature distributed-system complexity.
+
+The container runs as a non-root user with a read-only filesystem, no Linux capabilities, a writable runtime-cache volume, an immutable seed cache, and an HTTP health check. CI executes deterministic tests, regenerates the source manifest, and builds the container on every pull request.
+
 ## Product boundary
 
-Mazann starts with one complete use case: an Arabic-speaking Friday preacher or Islamic-content researcher builds a source-grounded research package before writing. The product does not generate a complete sermon and does not issue personal fatwas.
+Mazann starts with one complete use case: an Arabic-speaking Friday preacher starts from a topic and builds a source-grounded research package before writing. User research also identified official ready material and existing drafts as real starting points; they are represented in the domain model but remain outside the competition's implemented P0 journey. The product does not generate a complete sermon and does not issue personal fatwas.
 
 The architecture is format-aware rather than sermon-specific. `content_format`, `target_audience`, `audience_familiarity`, `language`, `duration`, and `intended_outcome` are first-class fields so the same engine can later support lessons, articles, introductory Islamic material, and approved multilingual content.
 
 ## End-to-end flow
 
 ```text
-research brief
+preparation mode + research brief + applicable official constraints
   → intent, audience, and A–D content-level gate
-  → methodology-aware topic planner
+  → policy resolver: safety + verified instruction + methodology + audience
+  → methodology-aware plan compiler and compliance trace
   → researcher edits and approves the plan
   → source router chooses approved source families per axis
   → official MCP/API retrieval or versioned cache fallback
@@ -32,6 +39,7 @@ research brief
 |---|---|
 | Experience | Research brief, editable topic map, evidence feed, source explorer, coverage map, saved research and export. |
 | AI orchestration | Structured topic proposal, source-specific query construction, relevance explanation and evidence-grounded coverage suggestion. |
+| Methodology and instruction control plane | Versioned methodology profiles, verified official instructions, applicability/precedence resolution, plan requirement trace and compliance report. |
 | Policy engine | Content levels A–D, source allowlist, no-fatwa boundary, disagreement handling, abstention and referral. |
 | Knowledge connectors | Official Association MCP, named REST APIs, timeouts and a visible versioned-cache fallback. |
 | Retrieval | Exact IDs/quotations, Arabic lexical search, semantic search, metadata filters, reranking and whole-unit expansion. |
@@ -49,6 +57,13 @@ Deterministic controls resolve source records, preserve ayah/Hadith boundaries, 
 ## Core entities
 
 - `ResearchProject`: title, brief, format, audience, language, status and timestamps.
+- `PreparationMode`: topic from scratch, official material, or existing draft.
+- `InputAsset`: optional official material or user draft with issuer, version, date, rights and checksum.
+- `OfficialConstraint`: required topic, official text supplied, exact text required, adaptation permitted, or unknown; includes the issuing instruction and validity window.
+- `InstructionSet`: issuer, primary source, jurisdiction, audience, dates, obligations, prohibitions, binding/adaptation rules, verification and checksum.
+- `MethodologyProfile`: task type, stages, required inputs/outputs, evidence rules, review gates, references, licence, limitations and version.
+- `PlanRequirementTrace`: maps each topic axis to user intent, instruction clauses, methodology stages and audience rationale.
+- `PlanComplianceReport`: covered, missing, conflicting and AI-only requirements plus the policy versions used.
 - `TopicPlanVersion`: each generated, edited or approved plan.
 - `TopicAxis`: question, purpose, position, evidence requirements, content level and review boundary.
 - `Source`: platform, publisher, authority tier, responsibility, rights and connector.
@@ -78,21 +93,22 @@ Deterministic controls resolve source records, preserve ayah/Hadith boundaries, 
 - `PATCH /evidence/{id}/decision`
 - `GET /projects/{id}/coverage`
 - `POST /projects/{id}/export`
-- `GET /health`
+- `GET /api/health`
 
 ## Competition implementation order
 
 ### P0: complete judging journey
 
 1. Arabic research brief and methodology-aware plan.
-2. Human approval before retrieval.
-3. Real approved-source retrieval for the selected demo topic.
-4. Complete Quran/Hadith records and verifiable citations.
-5. Evidence decisions and automatic coverage recalculation.
-6. Source explorer with filtering and retrieved/accepted counts.
-7. Safety, abstention, referral and cached fallback.
-8. Basic project persistence and resume.
-9. Working live deployment, public repository and reproducible setup.
+2. One versioned sermon-research methodology profile and explainable requirement trace.
+3. Human approval before retrieval.
+4. Real approved-source retrieval for the selected demo topic.
+5. Complete Quran/Hadith records and verifiable citations.
+6. Evidence decisions and automatic coverage recalculation.
+7. Source explorer with filtering and retrieved/accepted counts.
+8. Safety, abstention, referral and cached fallback.
+9. Basic project persistence and resume.
+10. Working live deployment, public repository and reproducible setup.
 
 ### P1: only after P0 is stable
 
@@ -114,3 +130,5 @@ Deterministic controls resolve source records, preserve ayah/Hadith boundaries, 
 ## Scalability statement
 
 The competition proves the research engine through one sensitive and testable workflow. Expansion changes the research brief, planning template and final format. It does not replace the canonical store, retrieval, validation, evidence-review or coverage layers.
+
+The same foundation can later serve academic Islamic researchers, preachers and content teams, or official institutions. Institutional use adds policy administration, locked official assets, approval workflows, version distribution and audit logs; it does not weaken source integrity or silently grant permission to modify official material.

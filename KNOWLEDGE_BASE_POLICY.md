@@ -84,6 +84,8 @@ The AI may propose a structure, but the user remains the editor and approves it 
 - intended outcome and format;
 - available duration or depth;
 - any explicit boundaries or sensitivities.
+- preparation mode and selected methodology profile;
+- applicable jurisdiction and any official instruction ID, validity, binding level, and adaptation policy.
 
 Do not infer unnecessary religious or sensitive traits about a person. Ask only for context required to shape the material.
 
@@ -111,6 +113,14 @@ Do not infer unnecessary religious or sensitive traits about a person. Ask only 
 8. Require human approval of the topic map before the system assembles evidence. Regenerating one axis must not silently replace the rest of an approved plan.
 
 This is Mazann's product methodology, not a claim that the competition mandated one universal outline for every Islamic topic.
+
+### Methodology and official-instruction overlays
+
+The planning method above is the competition default, `friday_sermon_research_v1`. An official instruction may constrain it only when its primary issuer, jurisdiction, audience, validity window, binding level and exact obligations have been verified. Store institutional instructions as versioned structured policy, never as an untrusted text blob appended to the model prompt.
+
+Every proposed axis must identify its origin: user request, verified instruction, methodology stage, audience need, or AI suggestion. Mandatory points remain visibly mandatory; AI-only suggestions remain editable. An expired, superseded, out-of-scope, user-supplied or ambiguous instruction cannot silently govern the plan. Exact-text material remains locked when the verified instruction requires it.
+
+Future academic research profiles must be task-specific and referenced. PRISMA may support reporting of systematic reviews, JBI may define an applicable evidence-synthesis procedure, and EQUATOR may help select a reporting guideline; none is a universal methodology for Islamic studies. Subject-specific Islamic research methods require expert-authored profiles before activation. See `METHODOLOGY_AND_INSTRUCTION_ENGINE.md`.
 
 ## 6. Content levels and response controls
 

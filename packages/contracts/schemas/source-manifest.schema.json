@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mazann.example/schemas/source-manifest.schema.json",
+  "title": "Mazann source manifest",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "connector", "records"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "connector": {
+      "type": "object",
+      "required": ["name", "endpoint", "transport", "authentication", "access"],
+      "properties": {
+        "name": { "type": "string" },
+        "endpoint": { "type": "string", "format": "uri" },
+        "transport": { "type": "string" },
+        "authentication": { "type": "string" },
+        "access": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "redistribution_note": { "type": "string" },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["canonical_id", "citation_url", "checksum_sha256", "validation_status", "publication_status"],
+        "properties": {
+          "canonical_id": { "type": "string" },
+          "source_family": { "type": "string" },
+          "origin_platform": { "type": "string" },
+          "citation_url": { "type": "string", "format": "uri" },
+          "language": { "type": "string" },
+          "content_type": { "type": "string" },
+          "upstream_version": { "type": ["string", "null"] },
+          "publication_status": { "type": "string" },
+          "fetched_at": { "type": "string", "format": "date-time" },
+          "cached_at": { "type": "string", "format": "date-time" },
+          "checksum_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "validation_status": { "enum": ["valid", "blocked"] }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

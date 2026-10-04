@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-10-04T10:07:19.502Z",
+  "connector": {
+    "name": "Islamic Content",
+    "endpoint": "https://mcp.islamiccontent.org/mcp",
+    "transport": "Streamable HTTP",
+    "authentication": "none",
+    "access": "read-only"
+  },
+  "redistribution_note": "Keep exact source links and publisher attribution. Quran translation content must not be modified; confirm the upstream version before final publication.",
+  "records": [
+    {
+      "canonical_id": "hadith:3016:ar",
+      "source_family": "hadith",
+      "origin_platform": "HadeethEnc via Islamic Content MCP",
+      "citation_url": "https://hadeethenc.com/ar/browse/hadith/3016",
+      "language": "ar",
+      "content_type": "hadith",
+      "upstream_version": null,
+      "publication_status": "blocked_until_upstream_version_is_recorded",
+      "fetched_at": "2026-10-04T10:07:19.501Z",
+      "cached_at": "2026-10-04T10:07:19.502Z",
+      "checksum_sha256": "560e5a55a76b25cf385011240035d69e6868faccb06117cec50f605fdde51e5d",
+      "validation_status": "valid"
+    },
+    {
+      "canonical_id": "quran:4:58:ar",
+      "source_family": "quran",
+      "origin_platform": "QuranEnc via Islamic Content MCP",
+      "citation_url": "https://islamenc.com/ar/quran/4/58",
+      "language": "ar",
+      "content_type": "ayah",
+      "upstream_version": null,
+      "publication_status": "blocked_until_upstream_version_is_recorded",
+      "fetched_at": "2026-10-04T10:07:19.113Z",
+      "cached_at": "2026-10-04T10:07:19.116Z",
+      "checksum_sha256": "bc8195c4a6a621165d3c60af49e9b21803036ea3a4c9f463f0c573bcdced4d58",
+      "validation_status": "valid"
+    }
+  ]
+}

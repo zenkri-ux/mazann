@@ -1,0 +1,7 @@
+{
+  "name": "@mazann/islamic-content-connector",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/mcp-client.mjs"
+}

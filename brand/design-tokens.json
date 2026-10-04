@@ -139,9 +139,9 @@
     "minimumTarget": { "$value": "44px", "$type": "dimension" }
   },
   "assets": {
-    "logoLight": "../dist/assets/mazann-symbol-light.svg",
-    "logoDark": "../dist/assets/mazann-symbol-dark.svg",
-    "logoSmallDark": "../dist/assets/mazann-symbol-small-dark.svg",
-    "favicon": "../dist/favicon.svg"
+    "logoLight": "../apps/web/dist/assets/mazann-symbol-light.svg",
+    "logoDark": "../apps/web/dist/assets/mazann-symbol-dark.svg",
+    "logoSmallDark": "../apps/web/dist/assets/mazann-symbol-small-dark.svg",
+    "favicon": "../apps/web/dist/favicon.svg"
   }
 }

@@ -1,0 +1,6 @@
+{
+  "name": "@mazann/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Arabic RTL research workspace served by @mazann/api"
+}

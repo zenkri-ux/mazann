@@ -1,0 +1,93 @@
+{
+  "$schema": "./methodology-profile.schema.json",
+  "methodology_id": "friday_sermon_research",
+  "version": "1.0.0",
+  "status": "draft",
+  "name_ar": "إعداد حقيبة بحث خطبة الجمعة من موضوع",
+  "scope": {
+    "primary_user": "خطيب جمعة",
+    "starting_mode": "topic_from_scratch",
+    "output": "research_package",
+    "language": "ar",
+    "does_not_output": ["personal_fatwa", "final_ready_to_deliver_sermon", "independent_scholarly_preference"]
+  },
+  "authority_references": [
+    {
+      "title": "المرجعية والحزمة العلمية والبيانات - محدث",
+      "source_path": "../../about-competition/المرجعية.pdf",
+      "pages": [2, 3, 4, 5, 6],
+      "use": "content levels, approved sources, mandatory scientific standard and safety cases"
+    },
+    {
+      "title": "دليل المشارك",
+      "source_path": "../../about-competition/تحدي الذكاء الاصطناعي في خدمة المحتوى الإسلامي _ دليل المشارك.pdf",
+      "pages": [11, 20, 21, 36, 37, 38, 39, 40],
+      "use": "track success criterion, evaluation and verifiability requirements"
+    }
+  ],
+  "required_inputs": [
+    "topic",
+    "intended_outcome",
+    "target_audience",
+    "audience_familiarity",
+    "country_or_context",
+    "language",
+    "duration",
+    "official_instruction_state"
+  ],
+  "stages": [
+    {
+      "stage_id": "brief",
+      "name_ar": "فهم التكليف",
+      "purpose": "تثبيت المقصد والجمهور والمدة والسياق قبل اقتراح المحتوى.",
+      "required_outputs": ["normalized_intent", "audience_note", "scope_boundary"]
+    },
+    {
+      "stage_id": "policy_gate",
+      "name_ar": "بوابة السلامة والتعليمات",
+      "purpose": "تصنيف أ-د وحل أي توجيه رسمي متحقق أو تعارض أو إحالة.",
+      "required_outputs": ["content_level", "applicable_instruction_ids", "policy_decision"]
+    },
+    {
+      "stage_id": "foundation",
+      "name_ar": "تقديم الأصل",
+      "purpose": "تحديد المعنى المؤسس قبل الفروع والتطبيقات.",
+      "required_outputs": ["foundational_question", "foundational_evidence_requirements"]
+    },
+    {
+      "stage_id": "axes",
+      "name_ar": "بناء المحاور",
+      "purpose": "تحويل التكليف إلى محاور صغيرة ذات وظيفة وسؤال ودليل مطلوب.",
+      "required_outputs": ["topic_axes", "axis_requirement_trace", "time_allocation"]
+    },
+    {
+      "stage_id": "evidence",
+      "name_ar": "جمع الأدلة ومراجعتها",
+      "purpose": "استرجاع وحدات كاملة من المصادر المعتمدة وفصل النقل عن التنظيم المولد.",
+      "required_outputs": ["evidence_candidates", "citation_validation", "human_decisions"]
+    },
+    {
+      "stage_id": "application",
+      "name_ar": "الشرح والتطبيق",
+      "purpose": "ربط الأدلة بالسياق والجمهور دون تغيير المعنى أو اختراع حكم.",
+      "required_outputs": ["audience_adaptation_notes", "review_boundaries"]
+    },
+    {
+      "stage_id": "coverage",
+      "name_ar": "فحص الجاهزية",
+      "purpose": "كشف التكرار والنقص والتعليمات غير المغطاة ونقاط المراجعة.",
+      "required_outputs": ["coverage_map", "plan_compliance_report", "visible_gaps"]
+    }
+  ],
+  "human_review_gates": [
+    { "after_stage": "axes", "decision": "approve_or_edit_plan" },
+    { "after_stage": "evidence", "decision": "accept_exclude_or_refer_evidence" },
+    { "after_stage": "coverage", "decision": "approve_research_package_not_final_sermon" }
+  ],
+  "limitations": [
+    "لا يحدد وحده الأركان الفقهية التفصيلية للخطبة في كل بلد أو مذهب.",
+    "لا يفترض انطباق توجيه رسمي دون تحقق النطاق والتاريخ.",
+    "لا ينتج فتوى شخصية أو ترجيحًا آليًا مستقلًا.",
+    "لا يدعي أن حقيبة البحث خطبة نهائية جاهزة للإلقاء."
+  ]
+}

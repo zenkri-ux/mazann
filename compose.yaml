@@ -1,0 +1,32 @@
+name: mazann
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mazann:local
+    init: true
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8090}:8090"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8090
+      MCP_ISLAMIC_CONTENT_URL: ${MCP_ISLAMIC_CONTENT_URL:-https://mcp.islamiccontent.org/mcp}
+      MCP_TIMEOUT_MS: ${MCP_TIMEOUT_MS:-12000}
+      MAZANN_CACHE_DIR: /app/data/runtime/cache
+      MAZANN_SEED_CACHE_DIR: /app/data/cache
+      MAZANN_CACHE_WRITE: ${MAZANN_CACHE_WRITE:-true}
+    volumes:
+      - mazann-runtime:/app/data/runtime
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  mazann-runtime:

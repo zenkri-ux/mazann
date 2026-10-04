@@ -1,0 +1,42 @@
+{
+  "$schema": "../instruction-set.schema.json",
+  "instruction_id": "saudi_moia_1446_10_20_extravagance",
+  "version": "1.0.0",
+  "issuer": {
+    "name": "وزارة الشؤون الإسلامية والدعوة والإرشاد - المملكة العربية السعودية",
+    "type": "government"
+  },
+  "source": {
+    "url": "https://www.moia.gov.sa/MediaCenter/News/Pages/20101446_1.aspx",
+    "source_type": "issuer_news",
+    "retrieved_at": "2026-10-03",
+    "checksum": null,
+    "note": "صفحة خبر صادرة عن الجهة وليست نسخة التعميم الأصلي؛ لذلك لا تستخرج منها قيود غير منصوص عليها."
+  },
+  "jurisdiction": {
+    "country": "SA",
+    "regions": ["all"]
+  },
+  "applies_to": ["Friday preachers addressed by the ministry directive"],
+  "issued_at": "2025-04-18",
+  "valid_from": "2025-04-18",
+  "valid_to": "2025-04-18",
+  "instruction_type": "required_topic",
+  "required_topic": "التحذير من خطورة الإسراف والتبذير في الولائم والمناسبات وتصويرها بهدف المباهاة",
+  "required_points": [],
+  "prohibited_points": [],
+  "binding_level": "mandatory",
+  "adaptation_policy": "unknown",
+  "verification": {
+    "status": "expired",
+    "scope_reviewed": true,
+    "verified_by": "documentation_audit",
+    "verified_at": "2026-10-03"
+  },
+  "use_constraints": [
+    "للعرض التاريخي واختبار نموذج البيانات فقط.",
+    "لا يطبق على مشروع حالي.",
+    "لا يستنتج منه أن صياغة النص كانت حرة أو مقفلة.",
+    "لا تحول أمثلة الخبر إلى نقاط إلزامية من دون التعميم الأصلي."
+  ]
+}
