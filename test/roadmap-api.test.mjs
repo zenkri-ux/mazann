@@ -52,3 +52,16 @@ test("roadmap API rejects a vague topic with a structured client error", async (
     assert.equal(error.details.field, "topic");
   });
 });
+
+test("roadmap evidence API rejects an invalid roadmap before source access", async () => {
+  await withServer(async (origin) => {
+    const response = await fetch(`${origin}/api/research/evidence`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ roadmap: { roadmap_id: "invalid", axes: [] } }),
+    });
+    assert.equal(response.status, 400);
+    const error = await response.json();
+    assert.equal(error.error, "INVALID_ROADMAP_AXES");
+  });
+});

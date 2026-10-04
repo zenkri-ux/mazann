@@ -39,3 +39,68 @@ test("candidate fetch routes only canonical Quran and Hadith ids", async () => {
   assert.deepEqual(await service.fetchCandidate({ id: "quran:4:58:ar" }), { routed: "quran", surah: 4, ayah: 58 });
   await assert.rejects(() => service.fetchCandidate({ id: "library:123:ar" }), /غير مدعوم/);
 });
+
+test("roadmap collection fetches complete unique records and preserves axis trace", async () => {
+  const service = new EvidenceService({ client: {}, cache: {}, cacheWrite: false });
+  service.search = async ({ query }) => ({
+    candidates: query.includes("الأصل")
+      ? [{ id: "quran:4:58:ar" }, { id: "hadith:3016:ar" }]
+      : [{ id: "quran:4:58:ar" }],
+  });
+  service.fetchCandidate = async ({ id }) => ({
+    retrieval_mode: "live",
+    record: { id, validation: { status: "valid" } },
+  });
+
+  const result = await service.collectForRoadmap({
+    roadmap: {
+      roadmap_id: "roadmap_test",
+      brief: { language: "ar" },
+      axes: [
+        { axis_id: "foundation", research_question: "ما الأصل؟", evidence_requirements: ["quran", "hadith"] },
+        { axis_id: "context", research_question: "ما السياق؟", evidence_requirements: ["quran"] },
+      ],
+    },
+  });
+  assert.equal(result.records.length, 2);
+  assert.deepEqual(result.records[0].axis_ids, ["foundation", "context"]);
+  assert.equal(result.unresolved.length, 0);
+});
+
+test("roadmap collection exposes failed full fetches instead of promoting snippets", async () => {
+  const service = new EvidenceService({ client: {}, cache: {}, cacheWrite: false });
+  service.search = async () => ({ candidates: [{ id: "hadith:999:ar" }] });
+  service.fetchCandidate = async () => { throw Object.assign(new Error("blocked"), { code: "EVIDENCE_UNAVAILABLE" }); };
+  const result = await service.collectForRoadmap({
+    roadmap: {
+      roadmap_id: "roadmap_test",
+      brief: { language: "ar" },
+      axes: [{ axis_id: "foundation", research_question: "ما الأصل؟", evidence_requirements: ["hadith"] }],
+    },
+  });
+  assert.equal(result.records.length, 0);
+  assert.deepEqual(result.unresolved, [{ id: "hadith:999:ar", axis_ids: ["foundation"], code: "EVIDENCE_UNAVAILABLE" }]);
+});
+
+test("roadmap collection favors source diversity before filling the record limit", async () => {
+  const service = new EvidenceService({ client: {}, cache: {}, cacheWrite: false });
+  service.search = async () => ({ candidates: [
+    { id: "hadith:1:ar", source_family: "hadith" },
+    { id: "hadith:2:ar", source_family: "hadith" },
+    { id: "quran:2:1:ar", source_family: "quran" },
+  ] });
+  service.fetchCandidate = async ({ id }) => ({ retrieval_mode: "live", record: { id } });
+  const result = await service.collectForRoadmap({
+    maxRecords: 2,
+    roadmap: {
+      roadmap_id: "roadmap_test",
+      brief: { language: "ar" },
+      axes: [{
+        axis_id: "foundation",
+        research_question: "ما الأصل المؤسس للموضوع؟",
+        evidence_requirements: ["quran", "hadith"],
+      }],
+    },
+  });
+  assert.deepEqual(result.records.map((item) => item.record.id), ["quran:2:1:ar", "hadith:1:ar"]);
+});

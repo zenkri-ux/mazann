@@ -1,5 +1,28 @@
 import { normalizeHadithResponse, normalizeQuranResponse, normalizeSearchResponse } from "@mazann/domain";
 
+function selectDiverseCandidates(candidateMap, axes, maxRecords) {
+  const available = [...candidateMap.values()];
+  const selected = [];
+  const used = new Set();
+  const add = (entry) => {
+    if (!entry || used.has(entry.candidate.id) || selected.length >= maxRecords) return;
+    selected.push(entry);
+    used.add(entry.candidate.id);
+  };
+
+  for (const axis of axes) {
+    for (const source of ["quran", "hadith"]) {
+      add(available.find((entry) => (
+        entry.axis_ids.includes(axis.axis_id)
+        && entry.candidate.source_family === source
+        && !used.has(entry.candidate.id)
+      )));
+    }
+  }
+  for (const entry of available) add(entry);
+  return selected;
+}
+
 export class EvidenceUnavailableError extends Error {
   constructor(message, details = {}) {
     super(message);
@@ -57,6 +80,73 @@ export class EvidenceService {
       status: 422,
       code: "UNSUPPORTED_CANDIDATE_TYPE",
     });
+  }
+
+  async collectForRoadmap({ roadmap, perAxisLimit = 4, maxRecords = 6 }) {
+    if (!roadmap || typeof roadmap.roadmap_id !== "string" || !Array.isArray(roadmap.axes)) {
+      throw Object.assign(new Error("خارطة البحث غير صالحة"), { status: 400, code: "INVALID_ROADMAP" });
+    }
+    if (!roadmap.axes.length || roadmap.axes.length > 6) {
+      throw Object.assign(new Error("عدد محاور الخارطة غير صالح"), { status: 400, code: "INVALID_ROADMAP_AXES" });
+    }
+
+    const searches = await Promise.allSettled(roadmap.axes.map(async (axis) => {
+      if (typeof axis.axis_id !== "string" || typeof axis.research_question !== "string") {
+        throw Object.assign(new Error("بيانات المحور غير مكتملة"), { code: "INVALID_ROADMAP_AXIS" });
+      }
+      const requested = new Set(axis.evidence_requirements ?? []);
+      const sources = ["quran", "hadith"].filter((source) => requested.has(source));
+      const result = await this.search({
+        query: axis.research_question,
+        sources: sources.length ? sources : ["quran", "hadith"],
+        language: roadmap.brief?.language ?? "ar",
+        limit: perAxisLimit,
+      });
+      return { axis_id: axis.axis_id, candidates: result.candidates };
+    }));
+
+    const candidateMap = new Map();
+    const searchFailures = [];
+    searches.forEach((search, index) => {
+      const axisId = roadmap.axes[index]?.axis_id ?? `axis-${index + 1}`;
+      if (search.status === "rejected") {
+        searchFailures.push({ axis_id: axisId, code: search.reason?.code ?? "SEARCH_FAILED" });
+        return;
+      }
+      for (const candidate of search.value.candidates) {
+        if (!candidateMap.has(candidate.id)) candidateMap.set(candidate.id, { candidate, axis_ids: [] });
+        candidateMap.get(candidate.id).axis_ids.push(axisId);
+      }
+    });
+
+    const selected = selectDiverseCandidates(candidateMap, roadmap.axes, maxRecords);
+    const fetched = await Promise.allSettled(selected.map(({ candidate }) => this.fetchCandidate({
+      id: candidate.id,
+      language: roadmap.brief?.language ?? "ar",
+    })));
+    const records = [];
+    const unresolved = [];
+    fetched.forEach((result, index) => {
+      const selectedCandidate = selected[index];
+      if (result.status === "fulfilled") {
+        records.push({ ...result.value, axis_ids: selectedCandidate.axis_ids });
+      } else {
+        unresolved.push({
+          id: selectedCandidate.candidate.id,
+          axis_ids: selectedCandidate.axis_ids,
+          code: result.reason?.code ?? "FULL_FETCH_FAILED",
+        });
+      }
+    });
+
+    return {
+      roadmap_id: roadmap.roadmap_id,
+      retrieval_mode: "roadmap_search_then_full_fetch",
+      records,
+      unresolved,
+      search_failures: searchFailures,
+      notice: "اعتمدت السجلات الكاملة فقط؛ لم تتحول مقتطفات البحث أو النتائج المتعذرة إلى أدلة.",
+    };
   }
 
   async #retrieve({ cacheId, tool, args, normalize }) {

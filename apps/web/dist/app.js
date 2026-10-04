@@ -15,7 +15,7 @@ function toast(message){const el=qs('#toast');el.textContent=message;el.classLis
 qsa('[data-view]').forEach(button=>button.addEventListener('click',()=>showView(button.dataset.view)));
 qsa('[data-example]').forEach(button=>button.addEventListener('click',()=>{qs('#topic').value=button.dataset.example;qs('#topic').focus()}));
 qs('#research-form').addEventListener('submit',buildRoadmap);
-qs('#approve-plan').addEventListener('click',async()=>{if(!state.roadmap||state.loadingEvidence)return;showView('evidence');await loadDemoEvidence()});
+qs('#approve-plan').addEventListener('click',async()=>{if(!state.roadmap||state.loadingEvidence)return;showView('evidence');await loadRoadmapEvidence()});
 qs('#plan-list').addEventListener('click',event=>{const card=event.target.closest('.plan-card');if(!card)return;qsa('.plan-card').forEach(item=>item.classList.remove('selected'));card.classList.add('selected')});
 function filterEvidence(type){
   qsa('.filter').forEach(button=>button.classList.toggle('active',button.dataset.filter===type));
@@ -108,6 +108,23 @@ function selectEvidence(id){
   const meta=qsa('.source-meta b',panel);meta[0].textContent=item.record.origin_platform;meta[1].textContent=evidenceLocation(item);meta[2].textContent=item.retrieval_mode==='live'?'حي من المصدر':'نسخة مخزنة موثقة';meta[2].classList.add('mint-text');
   qs('.relevance p',panel).textContent=item.record.content_type==='ayah'?`التفسير المنشور محفوظ منفصلًا عن نص الآية. البصمة: ${item.record.checksum_sha256.slice(0,12)}…`:`الحكم المنشور: ${item.record.metadata.grade||'غير متاح'}. الشرح محفوظ منفصلًا عن المتن. البصمة: ${item.record.checksum_sha256.slice(0,12)}…`;
   qs('#accept-evidence').disabled=false;qs('#reject-evidence').disabled=false;
+}
+async function loadRoadmapEvidence(){
+  state.loadingEvidence=true;state.evidence=[];state.selectedEvidence=null;
+  qs('#retrieval-status').textContent='جارٍ البحث وفق أسئلة المحاور؛ لن يعتمد أي مقتطف قبل جلب السجل الكامل…';
+  qs('#evidence-feed').innerHTML='<div class="evidence-empty"><b>جارٍ البحث في المصادر المعتمدة</b><p>تُدمج النتائج المتكررة، ثم يُجلب الأصل الكامل ويُتحقق من مرجعه.</p></div>';
+  try{
+    const result=await api('/api/research/evidence',{roadmap:state.roadmap,max_records:6});
+    state.evidence=result.records.map(item=>({...item,decision:null}));
+    const cacheCount=state.evidence.filter(item=>item.retrieval_mode==='cache').length;
+    const failedCount=result.unresolved.length+result.search_failures.length;
+    qs('#retrieval-status').textContent=`اعتمد ${state.evidence.length} سجل كامل${cacheCount?` · ${cacheCount} من النسخة المخزنة`:''}${failedCount?` · ${failedCount} نتيجة أو مسار تعذر ولم يتحول إلى دليل`:''}.`;
+    renderEvidence();if(state.evidence[0])selectEvidence(state.evidence[0].record.id);
+  }catch(error){
+    state.evidence=[];renderEvidence();qs('#retrieval-status').textContent=`تعذر إكمال الاسترجاع: ${error.message}`;
+  }finally{
+    state.loadingEvidence=false;
+  }
 }
 async function loadDemoEvidence(){
   state.loadingEvidence=true;state.evidence=[];state.selectedEvidence=null;qs('#retrieval-status').textContent='جارٍ طلب السجلين الكاملين والتحقق من المرجع والبصمة…';qs('#evidence-feed').innerHTML='<div class="evidence-empty"><b>جارٍ الاتصال بالمصدر</b><p>لن يظهر مقتطف البحث بوصفه دليلًا.</p></div>';

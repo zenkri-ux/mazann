@@ -73,6 +73,13 @@ async function handleApi(request, response, url) {
     return sendJson(response, 200, createTopicRoadmap(body));
   }
 
+  if (url.pathname === "/api/research/evidence") {
+    const maxRecords = body.max_records === undefined
+      ? 6
+      : requireInteger(body.max_records, "max_records", { min: 1, max: 10 });
+    return sendJson(response, 200, await evidence.collectForRoadmap({ roadmap: body.roadmap, maxRecords }));
+  }
+
   if (url.pathname === "/api/evidence/search") {
     if (typeof body.query !== "string" || !body.query.trim()) {
       throw Object.assign(new Error("حقل query مطلوب"), { status: 400 });
