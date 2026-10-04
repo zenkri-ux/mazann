@@ -1,4 +1,4 @@
-FROM node:22.23.0-bookworm-slim AS runtime
+FROM node:26.10.0-bookworm-slim AS runtime
 
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
