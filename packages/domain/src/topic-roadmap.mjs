@@ -96,6 +96,7 @@ export function createTopicRoadmap(input = {}) {
     roadmap_id: roadmapId({ ...brief, official_instruction_state: instructionState, governing_instruction: instruction }),
     methodology: { id: "friday_sermon_research", version: "1.0.0" },
     generation_mode: "methodology_template",
+    planner_status: { state: "methodology_only", provider: null, model: null },
     brief,
     policy_gate: {
       official_instruction_state: instructionState,
@@ -151,5 +152,57 @@ export function createTopicRoadmap(input = {}) {
       "متطلبات الأدلة فئات بحث وليست إحالات مكتملة قبل الاسترجاع والتحقق.",
       "يلزم اعتماد الباحث للخطة قبل جمع الأدلة.",
     ],
+  };
+}
+
+export function enhanceTopicRoadmap(base, draft, { provider, model, responseId = null } = {}) {
+  if (!draft || !Array.isArray(draft.axes) || draft.axes.length < 3 || draft.axes.length > 5) {
+    throw new RoadmapInputError("مخرجات التخطيط لا تحتوي عددًا صالحًا من المحاور", { field: "axes" });
+  }
+  const allowedRoles = new Set(["foundation", "context", "application", "outcome"]);
+  const allowedEvidence = new Set(["quran", "hadith", "tafsir", "sirah", "approved_research"]);
+  const weights = draft.axes.map((axis) => {
+    if (!allowedRoles.has(axis.role)) throw new RoadmapInputError("وظيفة محور غير صالحة", { field: "role" });
+    if (!Number.isInteger(axis.time_weight) || axis.time_weight < 1 || axis.time_weight > 10) {
+      throw new RoadmapInputError("وزن زمني غير صالح", { field: "time_weight" });
+    }
+    return axis.time_weight;
+  });
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  const normalizedWeights = weights.map((weight) => weight / totalWeight);
+  const minutes = allocate(durationMinutes(base.brief.duration), normalizedWeights);
+  const axes = draft.axes.map((axis, index) => {
+    const requirements = [...new Set(axis.evidence_requirements ?? [])];
+    if (!requirements.length || requirements.some((item) => !allowedEvidence.has(item))) {
+      throw new RoadmapInputError("متطلبات دليل غير صالحة", { field: "evidence_requirements" });
+    }
+    return {
+      axis_id: `axis_${String(index + 1).padStart(2, "0")}`,
+      role: axis.role,
+      title: cleanText(axis.title, "axis_title", { min: 4, max: 160 }),
+      research_question: cleanText(axis.research_question, "research_question", { min: 8, max: 320 }),
+      purpose: cleanText(axis.purpose, "axis_purpose", { min: 8, max: 320 }),
+      rationale: cleanText(axis.rationale, "axis_rationale", { min: 8, max: 320 }),
+      evidence_requirements: requirements,
+      time_minutes: minutes[index],
+      risk_flags: Array.isArray(axis.risk_flags)
+        ? axis.risk_flags.map((item) => cleanText(item, "risk_flag", { max: 180 })).slice(0, 5)
+        : [],
+    };
+  });
+  const questions = Array.isArray(draft.clarifying_questions)
+    ? draft.clarifying_questions.map((item) => cleanText(item, "clarifying_question", { max: 240 })).slice(0, 3)
+    : [];
+  return {
+    ...base,
+    generation_mode: "model_assisted",
+    planner_status: { state: "completed", provider, model, response_id: responseId },
+    topic_analysis: draft.topic_analysis,
+    axes,
+    planning_quality: draft.quality_review,
+    human_review: {
+      ...base.human_review,
+      questions: [...questions, ...base.human_review.questions].slice(0, 5),
+    },
   };
 }

@@ -15,6 +15,7 @@ COPY apps/web/package.json apps/web/package.json
 COPY packages/domain/package.json packages/domain/package.json
 COPY packages/contracts/package.json packages/contracts/package.json
 COPY packages/connectors/islamic-content/package.json packages/connectors/islamic-content/package.json
+COPY packages/connectors/openai-planner/package.json packages/connectors/openai-planner/package.json
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
 COPY apps ./apps

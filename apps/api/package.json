@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@mazann/domain": "*",
-    "@mazann/islamic-content-connector": "*"
+    "@mazann/islamic-content-connector": "*",
+    "@mazann/openai-planner": "*"
   }
 }

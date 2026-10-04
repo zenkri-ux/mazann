@@ -7,12 +7,22 @@ import { IslamicContentMcpClient } from "@mazann/islamic-content-connector";
 import { RecordCache } from "./lib/record-cache.mjs";
 import { ProjectStore } from "./lib/project-store.mjs";
 import { EvidenceService, EvidenceUnavailableError } from "./services/evidence-service.mjs";
-import { createTopicRoadmap } from "@mazann/domain/topic-roadmap";
+import { OpenAIPlannerClient } from "@mazann/openai-planner";
+import { TopicPlanningService } from "./services/topic-planning-service.mjs";
 
 const client = new IslamicContentMcpClient({ endpoint: config.mcpUrl, timeoutMs: config.mcpTimeoutMs });
 const cache = new RecordCache(config.cacheDir, { fallbackDirectories: [config.seedCacheDir] });
 const evidence = new EvidenceService({ client, cache, cacheWrite: config.cacheWrite });
 const projects = new ProjectStore(config.projectDir);
+const plannerClient = config.plannerProvider === "openai" && config.openaiApiKey && config.openaiModel
+  ? new OpenAIPlannerClient({
+      apiKey: config.openaiApiKey,
+      model: config.openaiModel,
+      endpoint: config.openaiResponsesUrl,
+      timeoutMs: config.plannerTimeoutMs,
+    })
+  : null;
+const planning = new TopicPlanningService({ provider: plannerClient });
 const distDir = config.webDir;
 const startedAt = new Date().toISOString();
 
@@ -65,6 +75,7 @@ async function handleApi(request, response, url) {
       version: "0.1.0",
       started_at: startedAt,
       source_mode: "official_mcp_with_visible_cache_fallback",
+      planner_mode: plannerClient ? "model_assisted_with_methodology_fallback" : "methodology_template",
     });
   }
 
@@ -85,7 +96,7 @@ async function handleApi(request, response, url) {
   }
 
   if (url.pathname === "/api/research/roadmap") {
-    return sendJson(response, 200, createTopicRoadmap(body));
+    return sendJson(response, 200, await planning.create(body));
   }
 
   if (url.pathname === "/api/research/evidence") {

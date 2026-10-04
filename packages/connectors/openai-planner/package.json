@@ -1,0 +1,7 @@
+{
+  "name": "@mazann/openai-planner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/openai-planner-client.mjs"
+}

@@ -19,6 +19,11 @@ services:
       MAZANN_SEED_CACHE_DIR: /app/data/cache
       MAZANN_PROJECT_DIR: /app/data/runtime/projects
       MAZANN_CACHE_WRITE: ${MAZANN_CACHE_WRITE:-true}
+      MAZANN_PLANNER_PROVIDER: ${MAZANN_PLANNER_PROVIDER:-deterministic}
+      MAZANN_PLANNER_TIMEOUT_MS: ${MAZANN_PLANNER_TIMEOUT_MS:-30000}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
+      OPENAI_RESPONSES_URL: ${OPENAI_RESPONSES_URL:-https://api.openai.com/v1/responses}
     volumes:
       - mazann-runtime:/app/data/runtime
     read_only: true

@@ -23,6 +23,9 @@
       }
     },
     "generation_mode": { "enum": ["methodology_template", "model_assisted"] },
+    "planner_status": { "type": "object" },
+    "topic_analysis": { "type": "object" },
+    "planning_quality": { "type": "object" },
     "brief": {
       "type": "object",
       "required": ["topic", "target_audience", "format", "duration", "language"],

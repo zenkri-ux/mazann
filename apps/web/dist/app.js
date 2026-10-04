@@ -61,7 +61,11 @@ function renderRoadmap(roadmap){
   qs('#summary-format').textContent=`${roadmap.brief.format} · ${roadmap.brief.duration}`;
   const instructionLabels={none_declared:'موضوع اختاره المستخدم',verified:'الخطة تراعي تعميمًا رسميًا',unverified:'حالة التعميم تحتاج تحققًا'};
   qs('#policy-note').innerHTML=`<b>${escapeHtml(instructionLabels[roadmap.policy_gate.official_instruction_state])}</b>${escapeHtml(roadmap.policy_gate.note)}`;
-  qs('#plan-status').textContent='بُنيت الخارطة بمنهجية مَظَانّ الحتمية؛ لم تُولد إحالات أو أحكام من ذاكرة نموذج. راجعها قبل جمع الأدلة.';
+  qs('#plan-status').textContent=roadmap.generation_mode==='model_assisted'
+    ?'حلل النموذج الموضوع والجمهور، ثم قُيدت مخرجاته بعقد مَظَانّ وبوابة المراجعة. لم يولد أدلة أو أحكامًا.'
+    :roadmap.planner_status?.state==='fallback'
+      ?'تعذر التخطيط بالنموذج، فاستُخدمت الخارطة المنهجية الآمنة. راجع المحاور قبل جمع الأدلة.'
+      :'بُنيت الخارطة بمنهجية مَظَانّ الحتمية؛ لم تُولد إحالات أو أحكام من ذاكرة نموذج. راجعها قبل جمع الأدلة.';
   qs('#approve-plan').disabled=false;
   qs('#approve-plan').title='اعتماد الخطة وبدء الاسترجاع';
 }
