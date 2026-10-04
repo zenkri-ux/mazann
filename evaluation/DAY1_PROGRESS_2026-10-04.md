@@ -22,8 +22,16 @@
 | استرجاع حي لحديث 3016 | `PASS` — المتن الكامل، الحكم `صحيح`، المرجع مطابق |
 | إعادة التشغيل بلا شبكة | `PASS` — أعيد السجلان من cache مع `retrieval_mode: cache` |
 | فشل live وغياب cache | `PASS` — امتناع صريح `EVIDENCE_UNAVAILABLE` |
-| اختبارات Node | `11/11 PASS` |
+| اختبارات Node | `12/12 PASS` |
 | فحص بصري 1920×1080 | `PASS` بعد إصلاح اتجاه عداد RTL |
+
+## تأسيس المستودع القابل للتسليم
+
+- تنظيم المشروع كـmonorepo ذي حدود واضحة بين الواجهة، API، النطاق، العقود وموصل المصدر.
+- حاوية Docker تعمل بمستخدم غير root، بنظام ملفات للقراءة فقط، وبلا Linux capabilities.
+- GitHub Actions يشغل الاختبارات ويتحقق من source manifest ويبني صورة Docker.
+- مستودع GitHub عام مع Dependabot وCODEOWNERS وقالب مراجعة وتوثيق تشغيل.
+- فحص CI الأول على GitHub: `PASS`.
 
 لقطة الفحص: `evaluation/ui-evidence-2026-10-04-v2.png`.
 
