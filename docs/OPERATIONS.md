@@ -8,6 +8,8 @@
 
 The local `.env` uses port `8091` in this workspace because another service owns `8090`. Fresh environments default to `8090`.
 
+The private-review deployment is documented in `deploy/README.md`. It terminates HTTPS at Caddy, protects the beta with a shared login, and keeps the application port on an internal Docker network.
+
 ## Runtime data
 
 - `data/cache`: immutable, reviewed seed cache committed with the release.

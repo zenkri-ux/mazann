@@ -1,0 +1,85 @@
+name: mazann-production
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: mazann:${MAZANN_IMAGE_TAG:-latest}
+    init: true
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8090
+      MCP_ISLAMIC_CONTENT_URL: ${MCP_ISLAMIC_CONTENT_URL:-https://mcp.islamiccontent.org/mcp}
+      MCP_TIMEOUT_MS: ${MCP_TIMEOUT_MS:-12000}
+      MAZANN_CACHE_DIR: /app/data/runtime/cache
+      MAZANN_SEED_CACHE_DIR: /app/data/cache
+      MAZANN_PROJECT_DIR: /app/data/runtime/projects
+      MAZANN_CACHE_WRITE: ${MAZANN_CACHE_WRITE:-true}
+      MAZANN_PLANNER_PROVIDER: ${MAZANN_PLANNER_PROVIDER:-openai}
+      MAZANN_PLANNER_TIMEOUT_MS: ${MAZANN_PLANNER_TIMEOUT_MS:-30000}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY is required}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-6-luna}
+      OPENAI_RESPONSES_URL: ${OPENAI_RESPONSES_URL:-https://api.openai.com/v1/responses}
+    volumes:
+      - mazann-runtime:/app/data/runtime
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - backend
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:8090/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+  gateway:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?SITE_ADDRESS is required}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is required}
+      BETA_USERNAME: ${BETA_USERNAME:?BETA_USERNAME is required}
+      BETA_PASSWORD_HASH: ${BETA_PASSWORD_HASH:?BETA_PASSWORD_HASH is required}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,noexec,nosuid
+      - /run:size=8m,noexec,nosuid
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - backend
+
+networks:
+  backend:
+
+volumes:
+  mazann-runtime:
+  caddy-data:
+  caddy-config:
