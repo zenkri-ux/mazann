@@ -16,6 +16,7 @@
     "dev": "npm --workspace @mazann/api run dev",
     "start": "npm --workspace @mazann/api run start",
     "test": "node --test",
+    "eval:planner": "node --env-file-if-exists=.env scripts/evaluate-planner.mjs",
     "seed:demo": "node --env-file-if-exists=.env scripts/seed-demo-cache.mjs",
     "manifest:sources": "node --env-file-if-exists=.env scripts/build-source-manifest.mjs",
     "docker:build": "docker build -t mazann:local .",

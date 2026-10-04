@@ -87,6 +87,7 @@ docker compose down
 
 ```bash
 npm test
+npm run eval:planner
 npm run seed:demo
 npm run manifest:sources
 ```

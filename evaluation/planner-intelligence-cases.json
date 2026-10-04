@@ -1,0 +1,73 @@
+{
+  "version": "1.0.0",
+  "description": "حالات متنوعة لقياس أن خطة البحث تتكيف مع المقصد والجمهور والسياق والتوجيه، لا أن تعيد قالبًا ثابتًا.",
+  "cases": [
+    {
+      "id": "PLAN-INT-01",
+      "name": "قيمة أخلاقية لجمهور عام",
+      "input": {
+        "topic": "الأمانة وأثرها في بناء الثقة داخل المجتمع",
+        "intended_outcome": "أن يراجع المستمع صور الأمانة في معاملاته اليومية",
+        "target_audience": "جمهور عام متنوع الأعمار",
+        "country_or_context": "حي سكني في المملكة العربية السعودية",
+        "format": "خطبة جمعة",
+        "duration": "15 دقيقة",
+        "official_instruction_state": "none_declared"
+      },
+      "expected_terms": ["الأمانة", "الثقة", "المعاملات"],
+      "requires_clarification": false
+    },
+    {
+      "id": "PLAN-INT-02",
+      "name": "موضوع رقمي لفئة الشباب",
+      "input": {
+        "topic": "التثبت من الأخبار قبل نشرها في المنصات الرقمية",
+        "intended_outcome": "أن يتوقف الشاب قبل إعادة النشر ويتحقق من الخبر",
+        "target_audience": "طلاب المرحلة الثانوية كثيرو استخدام المنصات الاجتماعية",
+        "country_or_context": "مدرسة ومجتمع رقمي سعودي",
+        "format": "مادة بحث لخطيب جمعة",
+        "duration": "12 دقيقة",
+        "official_instruction_state": "none_declared"
+      },
+      "expected_terms": ["التثبت", "النشر", "الخبر", "المنصات", "الشباب"],
+      "requires_clarification": false
+    },
+    {
+      "id": "PLAN-INT-03",
+      "name": "توجيه تنظيمي متحقق",
+      "input": {
+        "topic": "المحافظة على المال العام وترشيد استهلاك المياه",
+        "intended_outcome": "ربط المسؤولية الشرعية بسلوك يومي قابل للتطبيق",
+        "target_audience": "المصلون في جامع محلي",
+        "country_or_context": "المملكة العربية السعودية",
+        "format": "خطبة جمعة",
+        "duration": "18 دقيقة",
+        "official_instruction_state": "verified",
+        "governing_instruction": {
+          "issuing_authority": "جهة رسمية مختصة - عينة اختبار",
+          "title": "التوعية بترشيد استهلاك المياه",
+          "reference": "مرجع اختبار داخلي غير صالح للنشر",
+          "required_points": ["بيان مسؤولية الفرد", "اقتراح تطبيقات منزلية عملية"]
+        }
+      },
+      "expected_terms": ["المياه", "مسؤولية", "منزل", "استهلاك"],
+      "instruction_terms": ["مسؤولية الفرد", "تطبيقات منزلية"],
+      "requires_clarification": false
+    },
+    {
+      "id": "PLAN-INT-04",
+      "name": "تكليف غامض يحتاج سؤالًا",
+      "input": {
+        "topic": "الوسطية في حياتنا وآثارها المتعددة",
+        "intended_outcome": "تكوين معالجة نافعة وغير فضفاضة",
+        "target_audience": "جمهور غير محدد الخصائص بعد",
+        "country_or_context": "سياق محلي لم يحدد بعد",
+        "format": "حقيبة بحث أولية",
+        "duration": "15 دقيقة",
+        "official_instruction_state": "unverified"
+      },
+      "expected_terms": ["الوسطية"],
+      "requires_clarification": true
+    }
+  ]
+}

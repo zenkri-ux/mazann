@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/canonical-record.mjs",
-    "./topic-roadmap": "./src/topic-roadmap.mjs"
+    "./topic-roadmap": "./src/topic-roadmap.mjs",
+    "./planner-evaluation": "./src/planner-evaluation.mjs"
   }
 }
