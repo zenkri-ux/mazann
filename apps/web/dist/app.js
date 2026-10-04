@@ -1,4 +1,4 @@
-const state={view:'start',theme:'light',reviewed:0,demoScene:0,demo:false,evidence:[],selectedEvidence:null,loadingEvidence:false,roadmap:null,loadingRoadmap:false,projectId:null,savingProject:false};
+const state={view:'start',theme:'light',reviewed:0,demoScene:0,demo:false,evidence:[],selectedEvidence:null,loadingEvidence:false,roadmap:null,loadingRoadmap:false,projectId:null,savingProject:false,plannerProgressTimer:null,retrievalProgressTimer:null};
 const qs=(selector,root=document)=>root.querySelector(selector);
 const qsa=(selector,root=document)=>[...root.querySelectorAll(selector)];
 const labels={start:'لم يبدأ جمع الأدلة بعد',plan:'الخطة جاهزة للمراجعة',evidence:'مراجعة المصادر والسياق',coverage:'الحقيبة جاهزة للمراجعة'};
@@ -15,15 +15,21 @@ function toast(message){const el=qs('#toast');el.textContent=message;el.classLis
 qsa('[data-view]').forEach(button=>button.addEventListener('click',()=>showView(button.dataset.view)));
 qsa('[data-example]').forEach(button=>button.addEventListener('click',()=>{qs('#topic').value=button.dataset.example;qs('#topic').focus()}));
 function syncInstructionFields(){
-  const supplied=qs('input[name="instruction-state"]:checked').value==='verified';
+  const value=qs('input[name="instruction-state"]:checked').value;const supplied=value==='verified';
   qs('#instruction-fields').hidden=!supplied;
   qsa('#instruction-fields input,#instruction-fields textarea').forEach(field=>field.required=supplied);
+  const labels={none_declared:'غير مستخدم — الموضوع من اختيارك',verified:'سيُراعى التعميم في الخطة',unverified:'سيظهر تذكير قبل الاعتماد'};qs('#instruction-summary').textContent=labels[value];
 }
 qsa('input[name="instruction-state"]').forEach(input=>input.addEventListener('change',syncInstructionFields));
 syncInstructionFields();
 qs('#research-form').addEventListener('submit',buildRoadmap);
 qs('#approve-plan').addEventListener('click',async()=>{if(!state.roadmap||state.loadingEvidence)return;showView('evidence');await loadRoadmapEvidence()});
-qs('#plan-list').addEventListener('click',event=>{const card=event.target.closest('.plan-card');if(!card)return;qsa('.plan-card').forEach(item=>item.classList.remove('selected'));card.classList.add('selected')});
+qs('#plan-list').addEventListener('click',event=>{
+  const action=event.target.closest('[data-axis-action]');const card=event.target.closest('.plan-card');
+  if(action&&card){handleAxisAction(action.dataset.axisAction,card.dataset.axisId);return}
+  if(event.target.closest('#add-axis')){openAxisEditor();return}
+  if(!card)return;qsa('.plan-card').forEach(item=>item.classList.remove('selected'));card.classList.add('selected');
+});
 function filterEvidence(type){
   qsa('.filter').forEach(button=>button.classList.toggle('active',button.dataset.filter===type));
   qsa('.source-item').forEach(button=>button.classList.toggle('active',button.dataset.referenceFilter==='all'));
@@ -59,7 +65,7 @@ const axisLabels={foundation:'المحور المؤسس',context:'محور ال�
 const sourceLabels={quran:'قرآن',hadith:'حديث',tafsir:'تفسير',sirah:'سيرة',approved_research:'دراسات معتمدة'};
 function renderRoadmap(roadmap){
   const list=qs('#plan-list');
-  list.innerHTML=roadmap.axes.map((axis,index)=>`<article class="plan-card${index===0?' selected':''}" data-axis-id="${escapeHtml(axis.axis_id)}"><span class="drag-handle" aria-hidden="true">⋮⋮</span><span class="plan-number">${String(index+1).padStart(2,'0')}</span><div><label>${escapeHtml(axisLabels[axis.role]||'محور بحث')}</label><h2>${escapeHtml(axis.title)}</h2><p>${escapeHtml(axis.research_question)}</p><div class="source-pills">${axis.evidence_requirements.map(source=>`<span>${escapeHtml(sourceLabels[source]||source)}</span>`).join('')}<span>${axis.time_minutes} د</span></div></div><button class="icon-button" type="button" aria-label="تفاصيل المحور" title="وظيفة المحور: ${escapeHtml(axis.purpose)}">i</button></article>`).join('');
+  list.innerHTML=roadmap.axes.map((axis,index)=>`<article class="plan-card${index===0?' selected':''}" data-axis-id="${escapeHtml(axis.axis_id)}"><span class="plan-number">${String(index+1).padStart(2,'0')}</span><div><label>${escapeHtml(axisLabels[axis.role]||'محور بحث')}</label><h2>${escapeHtml(axis.title)}</h2><p>${escapeHtml(axis.research_question)}</p><div class="source-pills">${axis.evidence_requirements.map(source=>`<span>${escapeHtml(sourceLabels[source]||source)}</span>`).join('')}<span>${axis.time_minutes} د</span></div></div><div class="axis-actions" aria-label="إدارة المحور"><button data-axis-action="up" type="button" aria-label="نقل المحور للأعلى" ${index===0?'disabled':''}>↑</button><button data-axis-action="down" type="button" aria-label="نقل المحور للأسفل" ${index===roadmap.axes.length-1?'disabled':''}>↓</button><button class="axis-edit" data-axis-action="edit" type="button">تعديل</button><button class="axis-delete" data-axis-action="delete" type="button">حذف</button></div></article>`).join('')+`<button class="add-axis" id="add-axis" type="button" ${roadmap.axes.length>=6?'disabled':''}><span>＋</span> إضافة محور من عندي</button>`;
   qs('#axis-count').textContent=roadmap.axes.length;
   qs('#summary-topic').textContent=roadmap.brief.topic;
   qs('#summary-audience').textContent=`${roadmap.brief.target_audience} · ${roadmap.brief.country_or_context}`;
@@ -74,26 +80,50 @@ function renderRoadmap(roadmap){
   qs('#approve-plan').disabled=false;
   qs('#approve-plan').title='اعتماد الخطة وبدء الاسترجاع';
 }
+function openAxisEditor(axisId=null){
+  const axis=axisId?state.roadmap.axes.find(item=>item.axis_id===axisId):null;const modal=qs('#axis-modal');
+  qs('#axis-dialog-title').textContent=axis?'تعديل المحور':'إضافة محور جديد';qs('#axis-edit-id').value=axis?.axis_id||'';qs('#axis-title').value=axis?.title||'';qs('#axis-question').value=axis?.research_question||'';qs('#axis-purpose').value=axis?.purpose||'';qs('#axis-time').value=axis?.time_minutes||3;
+  qsa('.axis-sources input').forEach(input=>input.checked=(axis?.evidence_requirements||['quran','hadith']).includes(input.value));modal.hidden=false;qs('#axis-title').focus();
+}
+function handleAxisAction(action,axisId){
+  const index=state.roadmap.axes.findIndex(axis=>axis.axis_id===axisId);if(index<0)return;
+  if(action==='edit'){openAxisEditor(axisId);return}
+  if(action==='delete'){if(state.roadmap.axes.length<=1){toast('يجب أن تبقي محورًا واحدًا على الأقل');return}state.roadmap.axes.splice(index,1);renderRoadmap(state.roadmap);toast('حُذف المحور من المسودة');return}
+  const target=action==='up'?index-1:index+1;if(target<0||target>=state.roadmap.axes.length)return;[state.roadmap.axes[index],state.roadmap.axes[target]]=[state.roadmap.axes[target],state.roadmap.axes[index]];renderRoadmap(state.roadmap);toast('تغير ترتيب المحاور');
+}
+qs('#axis-form').addEventListener('submit',event=>{
+  event.preventDefault();const requirements=qsa('.axis-sources input:checked').map(input=>input.value);if(!requirements.length){toast('اختر نوع دليل واحدًا على الأقل');return}
+  const id=qs('#axis-edit-id').value;const existing=id?state.roadmap.axes.find(axis=>axis.axis_id===id):null;const axis={...(existing||{}),axis_id:id||`custom_${Date.now()}`,role:existing?.role||'application',title:qs('#axis-title').value.trim(),research_question:qs('#axis-question').value.trim(),purpose:qs('#axis-purpose').value.trim(),rationale:existing?.rationale||'محور أضافه الباحث ويحتاج مراجعته قبل الاسترجاع.',evidence_requirements:requirements,time_minutes:Number(qs('#axis-time').value)};
+  if(existing)Object.assign(existing,axis);else state.roadmap.axes.push(axis);qs('#axis-modal').hidden=true;renderRoadmap(state.roadmap);toast(existing?'حُفظ تعديل المحور':'أُضيف المحور إلى خطة البحث');
+});
 async function buildRoadmap(event){
   event.preventDefault();
   if(state.loadingRoadmap)return;
   const button=qs('#build-roadmap');
-  state.loadingRoadmap=true;button.disabled=true;button.textContent='جارٍ بناء الخارطة…';
+  state.loadingRoadmap=true;button.disabled=true;button.textContent='يبني الخطة الآن…';startPlannerProgress();
   try{
     const roadmap=await api('/api/research/roadmap',currentBrief());
     state.roadmap=roadmap;renderRoadmap(roadmap);showView('plan');
   }catch(error){
     toast(error.message);qs('#topic').focus();
   }finally{
-    state.loadingRoadmap=false;button.disabled=false;button.textContent='بناء خطة البحث';
+    state.loadingRoadmap=false;button.disabled=false;button.textContent='بناء خطة البحث';stopPlannerProgress();
   }
 }
+function startPlannerProgress(){
+  const panel=qs('#planner-progress');const titles=['يفهم الموضوع والجمهور والسياق…','يصوغ محاور مختلفة وأسئلة قابلة للبحث…','يفحص التكرار والحدود ومتطلبات الأدلة…'];let index=0;panel.hidden=false;qsa('li',panel).forEach((item,i)=>item.classList.toggle('active',i===0));qs('#planner-progress-title').textContent=titles[0];
+  clearInterval(state.plannerProgressTimer);state.plannerProgressTimer=setInterval(()=>{index=Math.min(index+1,titles.length-1);qs('#planner-progress-title').textContent=titles[index];qsa('li',panel).forEach((item,i)=>item.classList.toggle('active',i===index))},4200);
+}
+function stopPlannerProgress(){clearInterval(state.plannerProgressTimer);state.plannerProgressTimer=null;qs('#planner-progress').hidden=true}
 function currentBrief(){
   const instructionState=qs('input[name="instruction-state"]:checked').value;
+  const contextPreset=qs('#context').value;const contextDetail=qs('#context-detail').value.trim();
   return {
     topic:qs('#topic').value,
     target_audience:qs('#audience').value,
-    country_or_context:qs('#context').value,
+    country_or_context:contextDetail?`${contextPreset} — ${contextDetail}`:contextPreset,
+    context_preset:contextPreset,
+    context_detail:contextDetail,
     format:qs('#format').value,
     duration:qs('#duration').value,
     official_instruction_state:instructionState,
@@ -109,7 +139,8 @@ function currentBrief(){
 function restoreBrief(brief={}){
   if(brief.topic)qs('#topic').value=brief.topic;
   if(brief.target_audience)qs('#audience').value=brief.target_audience;
-  if(brief.country_or_context)qs('#context').value=brief.country_or_context;
+  const storedContext=brief.country_or_context||'';const knownContext=[...qs('#context').options].some(option=>option.value===storedContext);const contextPreset=brief.context_preset||(knownContext?storedContext:'سياق آخر أو غير محدد');qs('#context').value=contextPreset;
+  qs('#context-detail').value=brief.context_detail||(!brief.context_preset&&!knownContext?storedContext:'');
   if(brief.format)qs('#format').value=brief.format;
   if(brief.duration)qs('#duration').value=brief.duration;
   const instructionState=brief.official_instruction_state||'none_declared';
@@ -166,6 +197,7 @@ function selectEvidence(id){
 async function loadRoadmapEvidence(){
   state.loadingEvidence=true;state.evidence=[];state.selectedEvidence=null;
   qs('#retrieval-status').textContent='جارٍ البحث وفق أسئلة المحاور؛ لن يعتمد أي مقتطف قبل جلب السجل الكامل…';
+  startRetrievalProgress();
   qs('#evidence-feed').innerHTML='<div class="evidence-empty"><b>جارٍ البحث في المصادر المعتمدة</b><p>تُدمج النتائج المتكررة، ثم يُجلب الأصل الكامل ويُتحقق من مرجعه.</p></div>';
   try{
     const result=await api('/api/research/evidence',{roadmap:state.roadmap,max_records:6});
@@ -177,9 +209,15 @@ async function loadRoadmapEvidence(){
   }catch(error){
     state.evidence=[];renderEvidence();qs('#retrieval-status').textContent=`تعذر إكمال الاسترجاع: ${error.message}`;
   }finally{
-    state.loadingEvidence=false;
+    state.loadingEvidence=false;stopRetrievalProgress();
   }
 }
+function startRetrievalProgress(){
+  const panel=qs('#retrieval-progress');const axes=state.roadmap?.axes||[];let index=0;panel.hidden=false;
+  const update=()=>{const axis=axes[index%Math.max(axes.length,1)];qs('#retrieval-axis-title').textContent=axis?`نبحث عن أنسب الأدلة لمحور «${axis.title}»`:'نجهّز أسئلة البحث…';qs('#retrieval-axis-count').textContent=axes.length?`${index%axes.length+1} / ${axes.length}`:'0 / 0';index++};
+  update();clearInterval(state.retrievalProgressTimer);state.retrievalProgressTimer=setInterval(update,2200);
+}
+function stopRetrievalProgress(){clearInterval(state.retrievalProgressTimer);state.retrievalProgressTimer=null;qs('#retrieval-progress').hidden=true}
 async function loadDemoEvidence(){
   state.loadingEvidence=true;state.evidence=[];state.selectedEvidence=null;qs('#retrieval-status').textContent='جارٍ طلب السجلين الكاملين والتحقق من المرجع والبصمة…';qs('#evidence-feed').innerHTML='<div class="evidence-empty"><b>جارٍ الاتصال بالمصدر</b><p>لن يظهر مقتطف البحث بوصفه دليلًا.</p></div>';
   const requests=[api('/api/evidence/quran',{surah:4,ayah:58,language:'ar'}),api('/api/evidence/hadith',{id:'3016',language:'ar'})];
@@ -281,4 +319,13 @@ window.addEventListener('scroll',syncTopbar,{passive:true});syncTopbar();
 
 const requestedView=new URLSearchParams(window.location.search).get('view');
 if(['start','plan','evidence','coverage'].includes(requestedView))showView(requestedView);
-if(requestedView==='evidence'&&new URLSearchParams(window.location.search).get('demoEvidence')==='1')loadDemoEvidence();
+const urlParams=new URLSearchParams(window.location.search);
+if(requestedView==='evidence'&&urlParams.get('demoEvidence')==='1')loadDemoEvidence();
+if(requestedView==='plan'&&urlParams.get('demoPlan')==='1'){
+  state.roadmap={roadmap_id:'demo_plan',generation_mode:'model_assisted',planner_status:{state:'completed',model:'demo'},brief:{topic:'الرحمة في التعامل مع الضعفاء',target_audience:'جمهور عام',country_or_context:'المملكة العربية السعودية — حي متعدد الأعمار',format:'خطبة جمعة',duration:'15–20 دقيقة',language:'ar'},policy_gate:{official_instruction_state:'none_declared',note:'موضوع اختاره المستخدم؛ لا يوجد تعميم معلن.'},axes:[
+    {axis_id:'foundation',role:'foundation',title:'تأصيل معنى الرحمة وصلتها بحفظ الكرامة',research_question:'كيف يؤسس النص الشرعي للرحمة بما يصون كرامة من يواجه ضعفًا أو حاجة؟',purpose:'ضبط المفهوم قبل التطبيقات.',evidence_requirements:['quran','hadith','tafsir'],time_minutes:5},
+    {axis_id:'context',role:'context',title:'فهم تنوع الاحتياجات والعوائق في السياق المحلي',research_question:'ما صور الضعف أو الحاجة الأبرز، وما العوائق التي تمنع أصحابها من الوصول إلى الدعم؟',purpose:'ربط البحث بواقع الجمهور.',evidence_requirements:['hadith','approved_research'],time_minutes:4},
+    {axis_id:'application',role:'application',title:'ترجمة الرحمة إلى سلوك ومساندة مسؤولة',research_question:'ما الممارسات الفردية والمؤسسية التي تجسد الرحمة من دون استغلال أو وصم؟',purpose:'تحويل المعنى إلى تطبيق.',evidence_requirements:['quran','hadith','sirah'],time_minutes:6},
+    {axis_id:'outcome',role:'outcome',title:'تحويل المعنى إلى التزام قابل للمتابعة',research_question:'ما الخطوة الواقعية التي يستطيع الفرد أو المجتمع اتخاذها وقياس أثرها؟',purpose:'تحديد أثر قابل للمراجعة.',evidence_requirements:['approved_research'],time_minutes:4}
+  ]};renderRoadmap(state.roadmap);
+}
