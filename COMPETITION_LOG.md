@@ -57,7 +57,8 @@
 | واجهة أدلة مرتبطة بالـAPI | لقطة `evaluation/ui-evidence-2026-10-04-v2.png` | `PASS` |
 | تشغيل آمن داخل Docker | healthcheck، non-root، read-only، `cap_drop: ALL` | `PASS` |
 | خارطة موضوع ديناميكية بمنهجية وبوابة تعليمات | commit `13aa307` وعقد `topic-roadmap.schema.json` | `PASS` |
-| فحوص آلية | `npm test` | `20/20 PASS` |
+| استرجاع كامل من أسئلة المحاور مع تتبع وتنوع مصادر | commit `7d24fd1` واختبار حي لموضوع الرحمة | `PASS` — 5 سجلات صالحة، 0 غير صالح |
+| فحوص آلية | `npm test` | `24/24 PASS` |
 | تكامل مستمر عام | GitHub Actions على `main` | `PASS` |
 
 ### قيود معلنة

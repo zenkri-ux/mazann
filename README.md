@@ -66,12 +66,15 @@ docker compose down
 
 - `GET /api/health`
 - `POST /api/research/roadmap`
+- `POST /api/research/evidence`
 - `POST /api/evidence/search`
 - `POST /api/evidence/quran`
 - `POST /api/evidence/hadith`
 - `POST /api/evidence/fetch`
 
 الاسترجاع الحي يستخدم `https://mcp.islamiccontent.org/mcp`. بعد استرجاع ناجح، يحفظ الخادم سجلًا معياريًا في runtime cache. عند فشل الشبكة يقرأ النسخة الموثقة إن وجدت ويعيد `retrieval_mode: "cache"`؛ وإلا يمتنع صراحة ولا يكمل من ذاكرة النموذج أو الويب المفتوح.
+
+يحوّل مسار `research/evidence` أسئلة محاور الخارطة إلى عمليات بحث في القرآن والحديث، يدمج المرشحات المتكررة، يوازن المصادر قدر المتاح، ثم يجلب السجل الكامل لكل مرشح قبل عرضه. المقتطف أو المرشح المتعذر يبقى معلنًا ولا يتحول إلى دليل.
 
 ## التحقق
 
