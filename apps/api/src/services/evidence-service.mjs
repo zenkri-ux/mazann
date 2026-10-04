@@ -23,6 +23,26 @@ function selectDiverseCandidates(candidateMap, axes, maxRecords) {
   return selected;
 }
 
+function sourceFailures(result, requestedSources) {
+  const diagnosticText = (result?.content ?? [])
+    .filter((item) => item?.type === "text" && typeof item.text === "string")
+    .map((item) => item.text)
+    .join("\n");
+
+  return requestedSources.filter((source) => {
+    const escaped = source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`${escaped}:\\s*unavailable`, "i").test(diagnosticText);
+  });
+}
+
+function mergeCandidates(...groups) {
+  const candidates = new Map();
+  for (const group of groups) {
+    for (const candidate of group) candidates.set(candidate.id, candidate);
+  }
+  return [...candidates.values()];
+}
+
 export class EvidenceUnavailableError extends Error {
   constructor(message, details = {}) {
     super(message);
@@ -41,10 +61,40 @@ export class EvidenceService {
 
   async search({ query, sources = ["quran", "hadith"], language = "ar", limit = 10 }) {
     const result = await this.client.callTool("search", { query, sources, language, limit });
+    const firstCandidates = normalizeSearchResponse(result);
+    const unavailableSources = sourceFailures(result, sources);
+    let retryCandidates = [];
+    let remainingUnavailable = unavailableSources;
+
+    // The official Qur'an index can time out on a cold query while completing
+    // the lookup in the background. One bounded retry recovers that result and
+    // keeps a persistent upstream failure distinct from a genuine empty match.
+    if (unavailableSources.length) {
+      try {
+        const retry = await this.client.callTool("search", {
+          query,
+          sources: unavailableSources,
+          language,
+          limit,
+        });
+        retryCandidates = normalizeSearchResponse(retry);
+        remainingUnavailable = sourceFailures(retry, unavailableSources);
+      } catch {
+        // Preserve candidates returned by healthy corpora. The warning below
+        // still makes the failed source visible to the caller and interface.
+        remainingUnavailable = unavailableSources;
+      }
+    }
+
     return {
       retrieval_mode: "live",
       query,
-      candidates: normalizeSearchResponse(result),
+      candidates: mergeCandidates(firstCandidates, retryCandidates),
+      retry_count: unavailableSources.length ? 1 : 0,
+      source_warnings: remainingUnavailable.map((source) => ({
+        source,
+        code: "SOURCE_UNAVAILABLE_AFTER_RETRY",
+      })),
       notice: "نتائج البحث مرشحات فقط؛ لا تعتمد حتى يجلب السجل الكامل ويمر بالتحقق.",
     };
   }
@@ -102,7 +152,7 @@ export class EvidenceService {
         language: roadmap.brief?.language ?? "ar",
         limit: perAxisLimit,
       });
-      return { axis_id: axis.axis_id, candidates: result.candidates };
+      return { axis_id: axis.axis_id, candidates: result.candidates, source_warnings: result.source_warnings };
     }));
 
     const candidateMap = new Map();
@@ -112,6 +162,9 @@ export class EvidenceService {
       if (search.status === "rejected") {
         searchFailures.push({ axis_id: axisId, code: search.reason?.code ?? "SEARCH_FAILED" });
         return;
+      }
+      for (const warning of search.value.source_warnings ?? []) {
+        searchFailures.push({ axis_id: axisId, source: warning.source, code: warning.code });
       }
       for (const candidate of search.value.candidates) {
         if (!candidateMap.has(candidate.id)) candidateMap.set(candidate.id, { candidate, axis_ids: [] });

@@ -204,7 +204,8 @@ async function loadRoadmapEvidence(){
     state.evidence=result.records.map(item=>({...item,decision:null}));
     const cacheCount=state.evidence.filter(item=>item.retrieval_mode==='cache').length;
     const failedCount=result.unresolved.length+result.search_failures.length;
-    qs('#retrieval-status').textContent=`اعتمد ${state.evidence.length} سجل كامل${cacheCount?` · ${cacheCount} من النسخة المخزنة`:''}${failedCount?` · ${failedCount} نتيجة أو مسار تعذر ولم يتحول إلى دليل`:''}.`;
+    const failedSourceLabels=[...new Set(result.search_failures.map(item=>item.source).filter(Boolean).map(source=>source==='quran'?'القرآن':source==='hadith'?'الحديث':source))];
+    qs('#retrieval-status').textContent=`اعتمد ${state.evidence.length} سجل كامل${cacheCount?` · ${cacheCount} من النسخة المخزنة`:''}${failedCount?` · ${failedCount} نتيجة أو مسار تعذر ولم يتحول إلى دليل`:''}${failedSourceLabels.length?` · تعذر بحث ${failedSourceLabels.join(' و')} بعد إعادة المحاولة`:''}.`;
     renderEvidence();if(state.evidence[0])selectEvidence(state.evidence[0].record.id);
   }catch(error){
     state.evidence=[];renderEvidence();qs('#retrieval-status').textContent=`تعذر إكمال الاسترجاع: ${error.message}`;

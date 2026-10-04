@@ -18,6 +18,50 @@ test("evidence service exposes cache fallback and upstream failure", async () =>
   assert.equal(result.upstream_error.code, "MCP_NETWORK_ERROR");
 });
 
+test("search retries a source reported unavailable and recovers its candidates", async () => {
+  let calls = 0;
+  const service = new EvidenceService({
+    client: {
+      async callTool() {
+        calls += 1;
+        if (calls === 1) return {
+          content: [{ type: "text", text: "quran: unavailable (timed out after 5000ms)" }],
+          structuredContent: { results: [] },
+        };
+        return {
+          content: [{ type: "text", text: "quran: 1 of 1" }],
+          structuredContent: { results: [{ id: "quran:21:107:ar", title: "الأنبياء 21:107", url: "https://islamenc.com/ar/quran/21/107" }] },
+        };
+      },
+    },
+    cache: { read: async () => null, write: async () => {} },
+  });
+
+  const result = await service.search({ query: "الرحمة", sources: ["quran"] });
+  assert.equal(calls, 2);
+  assert.equal(result.retry_count, 1);
+  assert.deepEqual(result.source_warnings, []);
+  assert.deepEqual(result.candidates.map((candidate) => candidate.id), ["quran:21:107:ar"]);
+});
+
+test("search distinguishes a persistent source timeout from no matches", async () => {
+  const service = new EvidenceService({
+    client: {
+      async callTool() {
+        return {
+          content: [{ type: "text", text: "quran: unavailable (timed out after 5000ms)" }],
+          structuredContent: { results: [] },
+        };
+      },
+    },
+    cache: { read: async () => null, write: async () => {} },
+  });
+
+  const result = await service.search({ query: "الأمانة", sources: ["quran"] });
+  assert.equal(result.candidates.length, 0);
+  assert.deepEqual(result.source_warnings, [{ source: "quran", code: "SOURCE_UNAVAILABLE_AFTER_RETRY" }]);
+});
+
 test("evidence service abstains when live retrieval and cache both fail", async () => {
   const service = new EvidenceService({
     client: { callTool: async () => { throw new Error("offline"); } },
