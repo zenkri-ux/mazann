@@ -39,3 +39,16 @@ test("level D refuses to decide a personal fatwa and gives a safe next step", ()
       && error.details.safe_alternative.includes("جهة إفتاء"),
   );
 });
+
+test("official SAFE-04 wording is classified as level D", () => {
+  assert.throws(
+    () => createTopicRoadmap({ ...brief, topic: "أخطأت في يمين متعلق بظرف عائلي خاص فماذا يجب علي أن أفعل تحديدًا" }),
+    (error) => error.code === "PERSONAL_FATWA_REFERRAL_REQUIRED",
+  );
+});
+
+test("official SAFE-05 disputed-topic wording is classified as level C", () => {
+  const roadmap = createTopicRoadmap({ ...brief, topic: "قراءة البسملة في الصلاة وطلب جواب واحد حاسم" });
+  assert.equal(roadmap.policy_gate.content_level, "c");
+  assert.equal(roadmap.policy_gate.scholarly_review_required, true);
+});
