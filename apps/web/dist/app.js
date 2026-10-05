@@ -310,10 +310,10 @@ function buildCoverageModel(){
 function renderCoverage(){
   const model=buildCoverageModel();const axes=state.roadmap?.axes||[];
   qs('#coverage-score').innerHTML=`${model.score}<small>%</small>`;
-  qs('#coverage-title').textContent=model.score>=80?'الحقيبة متماسكة، وتبقى المراجعة العلمية النهائية.':model.score>=50?'هناك أساس جيد، لكن بعض المصادر أو القرارات تحتاج استكمالًا.':'الحقيبة تحتاج مراجعة الأدلة قبل اعتمادها.';
-  qs('#coverage-meta').textContent=`${axes.length} محاور · ${state.evidence.length} سجلات كاملة · ${model.gaps.length} فجوات مصدرية${model.unassigned.length?` · ${model.unassigned.length} أدلة بلا محور`:''}`;
+  qs('#coverage-title').textContent=model.score>=80?'حقيبة متماسكة للمراجعة العلمية.':model.score>=50?'هيكل جيد مع مواضع للاستكمال.':'هيكل أولي قابل للاستكمال.';
+  qs('#coverage-meta').textContent=`${axes.length} محاور · ${state.evidence.length} سجلات كاملة · ${model.gaps.length} مواضع قابلة للاستكمال${model.unassigned.length?` · ${model.unassigned.length} أدلة بلا محور`:''}`;
   qs('#writing-outline-list').innerHTML=model.rows.length?model.rows.map((row,index)=>{
-    const records=row.included;const evidenceMarkup=records.length?records.map(item=>`<li><span class="outline-source ${escapeHtml(item.record.source_family)}">${escapeHtml(item.record.source_family==='quran'?'قرآن':'حديث')}</span><span><b>${escapeHtml(item.record.source_family==='quran'?item.record.text:evidenceTitle(item))}</b><small>${escapeHtml(referenceLabel(item))} · ${escapeHtml(evidenceLocation(item))}</small></span></li>`).join(''):'<li class="outline-gap">لا يوجد دليل معتمد لهذا الجزء بعد.</li>';
+    const records=row.included;const evidenceMarkup=records.length?records.map(item=>`<li><span class="outline-source ${escapeHtml(item.record.source_family)}">${escapeHtml(item.record.source_family==='quran'?'قرآن':'حديث')}</span><span><b>${escapeHtml(item.record.source_family==='quran'?item.record.text:evidenceTitle(item))}</b><small>${escapeHtml(referenceLabel(item))} · ${escapeHtml(evidenceLocation(item))}</small></span></li>`).join(''):'<li class="outline-gap">لم يُدرج دليل لهذا الجزء بعد؛ يمكن استكماله عند الحاجة.</li>';
     return `<article class="outline-part"><div class="outline-number"><span>${String(index+1).padStart(2,'0')}</span><small>${escapeHtml(row.axis.time_minutes||'—')} د</small></div><div class="outline-copy"><span class="outline-role">${escapeHtml(axisLabels[row.axis.role]||'جزء الموضوع')}</span><h3>${escapeHtml(row.axis.title)}</h3><p><b>زاوية المعالجة:</b> ${escapeHtml(row.axis.purpose||'تحديد وظيفة هذا الجزء قبل الكتابة.')}</p><p><b>السؤال الذي يجيب عنه:</b> ${escapeHtml(row.axis.research_question)}</p><ul>${evidenceMarkup}</ul></div><span class="outline-score ${row.percent>=80?'ready':row.percent?'partial':'empty'}">${row.percent}%</span></article>`;
   }).join(''):'<div class="outline-empty">ابنِ خطة البحث وراجع الأدلة ليظهر هيكل الكتابة.</div>';
   qs('#coverage-axis-list').innerHTML=model.rows.length?model.rows.map((row,index)=>{
@@ -323,9 +323,10 @@ function renderCoverage(){
   }).join(''):'<div class="coverage-empty">ابنِ خطة البحث أولًا لتظهر خريطة التغطية.</div>';
   const gap=model.gaps[0];const gapCard=qs('#coverage-gap');const hasRoadmap=axes.length>0;
   gapCard.classList.toggle('resolved',hasRoadmap&&!gap&&!model.unassigned.length);
-  qs('#coverage-gap-label').textContent=!hasRoadmap?'بانتظار خطة البحث':model.unassigned.length?'دليل يحتاج تحديد موضعه':gap?'فجوة ذات أولوية':'لا توجد فجوة مصدرية مفتوحة';
+  qs('.gap-symbol',gapCard).textContent=hasRoadmap&&!gap&&!model.unassigned.length?'✓':'+';
+  qs('#coverage-gap-label').textContent=!hasRoadmap?'بانتظار خطة البحث':model.unassigned.length?'دليل يحتاج تحديد موضعه':gap?'فرصة لاستكمال المصادر':'اكتملت المصادر المخططة';
   qs('#coverage-gap-title').textContent=!hasRoadmap?'ابنِ خطة البحث وراجع الأدلة أولًا':model.unassigned.length?`${model.unassigned.length} أدلة مدرجة بلا محور محدد`:gap?`محور «${gap.axis.title}» يحتاج ${sourceLabels[gap.source]||gap.source}`:'اكتملت أنواع المصادر المطلوبة وفق القرارات الحالية';
-  qs('#coverage-gap-description').textContent=!hasRoadmap?'لن يدّعي النظام اكتمالًا قبل وجود محاور وأدلة وقرارات مراجعة.':model.unassigned.length?'ارجع إلى مراجعة الأدلة وحدد موضع استخدام واحدًا لكل دليل؛ لا تُحسب الأدلة غير المرتبطة ضمن التغطية.':gap?'ابحث عن سجل كامل مناسب، أو عدّل متطلبات المحور بقرار منهجي واضح.':'تبقى مراجعة المتخصص إلزامية قبل استخدام المادة أو نشرها.';
+  qs('#coverage-gap-description').textContent=!hasRoadmap?'تظهر التغطية بعد بناء الخطة ومراجعة الأدلة.':model.unassigned.length?'ارجع إلى مراجعة الأدلة وحدد موضع استخدام واحدًا لكل دليل؛ لا تُحسب الأدلة غير المرتبطة ضمن التغطية.':gap?'عدم توفر دليل من هذا النوع ليس خطأً بحد ذاته؛ واصل البحث إن احتجته، أو راجع متطلب المحور بقرار منهجي واضح.':'تبقى مراجعة المتخصص لازمة قبل استخدام المادة أو نشرها.';
   const included=state.evidence.filter(item=>['accepted','needs_reference'].includes(item.decision)&&evidenceAxes(item).length===1);
   const quran=included.filter(item=>item.record.source_family==='quran');const hadith=included.filter(item=>item.record.source_family==='hadith');
   const checks={
@@ -343,7 +344,7 @@ function buildMarkdownPackage(){
     '# مسودة حقيبة مَظَانّ البحثية','',
     `- الموضوع: ${state.roadmap.brief?.topic||'غير محدد'}`,
     `- الجمهور والسياق: ${state.roadmap.brief?.target_audience||'غير محدد'} — ${state.roadmap.brief?.country_or_context||'غير محدد'}`,
-    `- جاهزية الأدلة: ${model.score}%`,
+    `- تغطية المصادر المطلوبة: ${model.score}%`,
     `- تاريخ التصدير: ${new Date().toISOString()}`,'',
     '> هذه مسودة بحثية مساعدة وليست خطبة جاهزة أو فتوى. يلزم التحقق والمراجعة العلمية قبل الاستخدام أو النشر.','',
     '## المحاور والأدلة',''
@@ -355,8 +356,8 @@ function buildMarkdownPackage(){
     records.forEach(item=>{const record=item.record;lines.push(`#### ${evidenceTitle(item)}`,'',`- القرار: ${decisionLabel(item.decision)}`,`- المصدر المرجعي: ${referenceLabel(item)}`,`- الموضع: ${evidenceLocation(item)}`,`- دقة الموضع: ${record.reference?.precision||'غير محددة'}`,`- حالة الجلب: ${item.retrieval_mode==='live'?'حي':'نسخة مخزنة'}`,`- حالة التحقق: ${record.validation?.status||'غير محددة'}`,`- البصمة: ${record.checksum_sha256}`,`- رابط الإتاحة: ${record.citation_url}`);(record.reference?.primary_sources||[]).forEach(source=>lines.push(`- تحقق ${source.collection_ar} ${source.number_ar}: ${source.verification_url}`));if(record.reference?.verification?.evidence_url)lines.push(`- شاهد التخريج (${record.reference.verification.authority}): ${record.reference.verification.evidence_url}`);lines.push('','> '+String(record.text).replace(/\n/g,'\n> '),'');});
   });
   if(model.unassigned.length){lines.push('## أدلة مدرجة تنتظر تحديد المحور','');model.unassigned.forEach(item=>lines.push(`- ${evidenceTitle(item)} — ${referenceLabel(item)} — ${item.record.citation_url}`));lines.push('')}
-  lines.push('## الفجوات','');
-  if(model.gaps.length)model.gaps.forEach(gap=>lines.push(`- ${gap.axis.title}: يحتاج ${sourceLabels[gap.source]||gap.source}.`));else lines.push('- لا توجد فجوات مصدرية وفق متطلبات المحاور وقرارات المراجعة الحالية.');
+  lines.push('## مواضع قابلة للاستكمال','');
+  if(model.gaps.length)model.gaps.forEach(gap=>lines.push(`- ${gap.axis.title}: يمكن استكمال ${sourceLabels[gap.source]||gap.source} عند الحاجة.`));else lines.push('- لا توجد مواضع مصدرية مفتوحة وفق متطلبات المحاور وقرارات المراجعة الحالية.');
   lines.push('','## سجل الاستبعاد','');
   const excluded=state.evidence.filter(item=>item.decision==='excluded');if(excluded.length)excluded.forEach(item=>lines.push(`- ${evidenceTitle(item)} — ${referenceLabel(item)}.`));else lines.push('- لا توجد سجلات مستبعدة.');
   return `${lines.join('\n')}\n`;
@@ -364,10 +365,10 @@ function buildMarkdownPackage(){
 function buildDocumentPackage(){
   const model=buildCoverageModel();const topic=state.roadmap.brief?.topic||'موضوع غير محدد';
   const parts=model.rows.map((row,index)=>{
-    const records=row.included.map(item=>`<article class="reference"><h4>${escapeHtml(evidenceTitle(item))}</h4><p class="meta">${escapeHtml(referenceLabel(item))} — ${escapeHtml(evidenceLocation(item))}</p><blockquote>${escapeHtml(item.record.text)}</blockquote><p><a href="${escapeHtml(safeExternalUrl(item.record.citation_url))}">فتح سجل الإتاحة</a></p></article>`).join('')||'<p class="gap">لا يوجد دليل معتمد لهذا الجزء بعد.</p>';
+    const records=row.included.map(item=>`<article class="reference"><h4>${escapeHtml(evidenceTitle(item))}</h4><p class="meta">${escapeHtml(referenceLabel(item))} — ${escapeHtml(evidenceLocation(item))}</p><blockquote>${escapeHtml(item.record.text)}</blockquote><p><a href="${escapeHtml(safeExternalUrl(item.record.citation_url))}">فتح سجل الإتاحة</a></p></article>`).join('')||'<p class="gap">لم يُدرج دليل لهذا الجزء بعد؛ يمكن استكماله عند الحاجة.</p>';
     return `<section class="part"><header><span>${String(index+1).padStart(2,'0')}</span><div><small>${escapeHtml(axisLabels[row.axis.role]||'جزء الموضوع')} · ${escapeHtml(row.axis.time_minutes||'—')} دقيقة</small><h2>${escapeHtml(row.axis.title)}</h2></div></header><p><b>زاوية المعالجة:</b> ${escapeHtml(row.axis.purpose||'—')}</p><p><b>السؤال:</b> ${escapeHtml(row.axis.research_question)}</p><h3>الأدلة المختارة</h3>${records}</section>`;
   }).join('');
-  const gaps=model.gaps.length?model.gaps.map(gap=>`<li>${escapeHtml(gap.axis.title)}: يحتاج ${escapeHtml(sourceLabels[gap.source]||gap.source)}</li>`).join(''):'<li>لا توجد فجوات مصدرية وفق القرارات الحالية.</li>';
+  const gaps=model.gaps.length?model.gaps.map(gap=>`<li>${escapeHtml(gap.axis.title)}: يمكن استكمال ${escapeHtml(sourceLabels[gap.source]||gap.source)} عند الحاجة</li>`).join(''):'<li>لا توجد مواضع مصدرية مفتوحة وفق القرارات الحالية.</li>';
   const unassigned=model.unassigned.length?`<section><h2>أدلة تنتظر تحديد المحور</h2><ul>${model.unassigned.map(item=>`<li>${escapeHtml(evidenceTitle(item))} — ${escapeHtml(referenceLabel(item))}</li>`).join('')}</ul></section>`:'';
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>حقيبة مَظَانّ — ${escapeHtml(topic)}</title><style>@page{size:A4;margin:18mm}*{box-sizing:border-box}body{font-family:"Arial",sans-serif;color:#171b3f;line-height:1.8;margin:0}main{max-width:780px;margin:auto}.brand{color:#6150ea;font-weight:700}.boundary{padding:12px 16px;border-right:4px solid #e9a63d;background:#fff7e5}.summary{display:flex;gap:20px;padding:12px 0;border-block:1px solid #ddd}.part{margin:26px 0;break-inside:avoid}.part>header{display:flex;gap:12px;align-items:center}.part>header>span{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#f0edff;color:#6150ea;font-weight:700}.part h2{margin:0}.part small,.meta{color:#667085}.reference{margin:12px 0;padding:14px;border:1px solid #e3e4ec;border-radius:12px}.reference h4,.reference p{margin:0 0 6px}.reference blockquote{margin:10px 0;padding:10px 14px;border-right:3px solid #2ef2c2;background:#f7f8fb}.gap{color:#9f394a}.footer{margin-top:28px;padding-top:14px;border-top:1px solid #ddd;color:#667085;font-size:12px}@media print{a{color:inherit;text-decoration:none}}</style></head><body><main><p class="brand">مَظَانّ · حقيبة إعداد الأدلة</p><h1>${escapeHtml(topic)}</h1><div class="summary"><span>${escapeHtml(state.roadmap.brief?.target_audience||'جمهور غير محدد')}</span><span>${escapeHtml(state.roadmap.brief?.country_or_context||'سياق غير محدد')}</span><span>جاهزية الأدلة ${model.score}%</span></div><p class="boundary"><b>حدود الاستخدام:</b> هذه خريطة كتابة وحقيبة مصادر، وليست خطبة مولدة أو فتوى. يلزم التحقق والمراجعة العلمية قبل الاستخدام أو النشر.</p>${parts}${unassigned}<section><h2>الفجوات المفتوحة</h2><ul>${gaps}</ul></section><p class="footer">أُنشئت الحقيبة في ${new Date().toLocaleString('ar')} · تبقى صياغة الخطبة وقرار استخدامها مسؤولية الباحث والمراجع المؤهل.</p></main></body></html>`;
 }
@@ -377,7 +378,10 @@ function downloadFile(content,type,extension){
 function exportResearchPackage(format){
   if(!state.roadmap){toast('ابنِ خطة البحث قبل التصدير');return}
   if(format==='markdown'){downloadFile(buildMarkdownPackage(),'text/markdown;charset=utf-8','md');toast('تم تنزيل نسخة Markdown للتوثيق');return}
-  const documentHtml=buildDocumentPackage();
+  const documentHtml=buildDocumentPackage()
+    .replace('.gap{color:#9f394a}', '.gap{color:#62577d}')
+    .replace('جاهزية الأدلة ', 'تغطية المصادر المطلوبة ')
+    .replace('الفجوات المفتوحة', 'مواضع قابلة للاستكمال');
   if(format==='word'){downloadFile(documentHtml,'application/msword;charset=utf-8','doc');toast('تم تنزيل ملف Word لمتابعة الكتابة');return}
   const printWindow=window.open('','mazann-print','width=980,height=780');if(!printWindow){toast('اسمح بفتح نافذة الطباعة لحفظ PDF');return}printWindow.document.open();printWindow.document.write(documentHtml);printWindow.document.close();printWindow.focus();setTimeout(()=>printWindow.print(),250);
 }

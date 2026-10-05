@@ -42,6 +42,18 @@ test("evidence review has sequential navigation, preserves filters, and prioriti
   assert.doesNotMatch(script, /classList\.add\('is-refreshing'\)/);
 });
 
+test("desktop review keeps decisions in view and incomplete coverage is neutral", () => {
+  assert.match(html, /class="inspector-body"/);
+  assert.match(styles, /\.source-inspector\{min-width:0;max-height:calc\(100dvh - 108px\);display:flex;flex-direction:column;overflow:hidden\}/);
+  assert.match(styles, /\.inspector-body\{min-height:0;overflow-y:auto/);
+  assert.match(styles, /\.evidence-screen\.active:has\(\.evidence-card\) \.inspector-controls\{position:fixed/);
+  assert.match(styles, /\.source-inspector\.motion-item\{animation:none!important/);
+  assert.match(styles, /\.gap\{background:#a9a5df!important\}/);
+  assert.match(html, /قابل للاستكمال/);
+  assert.match(html, /تغطية المصادر المطلوبة/);
+  assert.match(script, /عدم توفر دليل من هذا النوع ليس خطأً بحد ذاته/);
+});
+
 test("coverage renders an evidence-linked writing outline without claiming a generated sermon", () => {
   assert.match(html, /id="writing-outline-list"/);
   assert.match(html, /لا يولّد نص الخطبة/);

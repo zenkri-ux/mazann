@@ -209,3 +209,16 @@ body.dark .writing-outline{box-shadow:none}body.dark .outline-boundary{color:#f4
 /* Reading order begins with the active review; desktop preserves feed / inspector / source rail. */
 .evidence-feed{grid-column:1;grid-row:1}.source-inspector{grid-column:2;grid-row:1}.source-rail{grid-column:3;grid-row:1}
 @media(max-width:800px){.source-inspector,.evidence-feed,.source-rail{grid-column:1;grid-row:auto}.source-inspector{order:0}.evidence-feed{order:1}.source-rail{order:2}}
+/* Keep decisions visible while the complete source record remains scrollable on desktop. */
+.evidence-layout{grid-template-columns:minmax(0,1fr) minmax(390px,440px) 190px}
+.source-inspector{min-width:0;max-height:calc(100dvh - 108px);display:flex;flex-direction:column;overflow:hidden}
+.source-inspector>header,.inspector-controls{flex:0 0 auto}
+.inspector-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(174,181,214,.5) transparent;padding-inline-end:5px}
+.source-meta b{overflow-wrap:anywhere}
+.inspector-controls{margin-top:12px;padding-top:12px;background:rgba(35,41,85,.98)}
+@media(max-width:1280px){.evidence-layout{grid-template-columns:minmax(0,1fr) minmax(360px,420px)}}
+@media(max-width:800px){.evidence-layout{grid-template-columns:1fr}.evidence-screen.active{animation:none;transform:none}.source-inspector{max-height:none;overflow:visible;backdrop-filter:none}.source-inspector.motion-item{animation:none!important;opacity:1!important;transform:none!important;translate:none!important;filter:none!important}.inspector-body{overflow:visible;padding-inline-end:0}.evidence-screen.active:has(.evidence-card){padding-bottom:150px}.evidence-screen.active:has(.evidence-card) .inspector-controls{position:fixed;inset:auto 12px 10px;z-index:30;margin:0;padding:10px;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:rgba(35,41,85,.97);backdrop-filter:blur(14px);box-shadow:0 18px 48px rgba(7,10,35,.36)}}
+/* Missing planned sources are neutral opportunities, not safety failures. */
+.gap{background:#a9a5df!important}.gap-symbol{color:#6257a5;background:#f0eeff}.gap-card small{color:#6257a5}.gap-card button{border-color:#dcd8f5;color:#6257a5;background:#f7f6ff}
+.outline-gap{color:#62577d!important;background:#f3f1fc!important}.outline-score.empty{color:#62577d;background:#f3f1fc}
+body.dark .gap-symbol{color:#c4bfff;background:rgba(151,139,234,.16)}body.dark .gap-card button{color:#c4bfff;border-color:rgba(151,139,234,.32);background:rgba(151,139,234,.1)}body.dark .outline-gap{color:#c4bfff!important;background:rgba(151,139,234,.1)!important}body.dark .outline-score.empty{color:#c4bfff;background:rgba(151,139,234,.1)}
