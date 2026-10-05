@@ -38,6 +38,7 @@
 | الفتوى الشخصية لا تصل إلى النموذج | بوابة API واختبار provider calls | commit `f6a4c19` واختبارات safety/service | `PASS` — HTTP 422 |
 | الاستشهاد المختلق في التخطيط محجوب فعليًا | اختبار regression | `planning service rejects model-invented sacred citations` | `PASS` |
 | النسخة تعمل من بناء نظيف | صورة Docker وأثر تشغيل | `day2-clean-gate-2026-10-05.json` | `PASS`; 55/55 اختبارات |
+| شاشة بدء النسخة المرشحة سليمة بعد الحركة | لقطة Headless Chrome 1440×1200 | `day2-rc-start-2026-10-05.png` | `PASS` بصريًا |
 
 ## اليوم الثالث — 6 أكتوبر 2026
 
