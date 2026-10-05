@@ -70,13 +70,17 @@ function selectDiverseCandidates(candidateMap, axes, maxRecords) {
     used.add(entry.candidate.id);
   };
 
+  // Give every axis a first opportunity before using the limited result budget
+  // for a second source on an earlier axis.
+  for (const axis of axes) {
+    add(available.find((entry) => entry.axis_ids.includes(axis.axis_id)
+      && entry.candidate.source_family === "quran" && !used.has(entry.candidate.id))
+      ?? available.find((entry) => entry.axis_ids.includes(axis.axis_id) && !used.has(entry.candidate.id)));
+  }
   for (const axis of axes) {
     for (const source of ["quran", "hadith"]) {
-      add(available.find((entry) => (
-        entry.axis_ids.includes(axis.axis_id)
-        && entry.candidate.source_family === source
-        && !used.has(entry.candidate.id)
-      )));
+      add(available.find((entry) => entry.axis_ids.includes(axis.axis_id)
+        && entry.candidate.source_family === source && !used.has(entry.candidate.id)));
     }
   }
   for (const entry of available) add(entry);
@@ -103,6 +107,38 @@ function mergeCandidates(...groups) {
   return [...candidates.values()];
 }
 
+function fuseQuranCandidates(lexical, semantic, limit) {
+  if (!semantic.length) return lexical.slice(0, limit);
+  const fused = new Map();
+  const strongLexicalAnchor = lexical[0]?.retrieval?.exact_quran_phrase
+    || (lexical[0]?.retrieval?.query_coverage ?? 0) >= 0.5
+    || lexical[0]?.retrieval?.matched_fields?.includes("curated_topic_expansion");
+  const lexicalWeight = strongLexicalAnchor ? 3 : 1;
+  const semanticWeight = strongLexicalAnchor ? 1 : 1.5;
+  for (const [channel, candidates] of [["lexical", lexical], ["semantic", semantic]]) {
+    candidates.forEach((candidate, rank) => {
+      const current = fused.get(candidate.id) ?? { candidate, score: 0, channels: [] };
+      current.score += (channel === "lexical" ? lexicalWeight : semanticWeight) / (60 + rank + 1);
+      current.channels.push(channel);
+      fused.set(candidate.id, current);
+    });
+  }
+  const ranked = [...fused.values()].sort((left, right) => right.score - left.score);
+  if (strongLexicalAnchor && lexical[0]) {
+    const anchorIndex = ranked.findIndex((item) => item.candidate.id === lexical[0].id);
+    if (anchorIndex > 0) ranked.unshift(ranked.splice(anchorIndex, 1)[0]);
+  }
+  return ranked.slice(0, limit).map(({ candidate, score, channels }) => ({
+      ...candidate,
+      retrieval: {
+        ...candidate.retrieval,
+        mode: "quran_lexical_semantic_rrf",
+        score: Number(score.toFixed(6)),
+        channels,
+      },
+    }));
+}
+
 export class EvidenceUnavailableError extends Error {
   constructor(message, details = {}) {
     super(message);
@@ -113,25 +149,34 @@ export class EvidenceUnavailableError extends Error {
 }
 
 export class EvidenceService {
-  constructor({ client, cache, cacheWrite = true, quranIndex = null, hadithLocator = null }) {
+  constructor({ client, cache, cacheWrite = true, quranIndex = null, quranSemanticIndex = null, hadithLocator = null }) {
     this.client = client;
     this.cache = cache;
     this.cacheWrite = cacheWrite;
     this.quranIndex = quranIndex;
+    this.quranSemanticIndex = quranSemanticIndex;
     this.hadithLocator = hadithLocator;
   }
 
-  async search({ query, sources = ["quran", "hadith"], language = "ar", limit = 10 }) {
+  async search({ query, semanticQuery = query, sources = ["quran", "hadith"], language = "ar", limit = 10 }) {
     const usesLocalQuran = sources.includes("quran") && language === "ar" && this.quranIndex;
-    const localQuranCandidates = usesLocalQuran ? this.quranIndex.search(query, { limit }) : [];
+    const lexicalQuranCandidates = usesLocalQuran ? this.quranIndex.search(query, { limit: limit * 5 }) : [];
+    let semanticQuranCandidates = [];
+    const semanticWarnings = [];
+    if (usesLocalQuran && this.quranSemanticIndex) {
+      try { semanticQuranCandidates = await this.quranSemanticIndex.search(semanticQuery, { limit: limit * 5 }); }
+      catch { semanticWarnings.push({ source: "quran_semantic", code: "SEMANTIC_UNAVAILABLE_LEXICAL_FALLBACK" }); }
+    }
+    const localQuranCandidates = usesLocalQuran
+      ? fuseQuranCandidates(lexicalQuranCandidates, semanticQuranCandidates, limit) : [];
     const remoteSources = usesLocalQuran ? sources.filter((source) => source !== "quran") : sources;
     if (!remoteSources.length) {
       return {
-        retrieval_mode: "local_quran_fielded_bm25",
+        retrieval_mode: semanticQuranCandidates.length ? "quran_lexical_semantic_rrf" : "local_quran_fielded_bm25",
         query,
         candidates: localQuranCandidates,
         retry_count: 0,
-        source_warnings: [],
+        source_warnings: semanticWarnings,
         notice: "نتائج البحث مرشحات فقط؛ لا يعتمد نص الآية إلا بعد جلب السجل الكامل من المصدر الرسمي والتحقق منه.",
       };
     }
@@ -163,14 +208,16 @@ export class EvidenceService {
     }
 
     return {
-      retrieval_mode: usesLocalQuran ? "hybrid_local_quran_and_live_mcp" : "live_mcp",
+      retrieval_mode: usesLocalQuran
+        ? (semanticQuranCandidates.length ? "quran_lexical_semantic_rrf_and_live_mcp" : "local_quran_bm25_and_live_mcp")
+        : "live_mcp",
       query,
       candidates: mergeCandidates(localQuranCandidates, firstCandidates, retryCandidates),
       retry_count: unavailableSources.length ? 1 : 0,
-      source_warnings: remainingUnavailable.map((source) => ({
+      source_warnings: [...semanticWarnings, ...remainingUnavailable.map((source) => ({
         source,
         code: "SOURCE_UNAVAILABLE_AFTER_RETRY",
-      })),
+      }))],
       notice: "نتائج البحث مرشحات فقط؛ لا تعتمد حتى يجلب السجل الكامل ويمر بالتحقق.",
     };
   }
@@ -228,8 +275,11 @@ export class EvidenceService {
       const sources = ["quran", "hadith"].filter((source) => requested.has(source));
       const effectiveSources = sources.length ? sources : ["quran", "hadith"];
       const compiledQuery = compileRetrievalQuery({ roadmap, axis });
+      const semanticQuery = [roadmap.brief?.topic, axis.title, axis.research_question]
+        .filter(Boolean).join(". ").slice(0, 500);
       const result = await this.search({
         query: compiledQuery,
+        semanticQuery,
         sources: effectiveSources,
         language: roadmap.brief?.language ?? "ar",
         limit: perAxisLimit,
@@ -242,6 +292,7 @@ export class EvidenceService {
           axis_id: axis.axis_id,
           original_question: axis.research_question,
           compiled_query: compiledQuery,
+          semantic_query: semanticQuery,
           sources: effectiveSources,
           candidate_count: result.candidates.length,
           retry_count: result.retry_count,

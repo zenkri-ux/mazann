@@ -17,6 +17,7 @@ export const config = Object.freeze({
   cacheDir: path.resolve(projectRoot, process.env.MAZANN_CACHE_DIR ?? "data/runtime/cache"),
   seedCacheDir: path.resolve(projectRoot, process.env.MAZANN_SEED_CACHE_DIR ?? "data/cache"),
   quranIndexPath: path.resolve(projectRoot, process.env.MAZANN_QURAN_INDEX_PATH ?? "data/quran-search-index.json"),
+  quranSemanticIndexPath: path.resolve(projectRoot, process.env.MAZANN_QURAN_SEMANTIC_INDEX_PATH ?? "data/quran-semantic-index.json"),
   hadithLocatorPath: path.resolve(projectRoot, process.env.MAZANN_HADITH_LOCATOR_PATH ?? "data/hadith-locators.json"),
   projectDir: path.resolve(projectRoot, process.env.MAZANN_PROJECT_DIR ?? "data/runtime/projects"),
   webDir: path.resolve(projectRoot, "apps/web/dist"),
@@ -25,5 +26,8 @@ export const config = Object.freeze({
   plannerTimeoutMs: integerFromEnv("MAZANN_PLANNER_TIMEOUT_MS", 30_000),
   openaiApiKey: process.env.OPENAI_API_KEY ?? "",
   openaiModel: process.env.OPENAI_MODEL ?? "",
+  openaiEmbeddingModel: process.env.OPENAI_EMBEDDING_MODEL ?? "text-embedding-3-large",
+  openaiEmbeddingDimensions: integerFromEnv("OPENAI_EMBEDDING_DIMENSIONS", 512),
+  openaiEmbeddingsUrl: process.env.OPENAI_EMBEDDINGS_URL ?? "https://api.openai.com/v1/embeddings",
   openaiResponsesUrl: process.env.OPENAI_RESPONSES_URL ?? "https://api.openai.com/v1/responses",
 });

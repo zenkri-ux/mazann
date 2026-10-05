@@ -7,6 +7,8 @@ import { IslamicContentMcpClient } from "@mazann/islamic-content-connector";
 import { RecordCache } from "./lib/record-cache.mjs";
 import { ProjectStore } from "./lib/project-store.mjs";
 import { QuranSearchIndex } from "./lib/quran-search-index.mjs";
+import { QuranSemanticIndex } from "./lib/quran-semantic-index.mjs";
+import { OpenAIEmbeddingClient } from "./lib/openai-embedding-client.mjs";
 import { HadithLocatorIndex } from "./lib/hadith-locator-index.mjs";
 import { EvidenceService, EvidenceUnavailableError } from "./services/evidence-service.mjs";
 import { OpenAIPlannerClient } from "@mazann/openai-planner";
@@ -20,13 +22,29 @@ try {
 } catch (error) {
   console.warn(`Quran search index unavailable; using official MCP search fallback (${error.code ?? error.message})`);
 }
+let quranSemanticIndex = null;
+if (quranIndex && config.openaiApiKey) {
+  try {
+    const embedder = new OpenAIEmbeddingClient({
+      apiKey: config.openaiApiKey,
+      model: config.openaiEmbeddingModel,
+      dimensions: config.openaiEmbeddingDimensions,
+      endpoint: config.openaiEmbeddingsUrl,
+    });
+    quranSemanticIndex = await QuranSemanticIndex.load(config.quranSemanticIndexPath, embedder, {
+      sourceIndexPath: config.quranIndexPath,
+    });
+  } catch (error) {
+    console.warn(`Quran semantic index unavailable; using lexical retrieval (${error.code ?? error.message})`);
+  }
+}
 let hadithLocator = null;
 try {
   hadithLocator = await HadithLocatorIndex.load(config.hadithLocatorPath);
 } catch (error) {
   console.warn(`Hadith locator index unavailable; keeping collection-level references (${error.code ?? error.message})`);
 }
-const evidence = new EvidenceService({ client, cache, cacheWrite: config.cacheWrite, quranIndex, hadithLocator });
+const evidence = new EvidenceService({ client, cache, cacheWrite: config.cacheWrite, quranIndex, quranSemanticIndex, hadithLocator });
 const projects = new ProjectStore(config.projectDir);
 const plannerClient = config.plannerProvider === "openai" && config.openaiApiKey && config.openaiModel
   ? new OpenAIPlannerClient({
@@ -99,10 +117,15 @@ async function handleApi(request, response, url) {
       started_at: startedAt,
       source_mode: "official_mcp_with_visible_cache_fallback",
       quran_search: quranIndex ? {
-        mode: "local_fielded_bm25_then_official_full_fetch",
+        mode: quranSemanticIndex ? "fielded_bm25_semantic_rrf_then_official_full_fetch" : "local_fielded_bm25_then_official_full_fetch",
         units: quranIndex.metadata.document_count,
         source: quranIndex.metadata.source,
         generated_at: quranIndex.metadata.generated_at,
+        semantic: quranSemanticIndex ? {
+          model: quranSemanticIndex.metadata.model,
+          dimensions: quranSemanticIndex.metadata.dimensions,
+          units: quranSemanticIndex.documents.length,
+        } : { status: "unavailable" },
       } : { mode: "official_mcp_search_fallback", units: 0 },
       hadith_locator: hadithLocator ? {
         mode: "id_and_matn_checksum_crosswalk",

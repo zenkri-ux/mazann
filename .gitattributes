@@ -5,3 +5,4 @@
 *.pdf binary
 *.mp4 binary
 *.webm binary
+data/quran-semantic-index.json binary

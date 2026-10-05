@@ -1,0 +1,509 @@
+{
+  "evaluated_at": "2026-10-05T19:48:07.475Z",
+  "mode": "quran_bm25_semantic_rrf",
+  "model": "text-embedding-3-large",
+  "dimensions": 512,
+  "cases": 10,
+  "hit_at_5": 1,
+  "mrr": 1,
+  "results": [
+    {
+      "case_id": "QR-01",
+      "query": "أداء الأمانة والحكم بالعدل",
+      "expected_ids": [
+        "quran:4:58:ar"
+      ],
+      "first_relevant_rank": 1,
+      "returned": [
+        {
+          "id": "quran:4:58:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:16:90:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:10:109:ar",
+          "channels": [
+            "lexical"
+          ]
+        },
+        {
+          "id": "quran:33:72:ar",
+          "channels": [
+            "lexical"
+          ]
+        },
+        {
+          "id": "quran:54:5:ar",
+          "channels": [
+            "lexical"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-02",
+      "query": "خطر الشائعات والتثبت من الأخبار",
+      "expected_ids": [
+        "quran:49:6:ar"
+      ],
+      "first_relevant_rank": 1,
+      "returned": [
+        {
+          "id": "quran:49:6:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:99:4:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:98:3:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:11:120:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:47:31:ar",
+          "channels": [
+            "lexical"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-03",
+      "query": "الغيبة وسوء الظن والتجسس",
+      "expected_ids": [
+        "quran:49:12:ar"
+      ],
+      "first_relevant_rank": 1,
+      "returned": [
+        {
+          "id": "quran:49:12:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:72:26:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:53:28:ar",
+          "channels": [
+            "lexical"
+          ]
+        },
+        {
+          "id": "quran:84:14:ar",
+          "channels": [
+            "lexical"
+          ]
+        },
+        {
+          "id": "quran:24:12:ar",
+          "channels": [
+            "lexical"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-04",
+      "query": "الصبر والاستعانة بالصلاة عند الشدائد",
+      "expected_ids": [
+        "quran:2:153:ar",
+        "quran:2:45:ar"
+      ],
+      "first_relevant_rank": 1,
+      "returned": [
+        {
+          "id": "quran:2:153:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:2:45:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:29:59:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:16:42:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:22:35:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-05",
+      "query": "الرفق باليتيم والمسكين",
+      "expected_ids": [
+        "quran:93:9:ar",
+        "quran:107:2:ar",
+        "quran:89:18:ar"
+      ],
+      "first_relevant_rank": 1,
+      "returned": [
+        {
+          "id": "quran:89:18:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:93:9:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:107:2:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:17:26:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:17:34:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-06",
+      "query": "حرمة السخرية والتنابز بالألقاب",
+      "expected_ids": [
+        "quran:49:11:ar"
+      ],
+      "first_relevant_rank": 1,
+      "returned": [
+        {
+          "id": "quran:49:11:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:21:41:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:23:110:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:53:60:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:53:9:ar",
+          "channels": [
+            "lexical"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-07",
+      "query": "الوفاء بالعقود والعهود",
+      "expected_ids": [
+        "quran:5:1:ar"
+      ],
+      "first_relevant_rank": 1,
+      "returned": [
+        {
+          "id": "quran:5:1:ar",
+          "channels": [
+            "lexical"
+          ]
+        },
+        {
+          "id": "quran:23:8:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:9:7:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:68:39:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:16:91:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-08",
+      "query": "الإحسان إلى الوالدين",
+      "expected_ids": [
+        "quran:6:151:ar",
+        "quran:17:23:ar",
+        "quran:4:36:ar"
+      ],
+      "first_relevant_rank": 1,
+      "returned": [
+        {
+          "id": "quran:6:151:ar",
+          "channels": [
+            "lexical"
+          ]
+        },
+        {
+          "id": "quran:31:14:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:4:36:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:23:70:ar",
+          "channels": [
+            "lexical"
+          ]
+        },
+        {
+          "id": "quran:2:166:ar",
+          "channels": [
+            "lexical"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-09",
+      "query": "التعاون والتكافل الاجتماعي",
+      "expected_ids": [
+        "quran:5:2:ar",
+        "quran:2:274:ar"
+      ],
+      "first_relevant_rank": 1,
+      "returned": [
+        {
+          "id": "quran:5:2:ar",
+          "channels": [
+            "lexical"
+          ]
+        },
+        {
+          "id": "quran:2:274:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:30:38:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:17:88:ar",
+          "channels": [
+            "lexical"
+          ]
+        },
+        {
+          "id": "quran:89:17:ar",
+          "channels": [
+            "lexical"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-10",
+      "query": "الرحمة بالضعفاء وحفظ كرامتهم",
+      "expected_ids": [
+        "quran:21:107:ar",
+        "quran:7:49:ar"
+      ],
+      "first_relevant_rank": 1,
+      "returned": [
+        {
+          "id": "quran:7:49:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:21:86:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:45:20:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:19:50:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:17:24:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        }
+      ]
+    }
+  ],
+  "paraphrase_probes": [
+    {
+      "query": "التعامل المسؤول مع الأخبار غير المؤكدة",
+      "lexical_ids": [
+        "quran:49:6:ar",
+        "quran:99:4:ar",
+        "quran:47:31:ar",
+        "quran:27:22:ar",
+        "quran:9:94:ar"
+      ],
+      "hybrid_ids": [
+        "quran:49:6:ar",
+        "quran:99:4:ar",
+        "quran:17:36:ar",
+        "quran:47:31:ar",
+        "quran:27:22:ar"
+      ],
+      "note": "Unlabelled exploration; a qualified reviewer must judge relevance before using this as a quality claim"
+    },
+    {
+      "query": "حماية من لا يستطيع الدفاع عن حقه",
+      "lexical_ids": [
+        "quran:17:26:ar",
+        "quran:7:197:ar",
+        "quran:21:43:ar",
+        "quran:36:50:ar",
+        "quran:26:211:ar"
+      ],
+      "hybrid_ids": [
+        "quran:4:98:ar",
+        "quran:7:192:ar",
+        "quran:18:101:ar",
+        "quran:20:112:ar",
+        "quran:22:39:ar"
+      ],
+      "note": "Unlabelled exploration; a qualified reviewer must judge relevance before using this as a quality claim"
+    },
+    {
+      "query": "صدق الإنسان في ما اؤتمن عليه",
+      "lexical_ids": [
+        "quran:92:6:ar",
+        "quran:39:33:ar",
+        "quran:23:8:ar",
+        "quran:2:283:ar",
+        "quran:33:23:ar"
+      ],
+      "hybrid_ids": [
+        "quran:92:6:ar",
+        "quran:47:21:ar",
+        "quran:39:33:ar",
+        "quran:23:8:ar",
+        "quran:2:283:ar"
+      ],
+      "note": "Unlabelled exploration; a qualified reviewer must judge relevance before using this as a quality claim"
+    }
+  ]
+}

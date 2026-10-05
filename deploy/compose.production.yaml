@@ -21,6 +21,9 @@ services:
       MAZANN_PLANNER_TIMEOUT_MS: ${MAZANN_PLANNER_TIMEOUT_MS:-30000}
       OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY is required}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-6-luna}
+      OPENAI_EMBEDDING_MODEL: ${OPENAI_EMBEDDING_MODEL:-text-embedding-3-large}
+      OPENAI_EMBEDDING_DIMENSIONS: ${OPENAI_EMBEDDING_DIMENSIONS:-512}
+      OPENAI_EMBEDDINGS_URL: ${OPENAI_EMBEDDINGS_URL:-https://api.openai.com/v1/embeddings}
       OPENAI_RESPONSES_URL: ${OPENAI_RESPONSES_URL:-https://api.openai.com/v1/responses}
     volumes:
       - mazann-runtime:/app/data/runtime

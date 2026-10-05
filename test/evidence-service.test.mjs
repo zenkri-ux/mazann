@@ -109,7 +109,68 @@ test("search uses local Quran ranking and keeps Hadith on the official live conn
   const result = await service.search({ query: "الرحمة", sources: ["quran", "hadith"] });
   assert.deepEqual(calls[0].args.sources, ["hadith"]);
   assert.deepEqual(result.candidates.map((candidate) => candidate.id), ["quran:21:107:ar", "hadith:3016:ar"]);
-  assert.equal(result.retrieval_mode, "hybrid_local_quran_and_live_mcp");
+  assert.equal(result.retrieval_mode, "local_quran_bm25_and_live_mcp");
+});
+
+test("Quran search fuses lexical and semantic candidate ranks without promoting snippets", async () => {
+  const service = new EvidenceService({
+    client: {}, cache: {},
+    quranIndex: { search: () => [
+      { id: "quran:1:1:ar", source_family: "quran", retrieval: { mode: "local_fielded_bm25", score: 5 } },
+    ] },
+    quranSemanticIndex: { search: async () => [
+      { id: "quran:2:1:ar", source_family: "quran", retrieval: { mode: "semantic", score: 0.8 } },
+      { id: "quran:1:1:ar", source_family: "quran", retrieval: { mode: "semantic", score: 0.7 } },
+    ] },
+  });
+  const result = await service.search({ query: "معنى بصياغة مختلفة", sources: ["quran"], limit: 2 });
+  assert.equal(result.retrieval_mode, "quran_lexical_semantic_rrf");
+  assert.equal(result.candidates[0].id, "quran:1:1:ar");
+  assert.deepEqual(result.candidates[0].retrieval.channels, ["lexical", "semantic"]);
+  assert.ok(result.candidates.every((candidate) => !Object.hasOwn(candidate, "text")));
+});
+
+test("strong lexical Quran anchor is not displaced by overlapping semantic distractors", async () => {
+  const service = new EvidenceService({
+    client: {}, cache: {},
+    quranIndex: { search: () => [
+      { id: "quran:5:1:ar", source_family: "quran", retrieval: { query_coverage: 0.75 } },
+      ...Array.from({ length: 10 }, (_, index) => ({
+        id: `quran:9:${index + 1}:ar`, source_family: "quran", retrieval: { query_coverage: 0.25 },
+      })),
+    ] },
+    quranSemanticIndex: { search: async () => Array.from({ length: 10 }, (_, index) => ({
+      id: `quran:9:${index + 1}:ar`, source_family: "quran", retrieval: { score: 0.9 - index * 0.01 },
+    })) },
+  });
+  const result = await service.search({ query: "الوفاء بالعقود والعهود", sources: ["quran"], limit: 5 });
+  assert.equal(result.candidates[0].id, "quran:5:1:ar");
+});
+
+test("declared thematic expansion can preserve a source-grounded Quran anchor", async () => {
+  const service = new EvidenceService({
+    client: {}, cache: {},
+    quranIndex: { search: () => [
+      { id: "quran:49:6:ar", source_family: "quran", retrieval: { query_coverage: 0, matched_fields: ["curated_topic_expansion"] } },
+      { id: "quran:99:4:ar", source_family: "quran", retrieval: { query_coverage: 0.2 } },
+    ] },
+    quranSemanticIndex: { search: async () => [
+      { id: "quran:99:4:ar", source_family: "quran", retrieval: { score: 0.8 } },
+    ] },
+  });
+  const result = await service.search({ query: "التعامل المسؤول مع الأخبار غير المؤكدة", sources: ["quran"], limit: 2 });
+  assert.equal(result.candidates[0].id, "quran:49:6:ar");
+});
+
+test("Quran semantic outage is visible and lexical retrieval remains available", async () => {
+  const service = new EvidenceService({
+    client: {}, cache: {},
+    quranIndex: { search: () => [{ id: "quran:1:1:ar", source_family: "quran" }] },
+    quranSemanticIndex: { search: async () => { throw new Error("offline"); } },
+  });
+  const result = await service.search({ query: "الموضوع", sources: ["quran"] });
+  assert.equal(result.candidates[0].id, "quran:1:1:ar");
+  assert.deepEqual(result.source_warnings, [{ source: "quran_semantic", code: "SEMANTIC_UNAVAILABLE_LEXICAL_FALLBACK" }]);
 });
 
 test("evidence service abstains when live retrieval and cache both fail", async () => {
@@ -164,6 +225,23 @@ test("roadmap collection fetches complete unique records and preserves axis trac
   assert.equal(result.search_trace.length, 2);
   assert.equal(result.search_trace[0].original_question, "ما الأصل؟");
   assert.ok(result.search_trace[0].compiled_query.includes("الأصل"));
+  assert.ok(result.search_trace[0].semantic_query.includes("ما الأصل؟"));
+});
+
+test("semantic Quran query preserves each axis question even when lexical topic query is curated", async () => {
+  const seen = [];
+  const service = new EvidenceService({ client: {}, cache: {} });
+  service.search = async (args) => { seen.push(args); return { candidates: [], source_warnings: [] }; };
+  await service.collectForRoadmap({ roadmap: {
+    roadmap_id: "roadmap_test", brief: { topic: "الأمانة وأثرها في الثقة" },
+    axes: [
+      { axis_id: "a", title: "الأصل", research_question: "ما أصل الأمانة؟" },
+      { axis_id: "b", title: "التطبيق", research_question: "كيف نطبق الأمانة في المعاملات؟" },
+    ],
+  } });
+  assert.equal(seen[0].query, seen[1].query);
+  assert.notEqual(seen[0].semanticQuery, seen[1].semanticQuery);
+  assert.ok(seen[1].semanticQuery.includes("المعاملات"));
 });
 
 test("roadmap collection exposes failed full fetches instead of promoting snippets", async () => {
@@ -202,4 +280,24 @@ test("roadmap collection favors source diversity before filling the record limit
     },
   });
   assert.deepEqual(result.records.map((item) => item.record.id), ["quran:2:1:ar", "hadith:1:ar"]);
+});
+
+test("limited evidence budget gives every axis a first candidate before second-source enrichment", async () => {
+  const service = new EvidenceService({ client: {}, cache: {}, cacheWrite: false });
+  service.search = async ({ semanticQuery }) => {
+    const axis = /محور (\d)/u.exec(semanticQuery)?.[1];
+    return { candidates: [
+      { id: `quran:${axis}:1:ar`, source_family: "quran" },
+      { id: `hadith:${axis}:ar`, source_family: "hadith" },
+    ], source_warnings: [] };
+  };
+  service.fetchCandidate = async ({ id }) => ({ retrieval_mode: "live", record: { id } });
+  const result = await service.collectForRoadmap({ maxRecords: 6, roadmap: {
+    roadmap_id: "roadmap_test", brief: { topic: "موضوع" },
+    axes: [1, 2, 3, 4].map((number) => ({
+      axis_id: `axis_${number}`, title: `محور ${number}`,
+      research_question: `ما دليل محور ${number}؟`, evidence_requirements: ["quran", "hadith"],
+    })),
+  } });
+  assert.ok([1, 2, 3, 4].every((number) => result.records.some((item) => item.record.id === `quran:${number}:1:ar`)));
 });
