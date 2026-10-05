@@ -8,6 +8,23 @@ const ARABIC_RETRIEVAL_STOPWORDS = new Set([
   "المؤسس", "التطبيقي", "تطبيق", "تحويل", "بيان", "عرض", "صور", "أبرز", "يمكن", "ينبغي",
 ]);
 
+const CURATED_TOPIC_QUERIES = Object.freeze([
+  {
+    matches: /(?:^|\s)ال?امانه(?:\s|$)/u,
+    query: "الأمانة أداء خيانة",
+  },
+]);
+
+function normalizedTopicKey(value) {
+  return String(value ?? "")
+    .normalize("NFKC")
+    .replace(/[\u0640\u064B-\u065F\u0670]/gu, "")
+    .replace(/[إأآٱ]/gu, "ا")
+    .replace(/ة/gu, "ه")
+    .replace(/[^\p{Script=Arabic}\p{N}]+/gu, " ")
+    .trim();
+}
+
 function retrievalTokens(value) {
   return String(value ?? "")
     .normalize("NFKC")
@@ -18,6 +35,10 @@ function retrievalTokens(value) {
 }
 
 export function compileRetrievalQuery({ roadmap, axis, maxTokens = 7, maxLength = 96 }) {
+  const topicKey = normalizedTopicKey(roadmap?.brief?.topic);
+  const curated = CURATED_TOPIC_QUERIES.find((entry) => entry.matches.test(topicKey));
+  if (curated) return curated.query;
+
   const ordered = [
     ...retrievalTokens(roadmap?.brief?.topic),
     ...retrievalTokens(axis?.title),

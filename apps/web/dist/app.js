@@ -156,7 +156,7 @@ function restoreBrief(brief={}){
   syncInstructionFields();
 }
 function evidenceTitle(item){
-  if(item.record.content_type==='ayah')return `سورة النساء، الآية ${item.record.metadata.ayah}`;
+  if(item.record.content_type==='ayah')return item.record.reference?.locator_ar||`السورة ${item.record.metadata.surah}، الآية ${item.record.metadata.ayah}`;
   return item.record.metadata.title||`حديث رقم ${item.record.metadata.hadith_id}`;
 }
 function evidenceLocation(item){

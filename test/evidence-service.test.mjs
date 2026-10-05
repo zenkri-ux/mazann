@@ -20,6 +20,17 @@ test("retrieval query compiler turns a long methodological question into source-
   assert.ok(!query.includes("كيف"));
 });
 
+test("retrieval query compiler uses a declared amanah query instead of diluting the intent with context words", () => {
+  const query = compileRetrievalQuery({
+    roadmap: { brief: { topic: "الأمانة وأثرها في بناء الثقة داخل المجتمع" } },
+    axis: {
+      title: "أثر الأمانة في المجتمع",
+      research_question: "كيف ترتبط الأمانة بالثقة والتعاون بين الناس؟",
+    },
+  });
+  assert.equal(query, "الأمانة أداء خيانة");
+});
+
 test("evidence service exposes cache fallback and upstream failure", async () => {
   const service = new EvidenceService({
     client: { callTool: async () => { throw Object.assign(new Error("offline"), { code: "MCP_NETWORK_ERROR" }); } },

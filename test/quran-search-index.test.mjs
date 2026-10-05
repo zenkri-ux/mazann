@@ -34,7 +34,8 @@ test("Arabic search normalization is matching-only and handles Quranic orthograp
 test("Quran index ranks exact ayah language and returns locators, never display snippets", () => {
   const [result] = index.search("أداء الأمانات والحكم بالعدل", { limit: 2 });
   assert.equal(result.id, "quran:4:58:ar");
-  assert.deepEqual(result.retrieval.matched_fields, ["quran_text", "published_explanation"]);
+  assert.ok(result.retrieval.matched_fields.includes("quran_text"));
+  assert.ok(result.retrieval.matched_fields.includes("published_explanation"));
   assert.equal("text" in result, false);
   assert.ok(result.retrieval.query_coverage >= 0.75);
 });
@@ -49,4 +50,11 @@ test("Arabic clitics do not hide a high-coverage canonical verse", () => {
   const [result] = index.search("أداء الأمانة والحكم بالعدل", { limit: 1 });
   assert.equal(result.id, "quran:4:58:ar");
   assert.equal(result.retrieval.query_coverage, 1);
+});
+
+test("A contextual trust query retains the canonical amanah verse through declared thematic expansion", () => {
+  const [result] = index.search("الأمانة وأثرها بناء الثقة داخل المجتمع حدود", { limit: 1 });
+  assert.equal(result.id, "quran:4:58:ar");
+  assert.ok(result.retrieval.matched_fields.includes("curated_topic_expansion"));
+  assert.equal("text" in result, false);
 });

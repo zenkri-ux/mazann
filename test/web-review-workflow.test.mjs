@@ -26,6 +26,8 @@ test("coverage renders an evidence-linked writing outline without claiming a gen
   assert.match(html, /لا يولّد نص الخطبة/);
   assert.match(script, /زاوية المعالجة/);
   assert.match(script, /row\.included/);
+  assert.match(script, /content_type==='ayah'\)return item\.record\.reference\?\.locator_ar/);
+  assert.doesNotMatch(script, /return `سورة النساء، الآية \$\{item\.record\.metadata\.ayah\}`/);
 });
 
 test("user-facing exports include print-PDF and Word while retaining Markdown for audit", () => {
