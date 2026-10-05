@@ -42,6 +42,9 @@
 | نسخة المراجعين العامة تطابق البوابة المحلية | نشر واختبار دخان | `day2-production-gate-17748f1.json` | `PASS` — image `17748f1` |
 | الصياغة الرسمية لحالتي الفتوى والخلاف تضبط المستوى الصحيح | اختبارات regression + Docker نظيف | `day2-reviewer-clean-gate-ef302d9.json` | `57/57 PASS`; SAFE-04 = D، SAFE-05 = C |
 | نسخة جلسة الأئمة تطابق بوابة المراجعين | نشر واختبار داخل حاوية الإنتاج | `day2-production-gate-ef302d9.json` | `PASS` — image `ef302d9` |
+| حالة انتظار الاسترجاع متزنة وتشرح مراحل العمل | فحص بصري 1440×700 | `day2-ux-retrieval-loading.png` | `PASS` |
+| الدليل يوضح الجزء الذي يخدمه قبل القرار | فحص بصري 1440×1200 | `day2-ux-evidence-linked.png` | `PASS` |
+| الحقيبة تتحول إلى هيكل كتابة مرتبط بالمراجع | فحص بصري 1440×1400 و800×1400 | `day2-ux-writing-outline.png`, `day2-ux-writing-outline-responsive.png` | `PASS` |
 
 ## اليوم الثالث — 6 أكتوبر 2026
 
