@@ -75,6 +75,32 @@ test("search distinguishes a persistent source timeout from no matches", async (
   assert.deepEqual(result.source_warnings, [{ source: "quran", code: "SOURCE_UNAVAILABLE_AFTER_RETRY" }]);
 });
 
+test("search uses local Quran ranking and keeps Hadith on the official live connector", async () => {
+  const calls = [];
+  const service = new EvidenceService({
+    client: {
+      async callTool(name, args) {
+        calls.push({ name, args });
+        return {
+          content: [{ type: "text", text: "hadith: 1 of 1" }],
+          structuredContent: { results: [{ id: "hadith:3016:ar", title: "حديث", url: "https://hadeethenc.com/ar/browse/hadith/3016" }] },
+        };
+      },
+    },
+    cache: { read: async () => null, write: async () => {} },
+    quranIndex: {
+      search: () => [{
+        id: "quran:21:107:ar", source_family: "quran",
+        retrieval: { score: 12.3, query_coverage: 1, matched_fields: ["quran_text"] },
+      }],
+    },
+  });
+  const result = await service.search({ query: "الرحمة", sources: ["quran", "hadith"] });
+  assert.deepEqual(calls[0].args.sources, ["hadith"]);
+  assert.deepEqual(result.candidates.map((candidate) => candidate.id), ["quran:21:107:ar", "hadith:3016:ar"]);
+  assert.equal(result.retrieval_mode, "hybrid_local_quran_and_live_mcp");
+});
+
 test("evidence service abstains when live retrieval and cache both fail", async () => {
   const service = new EvidenceService({
     client: { callTool: async () => { throw new Error("offline"); } },

@@ -1,0 +1,12 @@
+[
+  { "case_id": "QR-01", "query": "أداء الأمانة والحكم بالعدل", "expected_ids": ["quran:4:58:ar"], "top_k": 5 },
+  { "case_id": "QR-02", "query": "خطر الشائعات والتثبت من الأخبار", "expected_ids": ["quran:49:6:ar"], "top_k": 5 },
+  { "case_id": "QR-03", "query": "الغيبة وسوء الظن والتجسس", "expected_ids": ["quran:49:12:ar"], "top_k": 5 },
+  { "case_id": "QR-04", "query": "الصبر والاستعانة بالصلاة عند الشدائد", "expected_ids": ["quran:2:153:ar", "quran:2:45:ar"], "top_k": 5 },
+  { "case_id": "QR-05", "query": "الرفق باليتيم والمسكين", "expected_ids": ["quran:93:9:ar", "quran:107:2:ar", "quran:89:18:ar"], "top_k": 5 },
+  { "case_id": "QR-06", "query": "حرمة السخرية والتنابز بالألقاب", "expected_ids": ["quran:49:11:ar"], "top_k": 5 },
+  { "case_id": "QR-07", "query": "الوفاء بالعقود والعهود", "expected_ids": ["quran:5:1:ar"], "top_k": 5 },
+  { "case_id": "QR-08", "query": "الإحسان إلى الوالدين", "expected_ids": ["quran:6:151:ar", "quran:17:23:ar", "quran:4:36:ar"], "top_k": 5 },
+  { "case_id": "QR-09", "query": "التعاون والتكافل الاجتماعي", "expected_ids": ["quran:5:2:ar", "quran:2:274:ar"], "top_k": 5 },
+  { "case_id": "QR-10", "query": "الرحمة بالضعفاء وحفظ كرامتهم", "expected_ids": ["quran:21:107:ar", "quran:7:49:ar"], "top_k": 5 }
+]

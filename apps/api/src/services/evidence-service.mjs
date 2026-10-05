@@ -91,16 +91,31 @@ export class EvidenceUnavailableError extends Error {
 }
 
 export class EvidenceService {
-  constructor({ client, cache, cacheWrite = true }) {
+  constructor({ client, cache, cacheWrite = true, quranIndex = null }) {
     this.client = client;
     this.cache = cache;
     this.cacheWrite = cacheWrite;
+    this.quranIndex = quranIndex;
   }
 
   async search({ query, sources = ["quran", "hadith"], language = "ar", limit = 10 }) {
-    const result = await this.client.callTool("search", { query, sources, language, limit });
+    const usesLocalQuran = sources.includes("quran") && language === "ar" && this.quranIndex;
+    const localQuranCandidates = usesLocalQuran ? this.quranIndex.search(query, { limit }) : [];
+    const remoteSources = usesLocalQuran ? sources.filter((source) => source !== "quran") : sources;
+    if (!remoteSources.length) {
+      return {
+        retrieval_mode: "local_quran_fielded_bm25",
+        query,
+        candidates: localQuranCandidates,
+        retry_count: 0,
+        source_warnings: [],
+        notice: "نتائج البحث مرشحات فقط؛ لا يعتمد نص الآية إلا بعد جلب السجل الكامل من المصدر الرسمي والتحقق منه.",
+      };
+    }
+
+    const result = await this.client.callTool("search", { query, sources: remoteSources, language, limit });
     const firstCandidates = normalizeSearchResponse(result);
-    const unavailableSources = sourceFailures(result, sources);
+    const unavailableSources = sourceFailures(result, remoteSources);
     let retryCandidates = [];
     let remainingUnavailable = unavailableSources;
 
@@ -125,9 +140,9 @@ export class EvidenceService {
     }
 
     return {
-      retrieval_mode: "live",
+      retrieval_mode: usesLocalQuran ? "hybrid_local_quran_and_live_mcp" : "live_mcp",
       query,
-      candidates: mergeCandidates(firstCandidates, retryCandidates),
+      candidates: mergeCandidates(localQuranCandidates, firstCandidates, retryCandidates),
       retry_count: unavailableSources.length ? 1 : 0,
       source_warnings: remainingUnavailable.map((source) => ({
         source,
@@ -203,6 +218,13 @@ export class EvidenceService {
           sources: effectiveSources,
           candidate_count: result.candidates.length,
           retry_count: result.retry_count,
+          retrieval_mode: result.retrieval_mode,
+          ranked_candidates: result.candidates.slice(0, perAxisLimit).map((candidate) => ({
+            id: candidate.id,
+            score: candidate.retrieval?.score ?? null,
+            query_coverage: candidate.retrieval?.query_coverage ?? null,
+            matched_fields: candidate.retrieval?.matched_fields ?? null,
+          })),
         },
       };
     }));

@@ -6,13 +6,20 @@ import { config } from "./config.mjs";
 import { IslamicContentMcpClient } from "@mazann/islamic-content-connector";
 import { RecordCache } from "./lib/record-cache.mjs";
 import { ProjectStore } from "./lib/project-store.mjs";
+import { QuranSearchIndex } from "./lib/quran-search-index.mjs";
 import { EvidenceService, EvidenceUnavailableError } from "./services/evidence-service.mjs";
 import { OpenAIPlannerClient } from "@mazann/openai-planner";
 import { TopicPlanningService } from "./services/topic-planning-service.mjs";
 
 const client = new IslamicContentMcpClient({ endpoint: config.mcpUrl, timeoutMs: config.mcpTimeoutMs });
 const cache = new RecordCache(config.cacheDir, { fallbackDirectories: [config.seedCacheDir] });
-const evidence = new EvidenceService({ client, cache, cacheWrite: config.cacheWrite });
+let quranIndex = null;
+try {
+  quranIndex = await QuranSearchIndex.load(config.quranIndexPath);
+} catch (error) {
+  console.warn(`Quran search index unavailable; using official MCP search fallback (${error.code ?? error.message})`);
+}
+const evidence = new EvidenceService({ client, cache, cacheWrite: config.cacheWrite, quranIndex });
 const projects = new ProjectStore(config.projectDir);
 const plannerClient = config.plannerProvider === "openai" && config.openaiApiKey && config.openaiModel
   ? new OpenAIPlannerClient({
@@ -84,6 +91,12 @@ async function handleApi(request, response, url) {
       version: "0.1.0",
       started_at: startedAt,
       source_mode: "official_mcp_with_visible_cache_fallback",
+      quran_search: quranIndex ? {
+        mode: "local_fielded_bm25_then_official_full_fetch",
+        units: quranIndex.metadata.document_count,
+        source: quranIndex.metadata.source,
+        generated_at: quranIndex.metadata.generated_at,
+      } : { mode: "official_mcp_search_fallback", units: 0 },
       planner_mode: plannerClient ? "model_assisted_with_methodology_fallback" : "methodology_template",
     });
   }

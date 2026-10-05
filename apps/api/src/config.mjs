@@ -16,6 +16,7 @@ export const config = Object.freeze({
   mcpTimeoutMs: integerFromEnv("MCP_TIMEOUT_MS", 12_000),
   cacheDir: path.resolve(projectRoot, process.env.MAZANN_CACHE_DIR ?? "data/runtime/cache"),
   seedCacheDir: path.resolve(projectRoot, process.env.MAZANN_SEED_CACHE_DIR ?? "data/cache"),
+  quranIndexPath: path.resolve(projectRoot, process.env.MAZANN_QURAN_INDEX_PATH ?? "data/quran-search-index.json"),
   projectDir: path.resolve(projectRoot, process.env.MAZANN_PROJECT_DIR ?? "data/runtime/projects"),
   webDir: path.resolve(projectRoot, "apps/web/dist"),
   cacheWrite: (process.env.MAZANN_CACHE_WRITE ?? "true").toLowerCase() !== "false",

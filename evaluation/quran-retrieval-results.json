@@ -1,0 +1,597 @@
+{
+  "schema_version": "1.0.0",
+  "evaluated_at": "2026-10-05T10:48:33.783Z",
+  "index": {
+    "sha256": "62b50f3f42f0cba086f97633adc17d6fcc104031f8ced3bf6c51f3fab510fbfa",
+    "units": 6236,
+    "unit_policy": "whole_ayah",
+    "source": "QuranEnc via Islamic Content MCP",
+    "retrieval_fields": [
+      "quran_text",
+      "published_explanation"
+    ]
+  },
+  "metrics": {
+    "cases": 10,
+    "passed": 10,
+    "hit_rate_at_5": 1,
+    "mean_reciprocal_rank": 1
+  },
+  "safety_gate": {
+    "candidates_are_locators_only": true,
+    "exact_text_requires_full_official_fetch": true
+  },
+  "results": [
+    {
+      "case_id": "QR-01",
+      "query": "أداء الأمانة والحكم بالعدل",
+      "expected_ids": [
+        "quran:4:58:ar"
+      ],
+      "top_k": 5,
+      "passed": true,
+      "first_relevant_rank": 1,
+      "candidates_contain_no_sacred_display_text": true,
+      "returned": [
+        {
+          "id": "quran:4:58:ar",
+          "score": 32.7688,
+          "query_coverage": 1,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:33:72:ar",
+          "score": 18.6513,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:10:109:ar",
+          "score": 17.8227,
+          "query_coverage": 0.5,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:16:90:ar",
+          "score": 16.8922,
+          "query_coverage": 0.5,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:54:5:ar",
+          "score": 16.572,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-02",
+      "query": "خطر الشائعات والتثبت من الأخبار",
+      "expected_ids": [
+        "quran:49:6:ar"
+      ],
+      "top_k": 5,
+      "passed": true,
+      "first_relevant_rank": 1,
+      "candidates_contain_no_sacred_display_text": true,
+      "returned": [
+        {
+          "id": "quran:49:6:ar",
+          "score": 27.0272,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "published_explanation",
+            "curated_topic_expansion"
+          ]
+        },
+        {
+          "id": "quran:99:4:ar",
+          "score": 18.0803,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text"
+          ]
+        },
+        {
+          "id": "quran:47:31:ar",
+          "score": 14.3313,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text"
+          ]
+        },
+        {
+          "id": "quran:9:94:ar",
+          "score": 12.2188,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text",
+            "curated_topic_expansion"
+          ]
+        },
+        {
+          "id": "quran:17:36:ar",
+          "score": 10.4053,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "published_explanation",
+            "curated_topic_expansion"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-03",
+      "query": "الغيبة وسوء الظن والتجسس",
+      "expected_ids": [
+        "quran:49:12:ar"
+      ],
+      "top_k": 5,
+      "passed": true,
+      "first_relevant_rank": 1,
+      "candidates_contain_no_sacred_display_text": true,
+      "returned": [
+        {
+          "id": "quran:49:12:ar",
+          "score": 32.5519,
+          "query_coverage": 0.5,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:72:26:ar",
+          "score": 23.6352,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:53:28:ar",
+          "score": 22.544,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:84:14:ar",
+          "score": 22.1892,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:24:12:ar",
+          "score": 19.3012,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-04",
+      "query": "الصبر والاستعانة بالصلاة عند الشدائد",
+      "expected_ids": [
+        "quran:2:153:ar",
+        "quran:2:45:ar"
+      ],
+      "top_k": 5,
+      "passed": true,
+      "first_relevant_rank": 1,
+      "candidates_contain_no_sacred_display_text": true,
+      "returned": [
+        {
+          "id": "quran:2:153:ar",
+          "score": 26.4873,
+          "query_coverage": 0.5,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:2:45:ar",
+          "score": 24.6729,
+          "query_coverage": 0.5,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:76:12:ar",
+          "score": 23.0149,
+          "query_coverage": 0.5,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:29:59:ar",
+          "score": 20.4308,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:16:42:ar",
+          "score": 19.9384,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-05",
+      "query": "الرفق باليتيم والمسكين",
+      "expected_ids": [
+        "quran:93:9:ar",
+        "quran:107:2:ar",
+        "quran:89:18:ar"
+      ],
+      "top_k": 5,
+      "passed": true,
+      "first_relevant_rank": 1,
+      "candidates_contain_no_sacred_display_text": true,
+      "returned": [
+        {
+          "id": "quran:89:18:ar",
+          "score": 30.6345,
+          "query_coverage": 0.6667,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:107:2:ar",
+          "score": 30.085,
+          "query_coverage": 0.3333,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:93:9:ar",
+          "score": 28.0157,
+          "query_coverage": 0.3333,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:89:17:ar",
+          "score": 25.1204,
+          "query_coverage": 0.3333,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:17:26:ar",
+          "score": 20.5869,
+          "query_coverage": 0.3333,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-06",
+      "query": "حرمة السخرية والتنابز بالألقاب",
+      "expected_ids": [
+        "quran:49:11:ar"
+      ],
+      "top_k": 5,
+      "passed": true,
+      "first_relevant_rank": 1,
+      "candidates_contain_no_sacred_display_text": true,
+      "returned": [
+        {
+          "id": "quran:49:11:ar",
+          "score": 35.5029,
+          "query_coverage": 0.75,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:53:9:ar",
+          "score": 25.8706,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text"
+          ]
+        },
+        {
+          "id": "quran:24:3:ar",
+          "score": 8.0926,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:33:4:ar",
+          "score": 7.8558,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:21:41:ar",
+          "score": 7.8428,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "published_explanation"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-07",
+      "query": "الوفاء بالعقود والعهود",
+      "expected_ids": [
+        "quran:5:1:ar"
+      ],
+      "top_k": 5,
+      "passed": true,
+      "first_relevant_rank": 1,
+      "candidates_contain_no_sacred_display_text": true,
+      "returned": [
+        {
+          "id": "quran:5:1:ar",
+          "score": 23.6518,
+          "query_coverage": 0.6667,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:9:7:ar",
+          "score": 14.7695,
+          "query_coverage": 0.6667,
+          "matched_fields": [
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:16:92:ar",
+          "score": 13.27,
+          "query_coverage": 0.6667,
+          "matched_fields": [
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:33:23:ar",
+          "score": 12.8525,
+          "query_coverage": 0.6667,
+          "matched_fields": [
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:9:1:ar",
+          "score": 9.2149,
+          "query_coverage": 0.3333,
+          "matched_fields": [
+            "published_explanation"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-08",
+      "query": "الإحسان إلى الوالدين",
+      "expected_ids": [
+        "quran:6:151:ar",
+        "quran:17:23:ar",
+        "quran:4:36:ar"
+      ],
+      "top_k": 5,
+      "passed": true,
+      "first_relevant_rank": 1,
+      "candidates_contain_no_sacred_display_text": true,
+      "returned": [
+        {
+          "id": "quran:6:151:ar",
+          "score": 9.7261,
+          "query_coverage": 1,
+          "matched_fields": [
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:23:70:ar",
+          "score": 9.716,
+          "query_coverage": 0.5,
+          "matched_fields": [
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:2:166:ar",
+          "score": 9.2298,
+          "query_coverage": 0.5,
+          "matched_fields": [
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:4:31:ar",
+          "score": 9.0076,
+          "query_coverage": 0.5,
+          "matched_fields": [
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:12:22:ar",
+          "score": 8.2637,
+          "query_coverage": 0.5,
+          "matched_fields": [
+            "published_explanation"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-09",
+      "query": "التعاون والتكافل الاجتماعي",
+      "expected_ids": [
+        "quran:5:2:ar",
+        "quran:2:274:ar"
+      ],
+      "top_k": 5,
+      "passed": true,
+      "first_relevant_rank": 1,
+      "candidates_contain_no_sacred_display_text": true,
+      "returned": [
+        {
+          "id": "quran:5:2:ar",
+          "score": 29.6572,
+          "query_coverage": 0.3333,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation",
+            "curated_topic_expansion"
+          ]
+        },
+        {
+          "id": "quran:2:274:ar",
+          "score": 13.3268,
+          "query_coverage": 0.3333,
+          "matched_fields": [
+            "published_explanation",
+            "curated_topic_expansion"
+          ]
+        },
+        {
+          "id": "quran:17:88:ar",
+          "score": 13.0412,
+          "query_coverage": 0.3333,
+          "matched_fields": [
+            "published_explanation",
+            "curated_topic_expansion"
+          ]
+        },
+        {
+          "id": "quran:89:17:ar",
+          "score": 9.4335,
+          "query_coverage": 0,
+          "matched_fields": [
+            "curated_topic_expansion"
+          ]
+        },
+        {
+          "id": "quran:107:2:ar",
+          "score": 9.4075,
+          "query_coverage": 0,
+          "matched_fields": [
+            "curated_topic_expansion"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "QR-10",
+      "query": "الرحمة بالضعفاء وحفظ كرامتهم",
+      "expected_ids": [
+        "quran:21:107:ar",
+        "quran:7:49:ar"
+      ],
+      "top_k": 5,
+      "passed": true,
+      "first_relevant_rank": 1,
+      "candidates_contain_no_sacred_display_text": true,
+      "returned": [
+        {
+          "id": "quran:7:49:ar",
+          "score": 18.0132,
+          "query_coverage": 0.5,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:31:3:ar",
+          "score": 17.2216,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:27:77:ar",
+          "score": 17.178,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:21:86:ar",
+          "score": 17.0155,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        },
+        {
+          "id": "quran:21:107:ar",
+          "score": 16.7206,
+          "query_coverage": 0.25,
+          "matched_fields": [
+            "quran_text",
+            "published_explanation"
+          ]
+        }
+      ]
+    }
+  ]
+}
