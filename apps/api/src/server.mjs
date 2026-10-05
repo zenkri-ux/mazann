@@ -124,9 +124,8 @@ function requireInteger(value, name, { min = 1, max = Number.MAX_SAFE_INTEGER } 
 
 function projectWorkspace(request) {
   const value = request.headers["x-mazann-workspace"];
-  if (value === undefined) return undefined;
   if (typeof value !== "string" || !/^workspace_[a-f0-9-]{36}$/.test(value)) {
-    throw Object.assign(new Error("معرف مساحة البحث غير صالح"), { status: 400, code: "INVALID_WORKSPACE_ID" });
+    throw Object.assign(new Error("معرف مساحة البحث مطلوب وصالح لحفظ الأبحاث"), { status: 400, code: "INVALID_WORKSPACE_ID" });
   }
   return value;
 }

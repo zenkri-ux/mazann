@@ -16,6 +16,25 @@ async function withServer(run) {
   }
 }
 
+test("saved projects require a browser workspace ID", async () => {
+  await withServer(async (origin) => {
+    const missing = await fetch(`${origin}/api/projects`);
+    assert.equal(missing.status, 400);
+    assert.equal((await missing.json()).error, "INVALID_WORKSPACE_ID");
+
+    const invalid = await fetch(`${origin}/api/projects`, {
+      headers: { "x-mazann-workspace": "shared" },
+    });
+    assert.equal(invalid.status, 400);
+
+    const valid = await fetch(`${origin}/api/projects`, {
+      headers: { "x-mazann-workspace": `workspace_${crypto.randomUUID()}` },
+    });
+    assert.equal(valid.status, 200);
+    assert.deepEqual((await valid.json()).projects, []);
+  });
+});
+
 test("roadmap API returns a reviewable plan without external model access", async () => {
   await withServer(async (origin) => {
     const response = await fetch(`${origin}/api/research/roadmap`, {

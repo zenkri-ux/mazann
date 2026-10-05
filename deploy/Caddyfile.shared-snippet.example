@@ -1,11 +1,6 @@
-# Add this block to the existing server Caddyfile. Replace the hostname,
-# username and bcrypt hash on the server; never commit the plaintext password.
+# Add this block to the existing server Caddyfile. Replace the hostname.
 mazann.example.com {
 	encode zstd gzip
-
-	basic_auth {
-		reviewer <bcrypt-hash>
-	}
 
 	header {
 		-Server

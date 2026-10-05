@@ -8,7 +8,7 @@
 
 The local `.env` uses port `8091` in this workspace because another service owns `8090`. Fresh environments default to `8090`.
 
-The private-review deployment is documented in `deploy/README.md`. It terminates HTTPS at Caddy, protects the beta with a shared login, and keeps the application port on an internal Docker network.
+The public-link deployment is documented in `deploy/README.md`. It terminates HTTPS at Caddy and keeps the application port on an internal Docker network. There is no reviewer login; the URL is not an access-control boundary. Saved projects require a random browser workspace ID, which is not a substitute for authenticated accounts.
 
 ## Runtime data
 

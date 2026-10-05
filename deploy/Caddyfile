@@ -6,10 +6,6 @@
 {$SITE_ADDRESS} {
 	encode zstd gzip
 
-	basic_auth {
-		{$BETA_USERNAME} {$BETA_PASSWORD_HASH}
-	}
-
 	header {
 		-Server
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
