@@ -26,6 +26,22 @@ test("evidence review explains axis use and provides a gated next step", () => {
   assert.match(script, /هذا هو المتن الكامل المنشور في سجل الإتاحة/);
 });
 
+test("evidence review has sequential navigation, preserves filters, and prioritizes mobile review", () => {
+  assert.match(html, /id="review-previous"/);
+  assert.match(html, /id="review-next"/);
+  assert.match(html, /id="review-position" aria-live="polite"/);
+  assert.match(html, /id="review-finish"[^>]*hidden/);
+  assert.ok(html.indexOf('id="source-inspector"') < html.indexOf('id="evidence-feed"'));
+  assert.match(script, /function visibleEvidenceItems\(\)/);
+  assert.match(script, /function navigateEvidence\(delta\)/);
+  assert.match(script, /state\.evidenceFilter=type;state\.referenceFilter='all';applyEvidenceFilters\(\)/);
+  assert.match(script, /state\.evidenceFilter='all';state\.referenceFilter=key;applyEvidenceFilters\(\)/);
+  assert.match(script, /if\(scrollToReview&&window\.matchMedia\('\(max-width: 800px\)'\)\.matches\)panel\.scrollIntoView/);
+  assert.match(styles, /\.source-inspector,\.evidence-feed,\.source-rail\{grid-column:1;grid-row:auto\}/);
+  assert.doesNotMatch(styles, /\.accept-button:after/);
+  assert.doesNotMatch(script, /classList\.add\('is-refreshing'\)/);
+});
+
 test("coverage renders an evidence-linked writing outline without claiming a generated sermon", () => {
   assert.match(html, /id="writing-outline-list"/);
   assert.match(html, /لا يولّد نص الخطبة/);

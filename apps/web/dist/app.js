@@ -1,4 +1,4 @@
-const state={view:'start',theme:'light',reviewed:0,demoScene:0,demo:false,evidence:[],selectedEvidence:null,loadingEvidence:false,roadmap:null,loadingRoadmap:false,projectId:null,savingProject:false,expertReviewed:false,plannerProgressTimer:null,retrievalProgressTimer:null};
+const state={view:'start',theme:'light',reviewed:0,demoScene:0,demo:false,evidence:[],selectedEvidence:null,evidenceFilter:'all',referenceFilter:'all',loadingEvidence:false,roadmap:null,loadingRoadmap:false,projectId:null,savingProject:false,expertReviewed:false,plannerProgressTimer:null,retrievalProgressTimer:null};
 const qs=(selector,root=document)=>root.querySelector(selector);
 const qsa=(selector,root=document)=>[...root.querySelectorAll(selector)];
 const labels={start:'لم يبدأ جمع الأدلة بعد',plan:'الخطة جاهزة للمراجعة',evidence:'مراجعة المصادر والسياق',coverage:'الحقيبة جاهزة للمراجعة'};
@@ -33,17 +33,37 @@ qs('#plan-list').addEventListener('click',event=>{
   if(!card)return;qsa('.plan-card').forEach(item=>item.classList.remove('selected'));card.classList.add('selected');
 });
 function filterEvidence(type){
-  qsa('.filter').forEach(button=>button.classList.toggle('active',button.dataset.filter===type));
-  qsa('.source-item').forEach(button=>button.classList.toggle('active',button.dataset.referenceFilter==='all'));
-  qsa('.evidence-card').forEach(card=>card.hidden=type!=='all'&&card.dataset.type!==type);
+  state.evidenceFilter=type;state.referenceFilter='all';applyEvidenceFilters();
 }
 function filterReferenceEvidence(key){
-  qsa('.filter').forEach(button=>button.classList.toggle('active',button.dataset.filter==='all'));
-  qsa('.source-item').forEach(button=>button.classList.toggle('active',button.dataset.referenceFilter===key));
-  qsa('.evidence-card').forEach(card=>card.hidden=key!=='all'&&card.dataset.referenceKey!==key);
+  state.evidenceFilter='all';state.referenceFilter=key;applyEvidenceFilters();
 }
+function visibleEvidenceItems(){return state.evidence.filter(item=>(state.evidenceFilter==='all'||item.record.source_family===state.evidenceFilter)&&(state.referenceFilter==='all'||referenceKey(item)===state.referenceFilter))}
+function clearEvidenceSelection(){
+  state.selectedEvidence=null;qs('#source-inspector h2').textContent='لا دليل في هذه التصفية';qs('.original-text p',qs('#source-inspector')).textContent='اختر تصفية أخرى لعرض دليل ومراجعته.';
+  qs('#evidence-use-text').textContent='لا يوجد محور لمراجعته الآن.';qs('#evidence-axis-select').innerHTML='<option value="">اختر محورًا</option>';qs('#evidence-axis-select').disabled=true;
+  qsa('.source-meta b').forEach(value=>value.textContent='—');qs('.relevance p').textContent='لم يُحدَّد سجل للمراجعة.';qs('.relevance small').textContent='لن يُعتمد أي مقتطف دون سجل كامل.';
+  qs('#accept-evidence').disabled=true;qs('#reject-evidence').disabled=true;qsa('.evidence-card').forEach(card=>card.classList.remove('selected'));
+}
+function applyEvidenceFilters(){
+  const visible=visibleEvidenceItems();const ids=new Set(visible.map(item=>item.record.id));
+  qsa('.filter').forEach(button=>button.classList.toggle('active',button.dataset.filter===state.evidenceFilter));
+  qsa('.source-item').forEach(button=>button.classList.toggle('active',button.dataset.referenceFilter===state.referenceFilter));
+  qsa('.evidence-card').forEach(card=>card.hidden=!ids.has(card.dataset.recordId));
+  const empty=qs('#evidence-filter-empty');if(empty)empty.hidden=visible.length>0;
+  if(!visible.length)clearEvidenceSelection();else if(!ids.has(state.selectedEvidence))selectEvidence(visible[0].record.id,{scrollToReview:true});
+  updateReviewNavigation();
+}
+function updateReviewNavigation(){
+  const visible=visibleEvidenceItems();const index=visible.findIndex(item=>item.record.id===state.selectedEvidence);
+  qs('#review-position').textContent=`الدليل ${index<0?0:index+1} من ${visible.length}`;
+  qs('#review-previous').disabled=index<=0;qs('#review-next').disabled=index<0||index>=visible.length-1;
+}
+function navigateEvidence(delta){const visible=visibleEvidenceItems();const index=visible.findIndex(item=>item.record.id===state.selectedEvidence);const target=visible[index+delta];if(target)selectEvidence(target.record.id)}
 qsa('.filter').forEach(button=>button.addEventListener('click',()=>filterEvidence(button.dataset.filter)));
 qs('#source-list').addEventListener('click',event=>{const button=event.target.closest('[data-reference-filter]');if(button)filterReferenceEvidence(button.dataset.referenceFilter)});
+qs('#review-previous').addEventListener('click',()=>navigateEvidence(-1));
+qs('#review-next').addEventListener('click',()=>navigateEvidence(1));
 
 async function api(path,body){
   const response=await fetch(path,{method:'POST',headers:{'content-type':'application/json','x-mazann-workspace':workspaceId},body:JSON.stringify(body)});
@@ -183,7 +203,7 @@ function updateEvidenceCounts(){
   state.reviewed=state.evidence.filter(item=>item.decision).length;
   qs('#reviewed-count').textContent=state.reviewed;
   const next=qs('#evidence-next');const total=state.evidence.length;const assigned=state.evidence.every(item=>item.decision==='excluded'||evidenceAxes(item).length===1);const ready=total>0&&state.reviewed===total&&assigned;
-  next.hidden=total===0||state.loadingEvidence;qs('#evidence-next-count').textContent=`${state.reviewed} / ${total}`;qs('#open-coverage').disabled=!ready;
+  next.hidden=total===0||state.loadingEvidence;qs('#evidence-next-count').textContent=`${state.reviewed} / ${total}`;qs('#open-coverage').disabled=!ready;qs('#review-finish').hidden=!ready;
   qs('#evidence-next-title').textContent=ready?'اكتملت قرارات الأدلة — ابنِ هيكل الكتابة':state.reviewed===total&&!assigned?'حدّد محور كل دليل مدرج قبل بناء الحقيبة':'احسم قرار كل دليل، ثم ابنِ هيكل الكتابة';
   qs('#evidence-next-description').textContent=ready?'سترى كل محور مع وظيفته والأدلة التي اعتمدتها والفجوات التي بقيت.':'اعتمد ما يخدم محاورك واستبعد ما لا يناسبها؛ لا يعني ظهور الدليل أنه دخل الحقيبة.';
   qs('#source-rail h2').textContent=state.evidence.length===2?'موضعان موثقان':`${state.evidence.length} مواضع موثقة`;
@@ -193,7 +213,7 @@ function updateEvidenceCounts(){
 }
 function renderEvidence(){
   const feed=qs('#evidence-feed');
-  if(!state.evidence.length){feed.innerHTML='<div class="evidence-empty"><b>لم يصل سجل صالح</b><p>لم يعوض النظام النقص من ذاكرته. راجع حالة المصدر أو حاول لاحقًا.</p></div>';updateEvidenceCounts();return}
+  if(!state.evidence.length){feed.innerHTML='<div class="evidence-empty"><b>لم يصل سجل صالح</b><p>لم يعوض النظام النقص من ذاكرته. راجع حالة المصدر أو حاول لاحقًا.</p></div>';updateEvidenceCounts();clearEvidenceSelection();updateReviewNavigation();return}
   feed.innerHTML=state.evidence.map(item=>{
     const record=item.record;const type=record.source_family;const mode=item.retrieval_mode==='live'?'اتصال حي':'نسخة مخزنة';const accepted=item.decision==='accepted'?' is-accepted':'';const warning=record.reference?.primary_locator_available===false?' warning':'';const selected=item.record.id===state.selectedEvidence?' selected':'';
     const body=record.content_type==='ayah'?`<blockquote>${escapeHtml(record.text)}</blockquote><p>${escapeHtml(record.metadata.translation||'لا يوجد شرح منشور في السجل.')}</p>`:`<h2>${escapeHtml(evidenceTitle(item))}</h2><blockquote class="hadith-matn">${escapeHtml(record.text)}</blockquote><p>هذا هو المتن الكامل المنشور في سجل الإتاحة. الحكم المنشور: <b>${escapeHtml(record.metadata.grade||'غير متاح')}</b>.</p>`;
@@ -201,14 +221,15 @@ function renderEvidence(){
     const decision=item.decision?`<span class="decision-chip ${escapeHtml(item.decision)}">${escapeHtml(decisionLabel(item.decision))}</span>`:'<span class="decision-chip pending">بانتظار قرارك</span>';
     const purposeLabel=item.placement_status==='confirmed_by_user'?'يخدم':evidenceAxes(item).length?'محور مقترح':'حدد موضعه';
     return `<article class="evidence-card${accepted}${warning}${selected}" data-type="${escapeHtml(type)}" data-reference-key="${escapeHtml(referenceKey(item))}" data-record-id="${escapeHtml(record.id)}"><header><div><span class="type-badge ${escapeHtml(type)}">${escapeHtml(referenceLabel(item))}</span><span class="verified-badge">✓ سجل كامل · ${mode}</span>${locatorBadge}</div>${decision}</header><div class="evidence-purpose"><span>${purposeLabel}</span><b>${escapeHtml(evidenceUseLabel(item))}</b></div>${body}<footer><span>${escapeHtml(evidenceLocation(item))}</span><a href="${escapeHtml(safeExternalUrl(record.citation_url))}" target="_blank" rel="noreferrer">فتح سجل الإتاحة</a></footer></article>`;
-  }).join('');
+  }).join('')+'<div class="evidence-empty" id="evidence-filter-empty" hidden><b>لا أدلة في هذه التصفية</b><p>اختر «الكل» أو مصدرًا آخر للمتابعة.</p></div>';
   updateEvidenceCounts();
-  qsa('.evidence-card',feed).forEach(card=>card.addEventListener('click',event=>{if(event.target.closest('a'))return;selectEvidence(card.dataset.recordId)}));
+  applyEvidenceFilters();
+  qsa('.evidence-card',feed).forEach(card=>card.addEventListener('click',event=>{if(event.target.closest('a'))return;selectEvidence(card.dataset.recordId,{scrollToReview:true})}));
 }
-function selectEvidence(id){
+function selectEvidence(id,{scrollToReview=false}={}){
   state.selectedEvidence=id;const item=state.evidence.find(entry=>entry.record.id===id);if(!item)return;
   qsa('.evidence-card').forEach(card=>card.classList.toggle('selected',card.dataset.recordId===id));
-  const panel=qs('#source-inspector');panel.classList.remove('is-refreshing');void panel.offsetWidth;panel.classList.add('is-refreshing');
+  const panel=qs('#source-inspector');
   qs('h2',panel).textContent=evidenceTitle(item);qs('.original-text p',panel).textContent=item.record.text;qs('.verified-seal',panel).textContent='✓';
   const axes=evidenceAxes(item);qs('#evidence-use-text').textContent=axes.length?`«${axes[0].title}»: ${axes[0].purpose||axes[0].research_question}`:'لم تتضح صلة قوية بمحور واحد؛ اختر موضع استخدامه بعد مراجعة النص.';
   const axisSelect=qs('#evidence-axis-select');axisSelect.innerHTML=`<option value="">اختر محورًا مناسبًا</option>${(state.roadmap?.axes||[]).map(axis=>`<option value="${escapeHtml(axis.axis_id)}">${escapeHtml(axis.title)}</option>`).join('')}`;axisSelect.value=axes[0]?.axis_id||'';axisSelect.disabled=!state.roadmap?.axes?.length;
@@ -217,9 +238,11 @@ function selectEvidence(id){
   const verification=item.record.reference?.verification;const audit=item.record.metadata?.locator_audit;
   qs('.relevance small',panel).innerHTML=verification?.evidence_url?`تحقق التخريج: ${escapeHtml(verification.authority||'مصدر موثوق')} · <a href="${escapeHtml(safeExternalUrl(verification.evidence_url))}" target="_blank" rel="noreferrer">فتح شاهد التحقق</a>${audit?.status?` · ${escapeHtml(audit.status)}`:''}`:'لا يعتمد أي مقتطف من نتائج البحث؛ يعتمد السجل الكامل فقط.';
   qs('#accept-evidence').disabled=false;qs('#accept-evidence').textContent=item.record.reference?.primary_locator_available===false?'✓ اعتماد مبدئي — استكمال الموضع':'✓ اعتماد في الحقيبة';qs('#reject-evidence').disabled=false;
+  updateReviewNavigation();
+  if(scrollToReview&&window.matchMedia('(max-width: 800px)').matches)panel.scrollIntoView({behavior:'smooth',block:'start'});
 }
 async function loadRoadmapEvidence(){
-  state.loadingEvidence=true;state.evidence=[];state.selectedEvidence=null;
+  state.loadingEvidence=true;state.evidence=[];state.selectedEvidence=null;state.evidenceFilter='all';state.referenceFilter='all';
   qs('#evidence-next').hidden=true;
   qs('#retrieval-status').textContent='جارٍ البحث وفق أسئلة المحاور؛ لن يعتمد أي مقتطف قبل جلب السجل الكامل…';
   startRetrievalProgress();
@@ -251,7 +274,7 @@ function demoReviewRoadmap(){return {roadmap_id:'demo_review',generation_mode:'m
 ]}}
 async function loadDemoEvidence(){
   if(!state.roadmap){state.roadmap=demoReviewRoadmap();renderRoadmap(state.roadmap)}
-  state.loadingEvidence=true;state.evidence=[];state.selectedEvidence=null;qs('#retrieval-status').textContent='جارٍ طلب السجلين الكاملين والتحقق من المرجع والبصمة…';qs('#evidence-feed').innerHTML='<div class="evidence-empty"><b>جارٍ الاتصال بالمصدر</b><p>لن يظهر مقتطف البحث بوصفه دليلًا.</p></div>';
+  state.loadingEvidence=true;state.evidence=[];state.selectedEvidence=null;state.evidenceFilter='all';state.referenceFilter='all';qs('#retrieval-status').textContent='جارٍ طلب السجلين الكاملين والتحقق من المرجع والبصمة…';qs('#evidence-feed').innerHTML='<div class="evidence-empty"><b>جارٍ الاتصال بالمصدر</b><p>لن يظهر مقتطف البحث بوصفه دليلًا.</p></div>';
   const requests=[api('/api/evidence/quran',{surah:4,ayah:58,language:'ar'}),api('/api/evidence/hadith',{id:'3016',language:'ar'})];
   const results=await Promise.allSettled(requests);state.evidence=results.filter(result=>result.status==='fulfilled').map((result,index)=>({...result.value,axis_ids:[index===0?'demo_foundation':'demo_application'],decision:null}));
   const failures=results.filter(result=>result.status==='rejected');const cacheCount=state.evidence.filter(item=>item.retrieval_mode==='cache').length;
@@ -262,6 +285,7 @@ qs('#evidence-axis-select').addEventListener('change',event=>{const item=state.e
 qs('#accept-evidence').addEventListener('click',()=>{const item=state.evidence.find(entry=>entry.record.id===state.selectedEvidence);if(!item)return;if(evidenceAxes(item).length!==1){toast('اختر المحور الذي يخدمه هذا الدليل قبل اعتماده');qs('#evidence-axis-select').focus();return}const complete=item.record.reference?.primary_locator_available!==false;item.decision=complete?'accepted':'needs_reference';item.placement_status='confirmed_by_user';renderEvidence();selectEvidence(item.record.id);toast(complete?'أُضيف السجل الكامل إلى الحقيبة مع مرجعه وبصمته':'حُفظ مبدئيًا، ولن يعد مرجعًا نهائيًا حتى يستكمل موضعه في الكتاب')});
 qs('#reject-evidence').addEventListener('click',()=>{const item=state.evidence.find(entry=>entry.record.id===state.selectedEvidence);if(!item)return;item.decision='excluded';renderEvidence();selectEvidence(item.record.id);toast('استُبعد الدليل وبقي قرار الاستبعاد قابلًا للمراجعة')});
 qs('#open-coverage').addEventListener('click',()=>showView('coverage'));
+qs('#review-finish').addEventListener('click',()=>showView('coverage'));
 function decisionLabel(decision){return ({accepted:'معتمد',needs_reference:'اعتماد مبدئي — يحتاج استكمال الموضع',excluded:'مستبعد'})[decision]||'لم يُحسم'}
 function buildCoverageModel(){
   const axes=state.roadmap?.axes||[];
@@ -391,7 +415,7 @@ async function showSavedProjects(){
 async function openProject(projectId){
   try{
     const project=await apiGet(`/api/projects/${encodeURIComponent(projectId)}`);
-    state.projectId=project.project_id;state.roadmap=project.roadmap;state.evidence=(project.evidence||[]).map(normalizeEvidencePlacement);state.selectedEvidence=state.evidence[0]?.record?.id||null;
+    state.projectId=project.project_id;state.roadmap=project.roadmap;state.evidence=(project.evidence||[]).map(normalizeEvidencePlacement);state.selectedEvidence=state.evidence[0]?.record?.id||null;state.evidenceFilter='all';state.referenceFilter='all';
     restoreBrief(project.brief);if(state.roadmap)renderRoadmap(state.roadmap);renderEvidence();if(state.selectedEvidence)selectEvidence(state.selectedEvidence);
     qs('#project-title').textContent=project.title;qs('#save-project').textContent='حفظ التغييرات';qs('#projects-modal').hidden=true;
     const safeView=['start','plan','evidence','coverage'].includes(project.current_view)?project.current_view:'start';showView(safeView);toast('فُتح البحث من آخر حالة محفوظة');
