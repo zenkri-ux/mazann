@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-10-05",
+  "git_commit": "4dc024529368388684f9443e40f465eb3efb4f5f",
+  "image": "mazann:4dc0245",
+  "container_health": "healthy",
+  "automated_tests": {
+    "passed": 65,
+    "failed": 0
+  },
+  "live_source_check": {
+    "provider": "HadeethEnc via Islamic Content MCP",
+    "record_id": "66397",
+    "complete_matn_checksum_sha256": "fc1ac67f4cf9f87fe1bbe1db8d63af68df6e8b9f47a5c4e428a5559ff8100390",
+    "grade": "صحيح",
+    "attribution": "رواه أبو داود والترمذي والنسائي وأحمد",
+    "validation": "valid"
+  },
+  "verified_reference": {
+    "precision": "exact_collection_number",
+    "locator_audit": "matched_id_and_checksum",
+    "sources": [
+      "سنن أبي داود رقم 2594",
+      "سنن الترمذي رقم 1702",
+      "سنن النسائي رقم 3179",
+      "مسند أحمد رقم 1493"
+    ],
+    "evidence_url": "https://hadeethenc.com/ar/browse/hadith/66397"
+  },
+  "ui": {
+    "selected_card_displays_complete_matn": true,
+    "collapsed_card_keeps_title_only": true
+  }
+}
