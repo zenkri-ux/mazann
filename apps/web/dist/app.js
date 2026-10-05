@@ -194,6 +194,8 @@ function selectEvidence(id){
   qs('h2',panel).textContent=evidenceTitle(item);qs('.original-text p',panel).textContent=item.record.text;qs('.verified-seal',panel).textContent='✓';
   const meta=qsa('.source-meta b',panel);meta[0].textContent=referenceLabel(item);meta[1].textContent=evidenceLocation(item);meta[2].textContent=item.record.access?.provider_name||item.record.origin_platform;meta[3].textContent=item.retrieval_mode==='live'?'حي من منصة الإتاحة':'نسخة مخزنة موثقة';meta[3].classList.add('mint-text');
   const referenceNote=item.record.reference?.verification_note_ar;qs('.relevance p',panel).textContent=referenceNote|| (item.record.content_type==='ayah'?`موضع الآية محدد، والتفسير المنشور محفوظ منفصلًا عن نصها. البصمة: ${item.record.checksum_sha256.slice(0,12)}…`:`الحكم المنشور: ${item.record.metadata.grade||'غير متاح'}. الشرح محفوظ منفصلًا عن المتن. البصمة: ${item.record.checksum_sha256.slice(0,12)}…`);
+  const verification=item.record.reference?.verification;const audit=item.record.metadata?.locator_audit;
+  qs('.relevance small',panel).innerHTML=verification?.evidence_url?`تحقق التخريج: ${escapeHtml(verification.authority||'مصدر موثوق')} · <a href="${escapeHtml(safeExternalUrl(verification.evidence_url))}" target="_blank" rel="noreferrer">فتح شاهد التحقق</a>${audit?.status?` · ${escapeHtml(audit.status)}`:''}`:'لا يعتمد أي مقتطف من نتائج البحث؛ يعتمد السجل الكامل فقط.';
   qs('#accept-evidence').disabled=false;qs('#accept-evidence').textContent=item.record.reference?.primary_locator_available===false?'✓ اعتماد مبدئي — استكمال الموضع':'✓ اعتماد في الحقيبة';qs('#reject-evidence').disabled=false;
 }
 async function loadRoadmapEvidence(){
@@ -271,7 +273,7 @@ function renderCoverage(){
   const checks={
     quran:quran.length>0&&quran.every(item=>item.record.content_type==='ayah'&&item.record.validation?.status==='valid'),
     hadith:hadith.length>0&&hadith.every(item=>Boolean(item.record.metadata?.grade)&&item.record.validation?.status==='valid'),
-    references:included.length>0&&included.every(item=>Boolean(item.record.reference?.source_label_ar)&&Boolean(evidenceLocation(item))),
+    references:included.length>0&&included.every(item=>Boolean(item.record.reference?.source_label_ar)&&Boolean(evidenceLocation(item))&&item.record.reference?.primary_locator_available!==false),
     decisions:state.evidence.length>0&&state.evidence.every(item=>Boolean(item.decision)),
   };
   qs('#check-quran').checked=checks.quran;qs('#check-hadith').checked=checks.hadith;qs('#check-references').checked=checks.references;qs('#check-decisions').checked=checks.decisions;qs('#check-expert').checked=state.expertReviewed;
@@ -293,7 +295,7 @@ function exportResearchPackage(){
     lines.push(`### ${index+1}. ${row.axis.title}`,'',`سؤال البحث: ${row.axis.research_question}`,'',`تغطية المحور: ${row.percent}%`,'');
     const records=state.evidence.filter(item=>item.axis_ids?.includes(row.axis.axis_id));
     if(!records.length)lines.push('- لا يوجد سجل كامل مرتبط بهذا المحور.','');
-    records.forEach(item=>{const record=item.record;lines.push(`#### ${evidenceTitle(item)}`,'',`- القرار: ${decisionLabel(item.decision)}`,`- المصدر المرجعي: ${referenceLabel(item)}`,`- الموضع: ${evidenceLocation(item)}`,`- حالة الجلب: ${item.retrieval_mode==='live'?'حي':'نسخة مخزنة'}`,`- حالة التحقق: ${record.validation?.status||'غير محددة'}`,`- البصمة: ${record.checksum_sha256}`,`- رابط الإتاحة: ${record.citation_url}`,'','> '+String(record.text).replace(/\n/g,'\n> '),'');});
+    records.forEach(item=>{const record=item.record;lines.push(`#### ${evidenceTitle(item)}`,'',`- القرار: ${decisionLabel(item.decision)}`,`- المصدر المرجعي: ${referenceLabel(item)}`,`- الموضع: ${evidenceLocation(item)}`,`- دقة الموضع: ${record.reference?.precision||'غير محددة'}`,`- حالة الجلب: ${item.retrieval_mode==='live'?'حي':'نسخة مخزنة'}`,`- حالة التحقق: ${record.validation?.status||'غير محددة'}`,`- البصمة: ${record.checksum_sha256}`,`- رابط الإتاحة: ${record.citation_url}`);(record.reference?.primary_sources||[]).forEach(source=>lines.push(`- تحقق ${source.collection_ar} ${source.number_ar}: ${source.verification_url}`));if(record.reference?.verification?.evidence_url)lines.push(`- شاهد التخريج (${record.reference.verification.authority}): ${record.reference.verification.evidence_url}`);lines.push('','> '+String(record.text).replace(/\n/g,'\n> '),'');});
   });
   lines.push('## الفجوات','');
   if(model.gaps.length)model.gaps.forEach(gap=>lines.push(`- ${gap.axis.title}: يحتاج ${sourceLabels[gap.source]||gap.source}.`));else lines.push('- لا توجد فجوات مصدرية وفق متطلبات المحاور وقرارات المراجعة الحالية.');

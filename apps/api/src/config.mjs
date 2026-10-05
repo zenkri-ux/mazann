@@ -17,6 +17,7 @@ export const config = Object.freeze({
   cacheDir: path.resolve(projectRoot, process.env.MAZANN_CACHE_DIR ?? "data/runtime/cache"),
   seedCacheDir: path.resolve(projectRoot, process.env.MAZANN_SEED_CACHE_DIR ?? "data/cache"),
   quranIndexPath: path.resolve(projectRoot, process.env.MAZANN_QURAN_INDEX_PATH ?? "data/quran-search-index.json"),
+  hadithLocatorPath: path.resolve(projectRoot, process.env.MAZANN_HADITH_LOCATOR_PATH ?? "data/hadith-locators.json"),
   projectDir: path.resolve(projectRoot, process.env.MAZANN_PROJECT_DIR ?? "data/runtime/projects"),
   webDir: path.resolve(projectRoot, "apps/web/dist"),
   cacheWrite: (process.env.MAZANN_CACHE_WRITE ?? "true").toLowerCase() !== "false",

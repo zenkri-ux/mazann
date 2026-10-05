@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "metadata": {
+    "version": "2026-10-05.1",
+    "policy": "A locator is applied only when both the HadeethEnc record id and exact matn SHA-256 match.",
+    "fallback": "Keep collection-level attribution and block final reference approval when no verified locator exists."
+  },
+  "records": [
+    {
+      "hadeethenc_id": "3016",
+      "matn_checksum_sha256": "560e5a55a76b25cf385011240035d69e6868faccb06117cec50f605fdde51e5d",
+      "reference_key": "hadith:bukhari-muslim",
+      "source_label_ar": "صحيح البخاري وصحيح مسلم",
+      "primary_sources": [
+        {
+          "collection_ar": "صحيح البخاري",
+          "number_ar": "6497",
+          "verification_url": "https://dorar.net/hadith/sharh/10932"
+        },
+        {
+          "collection_ar": "صحيح مسلم",
+          "number_ar": "143",
+          "verification_url": "https://dorar.net/hadith/sharh/10930"
+        }
+      ],
+      "verification": {
+        "authority": "موسوعة الدرر السنية الحديثية",
+        "evidence_url": "https://dorar.net/hadith/sharh/10938",
+        "note_ar": "صفحة التخريج تذكر: أخرجه البخاري (6497)، ومسلم (143) باختلاف يسير."
+      },
+      "verified_at": "2026-10-05"
+    }
+  ]
+}

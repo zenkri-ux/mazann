@@ -7,6 +7,7 @@ import { IslamicContentMcpClient } from "@mazann/islamic-content-connector";
 import { RecordCache } from "./lib/record-cache.mjs";
 import { ProjectStore } from "./lib/project-store.mjs";
 import { QuranSearchIndex } from "./lib/quran-search-index.mjs";
+import { HadithLocatorIndex } from "./lib/hadith-locator-index.mjs";
 import { EvidenceService, EvidenceUnavailableError } from "./services/evidence-service.mjs";
 import { OpenAIPlannerClient } from "@mazann/openai-planner";
 import { TopicPlanningService } from "./services/topic-planning-service.mjs";
@@ -19,7 +20,13 @@ try {
 } catch (error) {
   console.warn(`Quran search index unavailable; using official MCP search fallback (${error.code ?? error.message})`);
 }
-const evidence = new EvidenceService({ client, cache, cacheWrite: config.cacheWrite, quranIndex });
+let hadithLocator = null;
+try {
+  hadithLocator = await HadithLocatorIndex.load(config.hadithLocatorPath);
+} catch (error) {
+  console.warn(`Hadith locator index unavailable; keeping collection-level references (${error.code ?? error.message})`);
+}
+const evidence = new EvidenceService({ client, cache, cacheWrite: config.cacheWrite, quranIndex, hadithLocator });
 const projects = new ProjectStore(config.projectDir);
 const plannerClient = config.plannerProvider === "openai" && config.openaiApiKey && config.openaiModel
   ? new OpenAIPlannerClient({
@@ -97,6 +104,11 @@ async function handleApi(request, response, url) {
         source: quranIndex.metadata.source,
         generated_at: quranIndex.metadata.generated_at,
       } : { mode: "official_mcp_search_fallback", units: 0 },
+      hadith_locator: hadithLocator ? {
+        mode: "id_and_matn_checksum_crosswalk",
+        verified_records: hadithLocator.metadata.record_count,
+        version: hadithLocator.metadata.version,
+      } : { mode: "collection_level_only", verified_records: 0 },
       planner_mode: plannerClient ? "model_assisted_with_methodology_fallback" : "methodology_template",
     });
   }

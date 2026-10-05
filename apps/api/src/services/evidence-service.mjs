@@ -91,11 +91,12 @@ export class EvidenceUnavailableError extends Error {
 }
 
 export class EvidenceService {
-  constructor({ client, cache, cacheWrite = true, quranIndex = null }) {
+  constructor({ client, cache, cacheWrite = true, quranIndex = null, hadithLocator = null }) {
     this.client = client;
     this.cache = cache;
     this.cacheWrite = cacheWrite;
     this.quranIndex = quranIndex;
+    this.hadithLocator = hadithLocator;
   }
 
   async search({ query, sources = ["quran", "hadith"], language = "ar", limit = 10 }) {
@@ -168,7 +169,11 @@ export class EvidenceService {
       cacheId,
       tool: "get_hadith",
       args: { id, language },
-      normalize: (result) => normalizeHadithResponse(result, { id, language }),
+      normalize: (result) => {
+        const record = normalizeHadithResponse(result, { id, language });
+        return this.hadithLocator?.enrich(record) ?? record;
+      },
+      enrichCached: (record) => this.hadithLocator?.enrich(record) ?? record,
     });
   }
 
@@ -279,7 +284,7 @@ export class EvidenceService {
     };
   }
 
-  async #retrieve({ cacheId, tool, args, normalize }) {
+  async #retrieve({ cacheId, tool, args, normalize, enrichCached = (record) => record }) {
     try {
       const result = await this.client.callTool(tool, args);
       const record = normalize(result);
@@ -299,7 +304,7 @@ export class EvidenceService {
           retrieval_mode: "cache",
           cached_at: cached.cached_at,
           upstream_error: { code: error.code ?? "UPSTREAM_ERROR", message: error.message },
-          record: ensureReferenceProvenance(cached.record),
+          record: enrichCached(ensureReferenceProvenance(cached.record)),
         };
       }
       throw new EvidenceUnavailableError("تعذر جلب الدليل ولا توجد نسخة مخزنة صالحة", {
