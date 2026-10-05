@@ -139,6 +139,29 @@ function fuseQuranCandidates(lexical, semantic, limit) {
     }));
 }
 
+function fuseHadithCandidates(lexical, semantic, limit) {
+  if (!semantic.length) return lexical.slice(0, limit);
+  const fused = new Map();
+  for (const [channel, candidates, weight] of [["lexical", lexical, 1], ["semantic", semantic, 1.5]]) {
+    candidates.forEach((candidate, rank) => {
+      const current = fused.get(candidate.id) ?? { candidate, score: 0, channels: [] };
+      current.score += weight / (60 + rank + 1);
+      current.channels.push(channel);
+      if (channel === "semantic") {
+        current.indexedMatnSha256 = candidate.retrieval?.indexed_matn_sha256;
+        current.semanticMatchedFields = candidate.retrieval?.matched_fields;
+      }
+      fused.set(candidate.id, current);
+    });
+  }
+  return [...fused.values()].sort((a, b) => b.score - a.score).slice(0, limit).map(({ candidate, score, channels, indexedMatnSha256, semanticMatchedFields }) => ({
+    ...candidate,
+    retrieval: { ...candidate.retrieval, mode: "hadith_live_lexical_semantic_rrf", score: Number(score.toFixed(6)), channels,
+      ...(indexedMatnSha256 ? { indexed_matn_sha256: indexedMatnSha256 } : {}),
+      ...(semanticMatchedFields ? { matched_fields: semanticMatchedFields } : {}) },
+  }));
+}
+
 export class EvidenceUnavailableError extends Error {
   constructor(message, details = {}) {
     super(message);
@@ -149,12 +172,13 @@ export class EvidenceUnavailableError extends Error {
 }
 
 export class EvidenceService {
-  constructor({ client, cache, cacheWrite = true, quranIndex = null, quranSemanticIndex = null, hadithLocator = null }) {
+  constructor({ client, cache, cacheWrite = true, quranIndex = null, quranSemanticIndex = null, hadithSemanticIndex = null, hadithLocator = null }) {
     this.client = client;
     this.cache = cache;
     this.cacheWrite = cacheWrite;
     this.quranIndex = quranIndex;
     this.quranSemanticIndex = quranSemanticIndex;
+    this.hadithSemanticIndex = hadithSemanticIndex;
     this.hadithLocator = hadithLocator;
   }
 
@@ -169,6 +193,11 @@ export class EvidenceService {
     }
     const localQuranCandidates = usesLocalQuran
       ? fuseQuranCandidates(lexicalQuranCandidates, semanticQuranCandidates, limit) : [];
+    let semanticHadithCandidates = [];
+    if (sources.includes("hadith") && language === "ar" && this.hadithSemanticIndex) {
+      try { semanticHadithCandidates = await this.hadithSemanticIndex.search(semanticQuery, { limit: limit * 5 }); }
+      catch { semanticWarnings.push({ source: "hadith_semantic", code: "SEMANTIC_UNAVAILABLE_LEXICAL_FALLBACK" }); }
+    }
     const remoteSources = usesLocalQuran ? sources.filter((source) => source !== "quran") : sources;
     if (!remoteSources.length) {
       return {
@@ -181,7 +210,12 @@ export class EvidenceService {
       };
     }
 
-    const result = await this.client.callTool("search", { query, sources: remoteSources, language, limit });
+    let result;
+    try { result = await this.client.callTool("search", { query, sources: remoteSources, language, limit }); }
+    catch (error) {
+      if (!localQuranCandidates.length && !semanticHadithCandidates.length) throw error;
+      result = { content: remoteSources.map((source) => ({ type: "text", text: `${source}: unavailable` })), structuredContent: { results: [] } };
+    }
     const firstCandidates = normalizeSearchResponse(result);
     const unavailableSources = sourceFailures(result, remoteSources);
     let retryCandidates = [];
@@ -207,12 +241,17 @@ export class EvidenceService {
       }
     }
 
+    const lexicalHadithCandidates = mergeCandidates(firstCandidates, retryCandidates)
+      .filter((candidate) => candidate.source_family === "hadith");
+    const hadithCandidates = fuseHadithCandidates(lexicalHadithCandidates, semanticHadithCandidates, limit);
+    const otherRemoteCandidates = mergeCandidates(firstCandidates, retryCandidates)
+      .filter((candidate) => candidate.source_family !== "hadith");
     return {
       retrieval_mode: usesLocalQuran
         ? (semanticQuranCandidates.length ? "quran_lexical_semantic_rrf_and_live_mcp" : "local_quran_bm25_and_live_mcp")
-        : "live_mcp",
+        : (semanticHadithCandidates.length ? "hadith_live_lexical_semantic_rrf" : "live_mcp"),
       query,
-      candidates: mergeCandidates(localQuranCandidates, firstCandidates, retryCandidates),
+      candidates: mergeCandidates(localQuranCandidates, hadithCandidates, otherRemoteCandidates),
       retry_count: unavailableSources.length ? 1 : 0,
       source_warnings: [...semanticWarnings, ...remainingUnavailable.map((source) => ({
         source,
@@ -336,6 +375,11 @@ export class EvidenceService {
     fetched.forEach((result, index) => {
       const selectedCandidate = selected[index];
       if (result.status === "fulfilled") {
+        const expectedHash = selectedCandidate.candidate.retrieval?.indexed_matn_sha256;
+        if (expectedHash && result.value.record.checksum_sha256 !== expectedHash) {
+          unresolved.push({ id: selectedCandidate.candidate.id, axis_ids: selectedCandidate.axis_ids, code: "INDEXED_MATN_SOURCE_DRIFT" });
+          return;
+        }
         records.push({
           ...result.value,
           ...suggestEvidenceAxis(result.value.record, roadmap.axes),

@@ -173,6 +173,52 @@ test("Quran semantic outage is visible and lexical retrieval remains available",
   assert.deepEqual(result.source_warnings, [{ source: "quran_semantic", code: "SEMANTIC_UNAVAILABLE_LEXICAL_FALLBACK" }]);
 });
 
+test("Hadith semantic and official live candidates fuse by ID without treating vectors as evidence", async () => {
+  const service = new EvidenceService({
+    client: { callTool: async () => ({ structuredContent: { results: [
+      { id: "hadith:2:ar", title: "من المصدر", url: "https://hadeethenc.com/ar/browse/hadith/2" },
+    ] }, content: [] }) },
+    cache: {},
+    hadithSemanticIndex: { search: async () => [
+      { id: "hadith:1:ar", title: "حديث", source_family: "hadith", retrieval: { score: 0.8 } },
+      { id: "hadith:2:ar", title: "حديث", source_family: "hadith", retrieval: { score: 0.7, indexed_matn_sha256: "source-checksum" } },
+    ] },
+  });
+  const result = await service.search({ query: "الرحمة بالضعفاء", sources: ["hadith"], limit: 3 });
+  assert.equal(result.retrieval_mode, "hadith_live_lexical_semantic_rrf");
+  assert.equal(result.candidates[0].id, "hadith:2:ar");
+  assert.deepEqual(result.candidates[0].retrieval.channels, ["lexical", "semantic"]);
+  assert.equal(result.candidates[0].retrieval.indexed_matn_sha256, "source-checksum");
+  assert.ok(result.candidates.every((candidate) => candidate.state === "candidate_requires_full_fetch" || !Object.hasOwn(candidate, "text")));
+});
+
+test("Hadith semantic results survive a live search outage with an explicit warning", async () => {
+  const service = new EvidenceService({
+    client: { callTool: async () => { throw new Error("upstream offline"); } },
+    cache: {},
+    hadithSemanticIndex: { search: async () => [{ id: "hadith:1:ar", source_family: "hadith", state: "candidate_requires_full_fetch" }] },
+  });
+  const result = await service.search({ query: "الإحسان", sources: ["hadith"] });
+  assert.equal(result.candidates[0].id, "hadith:1:ar");
+  assert.deepEqual(result.source_warnings, [{ source: "hadith", code: "SOURCE_UNAVAILABLE_AFTER_RETRY" }]);
+});
+
+test("roadmap refuses an indexed Hadith when its fetched complete matn has changed", async () => {
+  const service = new EvidenceService({ client: {}, cache: {} });
+  service.search = async () => ({ candidates: [{
+    id: "hadith:1:ar", source_family: "hadith", retrieval: { indexed_matn_sha256: "old" },
+  }] });
+  service.fetchCandidate = async () => ({ record: {
+    id: "hadith:1:ar", checksum_sha256: "new", validation: { status: "valid" },
+  } });
+  const result = await service.collectForRoadmap({ roadmap: {
+    roadmap_id: "roadmap_drift", brief: { topic: "الأمانة", language: "ar" },
+    axes: [{ axis_id: "a", research_question: "ما أثر الأمانة؟", evidence_requirements: ["hadith"] }],
+  } });
+  assert.equal(result.records.length, 0);
+  assert.equal(result.unresolved[0].code, "INDEXED_MATN_SOURCE_DRIFT");
+});
+
 test("evidence service abstains when live retrieval and cache both fail", async () => {
   const service = new EvidenceService({
     client: { callTool: async () => { throw new Error("offline"); } },

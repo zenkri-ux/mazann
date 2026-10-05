@@ -18,6 +18,8 @@ export const config = Object.freeze({
   seedCacheDir: path.resolve(projectRoot, process.env.MAZANN_SEED_CACHE_DIR ?? "data/cache"),
   quranIndexPath: path.resolve(projectRoot, process.env.MAZANN_QURAN_INDEX_PATH ?? "data/quran-search-index.json"),
   quranSemanticIndexPath: path.resolve(projectRoot, process.env.MAZANN_QURAN_SEMANTIC_INDEX_PATH ?? "data/quran-semantic-index.json"),
+  hadithManifestPath: path.resolve(projectRoot, process.env.MAZANN_HADITH_MANIFEST_PATH ?? "data/hadith-source-manifest.json"),
+  hadithSemanticIndexPath: path.resolve(projectRoot, process.env.MAZANN_HADITH_SEMANTIC_INDEX_PATH ?? "data/hadith-semantic-index.json"),
   hadithLocatorPath: path.resolve(projectRoot, process.env.MAZANN_HADITH_LOCATOR_PATH ?? "data/hadith-locators.json"),
   projectDir: path.resolve(projectRoot, process.env.MAZANN_PROJECT_DIR ?? "data/runtime/projects"),
   webDir: path.resolve(projectRoot, "apps/web/dist"),

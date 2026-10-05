@@ -8,6 +8,7 @@ import { RecordCache } from "./lib/record-cache.mjs";
 import { ProjectStore } from "./lib/project-store.mjs";
 import { QuranSearchIndex } from "./lib/quran-search-index.mjs";
 import { QuranSemanticIndex } from "./lib/quran-semantic-index.mjs";
+import { HadithSemanticIndex } from "./lib/hadith-semantic-index.mjs";
 import { OpenAIEmbeddingClient } from "./lib/openai-embedding-client.mjs";
 import { HadithLocatorIndex } from "./lib/hadith-locator-index.mjs";
 import { EvidenceService, EvidenceUnavailableError } from "./services/evidence-service.mjs";
@@ -22,20 +23,30 @@ try {
 } catch (error) {
   console.warn(`Quran search index unavailable; using official MCP search fallback (${error.code ?? error.message})`);
 }
+const embedder = config.openaiApiKey ? new OpenAIEmbeddingClient({
+  apiKey: config.openaiApiKey,
+  model: config.openaiEmbeddingModel,
+  dimensions: config.openaiEmbeddingDimensions,
+  endpoint: config.openaiEmbeddingsUrl,
+}) : null;
 let quranSemanticIndex = null;
-if (quranIndex && config.openaiApiKey) {
+if (quranIndex && embedder) {
   try {
-    const embedder = new OpenAIEmbeddingClient({
-      apiKey: config.openaiApiKey,
-      model: config.openaiEmbeddingModel,
-      dimensions: config.openaiEmbeddingDimensions,
-      endpoint: config.openaiEmbeddingsUrl,
-    });
     quranSemanticIndex = await QuranSemanticIndex.load(config.quranSemanticIndexPath, embedder, {
       sourceIndexPath: config.quranIndexPath,
     });
   } catch (error) {
     console.warn(`Quran semantic index unavailable; using lexical retrieval (${error.code ?? error.message})`);
+  }
+}
+let hadithSemanticIndex = null;
+if (embedder) {
+  try {
+    hadithSemanticIndex = await HadithSemanticIndex.load(config.hadithSemanticIndexPath, embedder, {
+      manifestPath: config.hadithManifestPath,
+    });
+  } catch (error) {
+    console.warn(`Hadith semantic index unavailable; using official live search (${error.code ?? error.message})`);
   }
 }
 let hadithLocator = null;
@@ -44,7 +55,7 @@ try {
 } catch (error) {
   console.warn(`Hadith locator index unavailable; keeping collection-level references (${error.code ?? error.message})`);
 }
-const evidence = new EvidenceService({ client, cache, cacheWrite: config.cacheWrite, quranIndex, quranSemanticIndex, hadithLocator });
+const evidence = new EvidenceService({ client, cache, cacheWrite: config.cacheWrite, quranIndex, quranSemanticIndex, hadithSemanticIndex, hadithLocator });
 const projects = new ProjectStore(config.projectDir);
 const plannerClient = config.plannerProvider === "openai" && config.openaiApiKey && config.openaiModel
   ? new OpenAIPlannerClient({
@@ -132,6 +143,15 @@ async function handleApi(request, response, url) {
         verified_records: hadithLocator.metadata.record_count,
         version: hadithLocator.metadata.version,
       } : { mode: "collection_level_only", verified_records: 0 },
+      hadith_search: hadithSemanticIndex ? {
+        mode: "official_live_lexical_plus_validated_local_semantic_then_full_fetch",
+        source: hadithSemanticIndex.metadata.source,
+        listed_unique_records: hadithSemanticIndex.metadata.listed_unique_count,
+        validated_publisher_records: hadithSemanticIndex.metadata.validated_count,
+        semantic_indexed_records: hadithSemanticIndex.metadata.indexed_count,
+        generated_at: hadithSemanticIndex.metadata.generated_at,
+        scope: "Arabic HadeethEnc records discoverable from root categories; not all Hadith literature",
+      } : { mode: "official_live_search_only", semantic_indexed_records: 0 },
       planner_mode: plannerClient ? "model_assisted_with_methodology_fallback" : "methodology_template",
     });
   }
