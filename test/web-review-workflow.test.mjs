@@ -62,6 +62,15 @@ test("desktop review keeps decisions in view and incomplete coverage is neutral"
   assert.match(script, /عدم توفر دليل من هذا النوع ليس خطأً بحد ذاته/);
 });
 
+test("review keeps secondary provenance details optional and returns to the next record", () => {
+  assert.match(html, /<details class="technical-meta"><summary>تفاصيل الإتاحة والتحقق<\/summary>/);
+  assert.match(html, /<details class="relevance"><summary>ملاحظات التوثيق<\/summary>/);
+  assert.match(script, /selectEvidence\(target\.record\.id,\{scrollToReview:true\}\)/);
+  assert.match(script, /if\(changed\)\{qs\('\.inspector-body',panel\)\.scrollTop=0/);
+  assert.match(script, /qs\('\.relevance',panel\)\.open=false;qs\('\.technical-meta',panel\)\.open=false/);
+  assert.match(styles, /\.technical-meta summary:focus-visible,\.relevance summary:focus-visible/);
+});
+
 test("coverage renders an evidence-linked writing outline without claiming a generated sermon", () => {
   assert.match(html, /id="writing-outline-list"/);
   assert.match(html, /لا يولّد نص الخطبة/);

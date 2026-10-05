@@ -43,6 +43,7 @@ function clearEvidenceSelection(){
   state.selectedEvidence=null;qs('#source-inspector h2').textContent='لا دليل في هذه التصفية';qs('.original-text p',qs('#source-inspector')).textContent='اختر تصفية أخرى لعرض دليل ومراجعته.';
   qs('#evidence-use-text').textContent='لا يوجد محور لمراجعته الآن.';qs('#evidence-axis-select').innerHTML='<option value="">اختر محورًا</option>';qs('#evidence-axis-select').disabled=true;qs('#evidence-axis-change').open=false;
   qsa('.source-meta b').forEach(value=>value.textContent='—');qs('.relevance p').textContent='لم يُحدَّد سجل للمراجعة.';qs('.relevance small').textContent='لن يُعتمد أي مقتطف دون سجل كامل.';
+  qs('.relevance').open=false;qs('.technical-meta').open=false;
   qs('#tafsir-context').hidden=true;
   qs('#accept-evidence').disabled=true;qs('#reject-evidence').disabled=true;qsa('.evidence-card').forEach(card=>card.classList.remove('selected'));
 }
@@ -60,7 +61,7 @@ function updateReviewNavigation(){
   qs('#review-position').textContent=`الدليل ${index<0?0:index+1} من ${visible.length}`;
   qs('#review-previous').disabled=index<=0;qs('#review-next').disabled=index<0||index>=visible.length-1;
 }
-function navigateEvidence(delta){const visible=visibleEvidenceItems();const index=visible.findIndex(item=>item.record.id===state.selectedEvidence);const target=visible[index+delta];if(target)selectEvidence(target.record.id)}
+function navigateEvidence(delta){const visible=visibleEvidenceItems();const index=visible.findIndex(item=>item.record.id===state.selectedEvidence);const target=visible[index+delta];if(target)selectEvidence(target.record.id,{scrollToReview:true})}
 qsa('.filter').forEach(button=>button.addEventListener('click',()=>filterEvidence(button.dataset.filter)));
 qs('#source-list').addEventListener('click',event=>{const button=event.target.closest('[data-reference-filter]');if(button)filterReferenceEvidence(button.dataset.referenceFilter)});
 qs('#review-previous').addEventListener('click',()=>navigateEvidence(-1));
@@ -229,9 +230,10 @@ function renderEvidence(){
   qsa('.evidence-card',feed).forEach(card=>card.addEventListener('click',event=>{if(event.target.closest('a'))return;selectEvidence(card.dataset.recordId,{scrollToReview:true})}));
 }
 function selectEvidence(id,{scrollToReview=false}={}){
-  state.selectedEvidence=id;const item=state.evidence.find(entry=>entry.record.id===id);if(!item)return;
+  const changed=state.selectedEvidence!==id;state.selectedEvidence=id;const item=state.evidence.find(entry=>entry.record.id===id);if(!item)return;
   qsa('.evidence-card').forEach(card=>card.classList.toggle('selected',card.dataset.recordId===id));
   const panel=qs('#source-inspector');
+  if(changed){qs('.inspector-body',panel).scrollTop=0;qs('.relevance',panel).open=false;qs('.technical-meta',panel).open=false}
   qs('h2',panel).textContent=evidenceTitle(item);qs('.original-text p',panel).textContent=item.record.text;qs('.verified-seal',panel).textContent='✓';
   const axes=evidenceAxes(item);const hasSuggestion=axes.length===1;qs('#evidence-use-text').textContent=hasSuggestion?`«${axes[0].title}»: ${axes[0].purpose||axes[0].research_question}`:'لم تتضح صلة كافية بمحور واحد؛ راجع النص ثم اختر موضعه إن أردت اعتماد الدليل.';
   const axisChange=qs('#evidence-axis-change');axisChange.open=!hasSuggestion;qs('#evidence-axis-change-label').textContent=hasSuggestion?'تغيير المحور المقترح':'اختيار محور لهذا الدليل';qs('#evidence-use-note').textContent=hasSuggestion?'هذا اقتراح آلي قابل للتغيير؛ اعتمد الدليل فقط بعد مراجعة ملاءمته.':'لا نضع الدليل تلقائيًا في محور إذا كانت الصلة غير واضحة.';
