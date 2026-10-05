@@ -147,6 +147,22 @@ test("Quran search fuses lexical and semantic candidate ranks without promoting 
   assert.ok(result.candidates.every((candidate) => !Object.hasOwn(candidate, "text")));
 });
 
+test("semantic recall searches complete relationship variants and merges their candidates", async () => {
+  const seen = [];
+  const service = new EvidenceService({ client: {}, cache: {}, hadithSemanticIndex: {
+    search: async (query) => {
+      seen.push(query);
+      return [{ id: query.includes("إنفاق") ? "hadith:2:ar" : "hadith:1:ar", source_family: "hadith", retrieval: { score: 0.7 } }];
+    },
+  } });
+  service.client = { callTool: async () => ({ structuredContent: { results: [] }, content: [] }) };
+  const result = await service.search({ query: "الكرم الصحابة", semanticQueries: [
+    "الكرم عند الصحابة", "مواقف الصحابة في الإنفاق والإيثار",
+  ], sources: ["hadith"], limit: 4 });
+  assert.equal(seen.length, 2);
+  assert.deepEqual(new Set(result.candidates.map((item) => item.id)), new Set(["hadith:1:ar", "hadith:2:ar"]));
+});
+
 test("kinship query keeps lexical source grounding and rejects semantic-only distractors", async () => {
   const quranIndex = await QuranSearchIndex.load(new URL("../data/quran-search-index.json", import.meta.url));
   const topic = "أهمية صلة الرحم";
@@ -230,6 +246,17 @@ test("Hadith semantic and official live candidates fuse by ID without treating v
   assert.deepEqual(result.candidates[0].retrieval.channels, ["lexical", "semantic"]);
   assert.equal(result.candidates[0].retrieval.indexed_matn_sha256, "source-checksum");
   assert.ok(result.candidates.every((candidate) => candidate.state === "candidate_requires_full_fetch" || !Object.hasOwn(candidate, "text")));
+});
+
+test("relationship semantic candidates keep shortlist slots despite a longer lexical Hadith block", async () => {
+  const service = new EvidenceService({
+    client: { callTool: async () => ({ structuredContent: { results: Array.from({ length: 8 }, (_, index) => ({
+      id: `hadith:${index + 1}:ar`, title: "تطابق كلمة فقط", url: `https://hadeethenc.com/ar/browse/hadith/${index + 1}`,
+    })) }, content: [] }) }, cache: {},
+    hadithSemanticIndex: { search: async () => [{ id: "hadith:99:ar", title: "موقف صحابي في البذل", source_family: "hadith", retrieval: { score: 0.7 } }] },
+  });
+  const result = await service.search({ query: "الكرم الصحابة", semanticQueries: ["مواقف الصحابة في البذل"], sources: ["hadith"], limit: 5 });
+  assert.ok(result.candidates.some((item) => item.id === "hadith:99:ar"));
 });
 
 test("Hadith semantic results survive a live search outage with an explicit warning", async () => {
@@ -403,4 +430,52 @@ test("five-axis research can collect ten distinct grounded references when reque
   })) };
   const result = await service.collectForRoadmap({ roadmap, maxRecords: 10 });
   assert.equal(result.records.length, 10);
+});
+
+test("compound topic reranking excludes a generosity-only hit and labels Quran grounding as context", async () => {
+  const service = new EvidenceService({ client: {}, cache: {}, reranker: {
+    model: "test-model",
+    async assess({ topic, records }) {
+      assert.equal(topic, "الكرم عند الصحابة");
+      return records.map(({ record }) => ({
+        id: record.id, axis_id: "companions", reason: record.id,
+        ...(record.id === "hadith:1:ar"
+          ? { role: "direct", score: 91, relationship_score: 87 }
+          : record.id === "quran:2:1:ar"
+            ? { role: "contextual", score: 86, relationship_score: 34 }
+            : { role: "direct", score: 93, relationship_score: 15 }),
+      }));
+    },
+  } });
+  service.search = async () => ({ candidates: [
+    { id: "hadith:2:ar", source_family: "hadith" },
+    { id: "quran:2:1:ar", source_family: "quran" },
+    { id: "hadith:1:ar", source_family: "hadith" },
+  ], source_warnings: [] });
+  service.fetchCandidate = async ({ id }) => ({ retrieval_mode: "live", record: {
+    id, source_family: id.startsWith("quran") ? "quran" : "hadith", text: `نص كامل ${id}`, validation: { status: "valid" },
+  } });
+  const result = await service.collectForRoadmap({ maxRecords: 3, roadmap: {
+    roadmap_id: "compound", brief: { topic: "الكرم عند الصحابة" },
+    axes: [{ axis_id: "companions", title: "نماذج الكرم عند الصحابة", research_question: "كيف ظهر الكرم في مواقف الصحابة؟", evidence_requirements: ["quran", "hadith"] }],
+  } });
+  assert.deepEqual(result.records.map((item) => item.record.id), ["hadith:1:ar", "quran:2:1:ar"]);
+  assert.equal(result.records[0].relevance.role, "direct");
+  assert.equal(result.records[1].relevance.role, "contextual");
+  assert.deepEqual(result.records[0].axis_ids, ["companions"]);
+  assert.equal(result.rejected_by_relevance[0].id, "hadith:2:ar");
+});
+
+test("an unavailable relevance batch fails closed instead of showing unscored records", async () => {
+  const service = new EvidenceService({ client: {}, cache: {}, reranker: {
+    async assess() { throw new Error("offline"); },
+  } });
+  service.search = async () => ({ candidates: [{ id: "quran:2:1:ar", source_family: "quran" }], source_warnings: [] });
+  service.fetchCandidate = async ({ id }) => ({ retrieval_mode: "live", record: { id, source_family: "quran", text: "سجل كامل" } });
+  const result = await service.collectForRoadmap({ roadmap: {
+    roadmap_id: "offline", brief: { topic: "موضوع" },
+    axes: [{ axis_id: "a", research_question: "ما الدليل؟", evidence_requirements: ["quran"] }],
+  } });
+  assert.equal(result.records.length, 0);
+  assert.equal(result.relevance_warnings[0].code, "RERANK_BATCH_UNAVAILABLE");
 });

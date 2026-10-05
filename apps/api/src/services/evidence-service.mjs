@@ -1,5 +1,6 @@
 import { ensureReferenceProvenance, normalizeHadithResponse, normalizeQuranResponse, normalizeSearchResponse } from "@mazann/domain";
 import { suggestEvidenceAxis } from "../lib/evidence-axis-placement.mjs";
+import { acceptsRelevance, RELEVANCE_THRESHOLDS, validateRelevanceAssessments } from "../lib/evidence-relevance.mjs";
 
 const ARABIC_RETRIEVAL_STOPWORDS = new Set([
   "إلى", "الى", "أو", "او", "أي", "اي", "أن", "ان", "إن", "عن", "على", "في", "من", "مع",
@@ -90,7 +91,43 @@ function selectDiverseCandidates(candidateMap, axes, maxRecords) {
         && entry.candidate.source_family === source && !used.has(entry.candidate.id)));
     }
   }
+  // Keep a long Quran result block from exhausting the prefetch budget before
+  // the Hadith candidates (or future source families) are examined.
+  const families = ["quran", "hadith", ...new Set(available.map((entry) => entry.candidate.source_family).filter((family) => !["quran", "hadith"].includes(family)))];
+  while (selected.length < maxRecords) {
+    const before = selected.length;
+    for (const family of families) {
+      for (const axis of axes) {
+        add(available.find((entry) => entry.candidate.source_family === family
+          && entry.axis_ids.includes(axis.axis_id) && !used.has(entry.candidate.id)));
+      }
+    }
+    if (selected.length === before) break;
+  }
   for (const entry of available) add(entry);
+  return selected;
+}
+
+function selectRerankedRecords(records, axes, maxRecords) {
+  const ranked = [...records].sort((left, right) => (
+    (right.relevance.role === "direct") - (left.relevance.role === "direct")
+    || right.relevance.score - left.relevance.score
+    || right.relevance.relationship_score - left.relevance.relationship_score
+  ));
+  const selected = [];
+  const used = new Set();
+  const add = (item) => {
+    if (!item || used.has(item.record.id) || selected.length >= maxRecords) return;
+    selected.push(item);
+    used.add(item.record.id);
+  };
+  for (const axis of axes) add(ranked.find((item) => item.relevance.axis_id === axis.axis_id));
+  for (const axis of axes) {
+    for (const family of ["quran", "hadith", "tafsir", "sirah", "approved_research"]) {
+      add(ranked.find((item) => item.relevance.axis_id === axis.axis_id && item.record.source_family === family));
+    }
+  }
+  for (const item of ranked) add(item);
   return selected;
 }
 
@@ -112,6 +149,16 @@ function mergeCandidates(...groups) {
     for (const candidate of group) candidates.set(candidate.id, candidate);
   }
   return [...candidates.values()];
+}
+
+function mergeSemanticQueries(groups, limit) {
+  const ranked = new Map();
+  for (const group of groups) group.forEach((candidate, rank) => {
+    const current = ranked.get(candidate.id) ?? { candidate, score: 0 };
+    current.score += 1 / (60 + rank + 1);
+    ranked.set(candidate.id, current);
+  });
+  return [...ranked.values()].sort((a, b) => b.score - a.score).slice(0, limit).map(({ candidate }) => candidate);
 }
 
 function fuseQuranCandidates(lexical, semantic, limit) {
@@ -161,7 +208,12 @@ function fuseHadithCandidates(lexical, semantic, limit) {
       fused.set(candidate.id, current);
     });
   }
-  return [...fused.values()].sort((a, b) => b.score - a.score).slice(0, limit).map(({ candidate, score, channels, indexedMatnSha256, semanticMatchedFields }) => ({
+  const ranked = [...fused.values()].sort((a, b) => b.score - a.score);
+  const reserved = semantic.slice(0, Math.min(4, Math.ceil(limit / 2)));
+  const reservedIds = new Set(reserved.map((item) => item.id));
+  const selected = [...ranked.filter((item) => reservedIds.has(item.candidate.id)),
+    ...ranked.filter((item) => !reservedIds.has(item.candidate.id))].slice(0, limit);
+  return selected.map(({ candidate, score, channels, indexedMatnSha256, semanticMatchedFields }) => ({
     ...candidate,
     retrieval: { ...candidate.retrieval, mode: "hadith_live_lexical_semantic_rrf", score: Number(score.toFixed(6)), channels,
       ...(indexedMatnSha256 ? { indexed_matn_sha256: indexedMatnSha256 } : {}),
@@ -179,7 +231,7 @@ export class EvidenceUnavailableError extends Error {
 }
 
 export class EvidenceService {
-  constructor({ client, cache, cacheWrite = true, quranIndex = null, quranSemanticIndex = null, hadithSemanticIndex = null, hadithLocator = null, tafsirLinks = null }) {
+  constructor({ client, cache, cacheWrite = true, quranIndex = null, quranSemanticIndex = null, hadithSemanticIndex = null, hadithLocator = null, tafsirLinks = null, reranker = null }) {
     this.client = client;
     this.cache = cache;
     this.cacheWrite = cacheWrite;
@@ -188,23 +240,31 @@ export class EvidenceService {
     this.hadithSemanticIndex = hadithSemanticIndex;
     this.hadithLocator = hadithLocator;
     this.tafsirLinks = tafsirLinks;
+    this.reranker = reranker;
   }
 
-  async search({ query, semanticQuery = query, topic = query, sources = ["quran", "hadith"], language = "ar", limit = 10 }) {
+  async search({ query, semanticQuery = query, semanticQueries = [semanticQuery], topic = query, sources = ["quran", "hadith"], language = "ar", limit = 10 }) {
+    const meaningQueries = [...new Set(semanticQueries.map((value) => String(value ?? "").trim()).filter(Boolean))].slice(0, 3);
     const usesLocalQuran = sources.includes("quran") && language === "ar" && this.quranIndex;
     const grounded = (candidate) => !this.quranIndex.isTopicGrounded || this.quranIndex.isTopicGrounded(candidate.id, topic);
     const lexicalQuranCandidates = usesLocalQuran ? this.quranIndex.search(query, { limit: limit * 8 }).filter(grounded) : [];
     let semanticQuranCandidates = [];
     const semanticWarnings = [];
     if (usesLocalQuran && this.quranSemanticIndex) {
-      try { semanticQuranCandidates = (await this.quranSemanticIndex.search(semanticQuery, { limit: limit * 8 })).filter(grounded); }
+      try {
+        const groups = await Promise.all(meaningQueries.map((meaning) => this.quranSemanticIndex.search(meaning, { limit: limit * 8 })));
+        semanticQuranCandidates = mergeSemanticQueries(groups, limit * 8).filter(grounded);
+      }
       catch { semanticWarnings.push({ source: "quran_semantic", code: "SEMANTIC_UNAVAILABLE_LEXICAL_FALLBACK" }); }
     }
     const localQuranCandidates = usesLocalQuran
       ? fuseQuranCandidates(lexicalQuranCandidates, semanticQuranCandidates, limit) : [];
     let semanticHadithCandidates = [];
     if (sources.includes("hadith") && language === "ar" && this.hadithSemanticIndex) {
-      try { semanticHadithCandidates = await this.hadithSemanticIndex.search(semanticQuery, { limit: limit * 5 }); }
+      try {
+        const groups = await Promise.all(meaningQueries.map((meaning) => this.hadithSemanticIndex.search(meaning, { limit: limit * 5 })));
+        semanticHadithCandidates = mergeSemanticQueries(groups, limit * 5);
+      }
       catch { semanticWarnings.push({ source: "hadith_semantic", code: "SEMANTIC_UNAVAILABLE_LEXICAL_FALLBACK" }); }
     }
     const remoteSources = usesLocalQuran ? sources.filter((source) => source !== "quran") : sources;
@@ -329,9 +389,16 @@ export class EvidenceService {
       const compiledQuery = compileRetrievalQuery({ roadmap, axis });
       const semanticQuery = [roadmap.brief?.topic, axis.title, axis.research_question]
         .filter(Boolean).join(". ").slice(0, 500);
+      let semanticQueries = [semanticQuery];
+      let expansionWarning = null;
+      if (this.reranker?.expand && roadmap.brief?.topic) {
+        try { semanticQueries = await this.reranker.expand({ topic: roadmap.brief.topic, axis }); }
+        catch { expansionWarning = { source: "query_expansion", code: "RELATIONSHIP_QUERY_FALLBACK" }; }
+      }
       const result = await this.search({
         query: compiledQuery,
         semanticQuery,
+        semanticQueries,
         topic: roadmap.brief?.topic ?? compiledQuery,
         sources: effectiveSources,
         language: roadmap.brief?.language ?? "ar",
@@ -340,12 +407,13 @@ export class EvidenceService {
       return {
         axis_id: axis.axis_id,
         candidates: result.candidates,
-        source_warnings: result.source_warnings,
+        source_warnings: [...(result.source_warnings ?? []), ...(expansionWarning ? [expansionWarning] : [])],
         trace: {
           axis_id: axis.axis_id,
           original_question: axis.research_question,
           compiled_query: compiledQuery,
           semantic_query: semanticQuery,
+          semantic_queries: semanticQueries,
           sources: effectiveSources,
           candidate_count: result.candidates.length,
           retry_count: result.retry_count,
@@ -379,7 +447,9 @@ export class EvidenceService {
       }
     });
 
-    const selected = selectDiverseCandidates(candidateMap, roadmap.axes, maxRecords);
+    // Fetch a wider, source-diverse shortlist before semantic judgment. Search
+    // snippets are never passed off as evidence or scored as final records.
+    const selected = selectDiverseCandidates(candidateMap, roadmap.axes, this.reranker ? Math.min(maxRecords * 2, 24) : maxRecords);
     const fetched = await Promise.allSettled(selected.map(({ candidate }) => this.fetchCandidate({
       id: candidate.id,
       language: roadmap.brief?.language ?? "ar",
@@ -408,14 +478,55 @@ export class EvidenceService {
       }
     });
 
+    let finalRecords = records;
+    const relevanceWarnings = [];
+    const rejectedByRelevance = [];
+    if (this.reranker && records.length) {
+      const assessed = [];
+      const batches = [];
+      for (let offset = 0; offset < records.length; offset += 6) batches.push(records.slice(offset, offset + 6));
+      const outcomes = await Promise.allSettled(batches.map((batch) => this.reranker.assess({
+        topic: roadmap.brief?.topic ?? "",
+        axes: roadmap.axes,
+        records: batch,
+      })));
+      outcomes.forEach((outcome, index) => {
+        const batch = batches[index];
+        try {
+          if (outcome.status !== "fulfilled") throw outcome.reason;
+          const assessments = validateRelevanceAssessments(outcome.value, batch, roadmap.axes);
+          const byId = new Map(assessments.map((item) => [item.id, item]));
+          for (const item of batch) {
+            const assessment = byId.get(item.record.id);
+            if (!acceptsRelevance(assessment)) {
+              rejectedByRelevance.push({ id: item.record.id, role: assessment.role,
+                score: assessment.score, relationship_score: assessment.relationship_score });
+              continue;
+            }
+            assessed.push({ ...item, axis_ids: [assessment.axis_id], placement_status: "suggested_needs_confirmation",
+              relevance: { ...assessment, model: this.reranker.model ?? "configured_reranker", thresholds: RELEVANCE_THRESHOLDS[assessment.role] } });
+          }
+        } catch (error) {
+          relevanceWarnings.push({ code: "RERANK_BATCH_UNAVAILABLE", count: batch.length });
+        }
+      });
+      finalRecords = selectRerankedRecords(assessed, roadmap.axes, maxRecords);
+    } else if (!this.reranker) {
+      relevanceWarnings.push({ code: "RERANK_NOT_CONFIGURED_UNFILTERED" });
+    }
+
     return {
       roadmap_id: roadmap.roadmap_id,
-      retrieval_mode: "roadmap_search_then_full_fetch",
-      records,
+      retrieval_mode: this.reranker ? "roadmap_search_full_fetch_relevance_gate" : "roadmap_search_then_full_fetch",
+      records: finalRecords,
       unresolved,
       search_failures: searchFailures,
       search_trace: searchTrace,
-      notice: "اعتمدت السجلات الكاملة فقط؛ لم تتحول مقتطفات البحث أو النتائج المتعذرة إلى أدلة.",
+      relevance_warnings: relevanceWarnings,
+      rejected_by_relevance: rejectedByRelevance,
+      notice: this.reranker
+        ? "اقتُرحت سجلات كاملة فقط بعد فحص صلتها بالموضوع والمحور؛ تقدير الصلة آلي وقابل لمراجعة الباحث."
+        : "اعتمدت السجلات الكاملة فقط؛ لم تتحول مقتطفات البحث أو النتائج المتعذرة إلى أدلة. فحص الصلة المتقدم غير مهيأ.",
     };
   }
 

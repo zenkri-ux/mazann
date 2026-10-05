@@ -13,6 +13,7 @@ import { OpenAIEmbeddingClient } from "./lib/openai-embedding-client.mjs";
 import { HadithLocatorIndex } from "./lib/hadith-locator-index.mjs";
 import { TafsirLinkIndex } from "./lib/tafsir-link-index.mjs";
 import { EvidenceService, EvidenceUnavailableError } from "./services/evidence-service.mjs";
+import { OpenAIEvidenceReranker } from "./lib/openai-evidence-reranker.mjs";
 import { OpenAIPlannerClient } from "@mazann/openai-planner";
 import { TopicPlanningService } from "./services/topic-planning-service.mjs";
 
@@ -62,7 +63,11 @@ try {
 } catch (error) {
   console.warn(`Tafsir section links unavailable; Quran evidence remains unchanged (${error.code ?? error.message})`);
 }
-const evidence = new EvidenceService({ client, cache, cacheWrite: config.cacheWrite, quranIndex, quranSemanticIndex, hadithSemanticIndex, hadithLocator, tafsirLinks });
+const reranker = config.openaiApiKey && config.openaiModel
+  ? new OpenAIEvidenceReranker({ apiKey: config.openaiApiKey, model: config.openaiModel,
+      endpoint: config.openaiResponsesUrl, timeoutMs: 45_000 })
+  : null;
+const evidence = new EvidenceService({ client, cache, cacheWrite: config.cacheWrite, quranIndex, quranSemanticIndex, hadithSemanticIndex, hadithLocator, tafsirLinks, reranker });
 const projects = new ProjectStore(config.projectDir);
 const plannerClient = config.plannerProvider === "openai" && config.openaiApiKey && config.openaiModel
   ? new OpenAIPlannerClient({
