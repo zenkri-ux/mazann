@@ -1,5 +1,43 @@
 import { ensureReferenceProvenance, normalizeHadithResponse, normalizeQuranResponse, normalizeSearchResponse } from "@mazann/domain";
 
+const ARABIC_RETRIEVAL_STOPWORDS = new Set([
+  "إلى", "الى", "أو", "او", "أي", "اي", "أن", "ان", "إن", "عن", "على", "في", "من", "مع",
+  "ما", "ماذا", "متى", "هل", "كيف", "لماذا", "وما", "وهو", "وهي", "هذا", "هذه", "ذلك", "تلك",
+  "التي", "الذي", "الذين", "بين", "ضمن", "حول", "لدى", "عند", "كل", "ثم", "دون", "نحو",
+  "الموضوع", "البحث", "المحور", "السياق", "الواقع", "المحلي", "فهم", "تأصيل", "معنى", "أثر",
+  "المؤسس", "التطبيقي", "تطبيق", "تحويل", "بيان", "عرض", "صور", "أبرز", "يمكن", "ينبغي",
+]);
+
+function retrievalTokens(value) {
+  return String(value ?? "")
+    .normalize("NFKC")
+    .replace(/[\u0640\u064B-\u065F\u0670]/gu, "")
+    .match(/[\p{Script=Arabic}\p{N}]+/gu)?.filter((token) => (
+      token.length > 2 && !ARABIC_RETRIEVAL_STOPWORDS.has(token)
+    )) ?? [];
+}
+
+export function compileRetrievalQuery({ roadmap, axis, maxTokens = 7, maxLength = 96 }) {
+  const ordered = [
+    ...retrievalTokens(roadmap?.brief?.topic),
+    ...retrievalTokens(axis?.title),
+    ...retrievalTokens(axis?.research_question),
+  ];
+  const unique = [];
+  const seen = new Set();
+  for (const token of ordered) {
+    const key = token.toLocaleLowerCase("ar");
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if ([...unique, token].join(" ").length > maxLength) break;
+    unique.push(token);
+    if (unique.length >= maxTokens) break;
+  }
+  return unique.length >= 2
+    ? unique.join(" ")
+    : String(axis?.research_question ?? roadmap?.brief?.topic ?? "").trim().slice(0, maxLength);
+}
+
 function selectDiverseCandidates(candidateMap, axes, maxRecords) {
   const available = [...candidateMap.values()];
   const selected = [];
@@ -146,23 +184,39 @@ export class EvidenceService {
       }
       const requested = new Set(axis.evidence_requirements ?? []);
       const sources = ["quran", "hadith"].filter((source) => requested.has(source));
+      const effectiveSources = sources.length ? sources : ["quran", "hadith"];
+      const compiledQuery = compileRetrievalQuery({ roadmap, axis });
       const result = await this.search({
-        query: axis.research_question,
-        sources: sources.length ? sources : ["quran", "hadith"],
+        query: compiledQuery,
+        sources: effectiveSources,
         language: roadmap.brief?.language ?? "ar",
         limit: perAxisLimit,
       });
-      return { axis_id: axis.axis_id, candidates: result.candidates, source_warnings: result.source_warnings };
+      return {
+        axis_id: axis.axis_id,
+        candidates: result.candidates,
+        source_warnings: result.source_warnings,
+        trace: {
+          axis_id: axis.axis_id,
+          original_question: axis.research_question,
+          compiled_query: compiledQuery,
+          sources: effectiveSources,
+          candidate_count: result.candidates.length,
+          retry_count: result.retry_count,
+        },
+      };
     }));
 
     const candidateMap = new Map();
     const searchFailures = [];
+    const searchTrace = [];
     searches.forEach((search, index) => {
       const axisId = roadmap.axes[index]?.axis_id ?? `axis-${index + 1}`;
       if (search.status === "rejected") {
         searchFailures.push({ axis_id: axisId, code: search.reason?.code ?? "SEARCH_FAILED" });
         return;
       }
+      searchTrace.push(search.value.trace);
       for (const warning of search.value.source_warnings ?? []) {
         searchFailures.push({ axis_id: axisId, source: warning.source, code: warning.code });
       }
@@ -198,6 +252,7 @@ export class EvidenceService {
       records,
       unresolved,
       search_failures: searchFailures,
+      search_trace: searchTrace,
       notice: "اعتمدت السجلات الكاملة فقط؛ لم تتحول مقتطفات البحث أو النتائج المتعذرة إلى أدلة.",
     };
   }

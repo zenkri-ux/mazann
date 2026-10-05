@@ -1,11 +1,24 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { EvidenceService, EvidenceUnavailableError } from "../apps/api/src/services/evidence-service.mjs";
+import { compileRetrievalQuery, EvidenceService, EvidenceUnavailableError } from "../apps/api/src/services/evidence-service.mjs";
 
 const validCachedRecord = {
   id: "quran:4:58:ar",
   validation: { status: "valid" },
 };
+
+test("retrieval query compiler turns a long methodological question into source-searchable Arabic terms", () => {
+  const query = compileRetrievalQuery({
+    roadmap: { brief: { topic: "الرحمة في التعامل مع الضعفاء" } },
+    axis: {
+      title: "تأصيل معنى الرحمة وصلته بحفظ الكرامة",
+      research_question: "كيف تؤسس النصوص الشرعية لمعنى الرحمة في معاملة من يواجهون ضعفًا أو حاجة؟",
+    },
+  });
+  assert.equal(query, "الرحمة التعامل الضعفاء وصلته بحفظ الكرامة تؤسس");
+  assert.ok(query.length < 96);
+  assert.ok(!query.includes("كيف"));
+});
 
 test("evidence service exposes cache fallback and upstream failure", async () => {
   const service = new EvidenceService({
@@ -109,6 +122,9 @@ test("roadmap collection fetches complete unique records and preserves axis trac
   assert.equal(result.records.length, 2);
   assert.deepEqual(result.records[0].axis_ids, ["foundation", "context"]);
   assert.equal(result.unresolved.length, 0);
+  assert.equal(result.search_trace.length, 2);
+  assert.equal(result.search_trace[0].original_question, "ما الأصل؟");
+  assert.ok(result.search_trace[0].compiled_query.includes("الأصل"));
 });
 
 test("roadmap collection exposes failed full fetches instead of promoting snippets", async () => {
