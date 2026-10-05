@@ -46,3 +46,17 @@ test("project store rejects invalid identifiers and underspecified titles", asyn
   await assert.rejects(() => store.get("../secret"), (error) => error instanceof ProjectStoreError && error.code === "INVALID_PROJECT_ID");
   await assert.rejects(() => store.save({ title: "أ" }), /عنوان البحث/);
 });
+
+test("project store isolates browser workspaces without exposing another reviewer's projects", async (context) => {
+  const { directory, store } = await temporaryStore();
+  context.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const firstWorkspace = "workspace_11111111-1111-4111-8111-111111111111";
+  const secondWorkspace = "workspace_22222222-2222-4222-8222-222222222222";
+  const saved = await store.save({ title: "بحث المراجع الأول" }, { workspaceId: firstWorkspace });
+  assert.equal((await store.list({ workspaceId: firstWorkspace })).length, 1);
+  assert.equal((await store.list({ workspaceId: secondWorkspace })).length, 0);
+  await assert.rejects(
+    () => store.get(saved.project_id, { workspaceId: secondWorkspace }),
+    (error) => error.code === "PROJECT_NOT_FOUND",
+  );
+});

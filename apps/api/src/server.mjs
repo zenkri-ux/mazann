@@ -67,6 +67,15 @@ function requireInteger(value, name, { min = 1, max = Number.MAX_SAFE_INTEGER } 
   return value;
 }
 
+function projectWorkspace(request) {
+  const value = request.headers["x-mazann-workspace"];
+  if (value === undefined) return undefined;
+  if (typeof value !== "string" || !/^workspace_[a-f0-9-]{36}$/.test(value)) {
+    throw Object.assign(new Error("معرف مساحة البحث غير صالح"), { status: 400, code: "INVALID_WORKSPACE_ID" });
+  }
+  return value;
+}
+
 async function handleApi(request, response, url) {
   if (request.method === "GET" && url.pathname === "/api/health") {
     return sendJson(response, 200, {
@@ -80,19 +89,19 @@ async function handleApi(request, response, url) {
   }
 
   if (request.method === "GET" && url.pathname === "/api/projects") {
-    return sendJson(response, 200, { projects: await projects.list() });
+    return sendJson(response, 200, { projects: await projects.list({ workspaceId: projectWorkspace(request) }) });
   }
 
   const projectMatch = /^\/api\/projects\/(project_[a-f0-9-]{36})$/.exec(url.pathname);
   if (request.method === "GET" && projectMatch) {
-    return sendJson(response, 200, await projects.get(projectMatch[1]));
+    return sendJson(response, 200, await projects.get(projectMatch[1], { workspaceId: projectWorkspace(request) }));
   }
 
   if (request.method !== "POST") return sendJson(response, 405, { error: "METHOD_NOT_ALLOWED" });
   const body = await readJson(request, url.pathname === "/api/projects" ? 1_000_000 : 65_536);
 
   if (url.pathname === "/api/projects") {
-    return sendJson(response, body.project_id ? 200 : 201, await projects.save(body));
+    return sendJson(response, body.project_id ? 200 : 201, await projects.save(body, { workspaceId: projectWorkspace(request) }));
   }
 
   if (url.pathname === "/api/research/roadmap") {

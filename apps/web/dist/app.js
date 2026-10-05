@@ -2,6 +2,7 @@ const state={view:'start',theme:'light',reviewed:0,demoScene:0,demo:false,eviden
 const qs=(selector,root=document)=>root.querySelector(selector);
 const qsa=(selector,root=document)=>[...root.querySelectorAll(selector)];
 const labels={start:'لم يبدأ جمع الأدلة بعد',plan:'الخطة جاهزة للمراجعة',evidence:'مراجعة المصادر والسياق',coverage:'الحقيبة جاهزة للمراجعة'};
+const workspaceId=(()=>{const key='mazann-workspace-id';try{const existing=localStorage.getItem(key);if(/^workspace_[a-f0-9-]{36}$/.test(existing||''))return existing;const created=`workspace_${crypto.randomUUID()}`;localStorage.setItem(key,created);return created}catch{return `workspace_${crypto.randomUUID()}`}})();
 
 function showView(view){
   state.view=view;
@@ -45,13 +46,13 @@ qsa('.filter').forEach(button=>button.addEventListener('click',()=>filterEvidenc
 qs('#source-list').addEventListener('click',event=>{const button=event.target.closest('[data-reference-filter]');if(button)filterReferenceEvidence(button.dataset.referenceFilter)});
 
 async function api(path,body){
-  const response=await fetch(path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+  const response=await fetch(path,{method:'POST',headers:{'content-type':'application/json','x-mazann-workspace':workspaceId},body:JSON.stringify(body)});
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data.message||'تعذر إكمال الطلب');
   return data;
 }
 async function apiGet(path){
-  const response=await fetch(path,{headers:{accept:'application/json'}});
+  const response=await fetch(path,{headers:{accept:'application/json','x-mazann-workspace':workspaceId}});
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data.message||'تعذر إكمال الطلب');
   return data;

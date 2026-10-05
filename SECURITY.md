@@ -14,3 +14,7 @@
 ## Content integrity
 
 أي خلل في نص آية أو حديث، أو مرجع وهمي، أو ختم تحقق غير صحيح يعامل حادث سلامة ويمنع النشر حتى الإصلاح وإعادة الاختبار.
+
+## Alpha reviewer isolation
+
+The protected Alpha assigns a random workspace identifier to each browser and scopes saved-project list, read and update operations to that workspace. This prevents accidental cross-reviewer discovery, but it is not authentication or a multi-user authorization system. Only trusted reviewers receive the shared gateway credentials, and sensitive or personal material must not be entered during Alpha testing.

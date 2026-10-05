@@ -3,6 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 
 const PROJECT_ID = /^project_[a-f0-9-]{36}$/;
+const WORKSPACE_ID = /^workspace_[a-f0-9-]{36}$/;
 
 export class ProjectStoreError extends Error {
   constructor(message, { code = "INVALID_PROJECT", status = 400, details } = {}) {
@@ -26,6 +27,12 @@ function validateId(id) {
   return id;
 }
 
+function validateWorkspaceId(id) {
+  if (id === undefined || id === null || id === "") return null;
+  if (!WORKSPACE_ID.test(id)) throw new ProjectStoreError("معرف مساحة البحث غير صالح", { code: "INVALID_WORKSPACE_ID" });
+  return id;
+}
+
 function safeState(value) {
   const serialized = JSON.stringify(value ?? null);
   if (Buffer.byteLength(serialized, "utf8") > 900_000) {
@@ -40,14 +47,19 @@ export class ProjectStore {
     this.clock = clock;
   }
 
-  pathFor(id) {
-    return path.join(this.directory, `${validateId(id)}.json`);
+  directoryFor(workspaceId) {
+    const validated = validateWorkspaceId(workspaceId);
+    return validated ? path.join(this.directory, validated) : this.directory;
   }
 
-  async save(input = {}) {
-    await fs.mkdir(this.directory, { recursive: true });
+  pathFor(id, { workspaceId } = {}) {
+    return path.join(this.directoryFor(workspaceId), `${validateId(id)}.json`);
+  }
+
+  async save(input = {}, { workspaceId } = {}) {
+    await fs.mkdir(this.directoryFor(workspaceId), { recursive: true });
     const id = input.project_id ? validateId(input.project_id) : `project_${randomUUID()}`;
-    const existing = input.project_id ? await this.get(id, { required: false }) : null;
+    const existing = input.project_id ? await this.get(id, { required: false, workspaceId }) : null;
     const timestamp = this.clock().toISOString();
     const project = {
       schema_version: "1.0.0",
@@ -60,16 +72,16 @@ export class ProjectStore {
       roadmap: safeState(input.roadmap),
       evidence: Array.isArray(input.evidence) ? safeState(input.evidence.slice(0, 50)) : [],
     };
-    const target = this.pathFor(id);
+    const target = this.pathFor(id, { workspaceId });
     const temporary = `${target}.${randomUUID()}.tmp`;
     await fs.writeFile(temporary, `${JSON.stringify(project, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
     await fs.rename(temporary, target);
     return project;
   }
 
-  async get(id, { required = true } = {}) {
+  async get(id, { required = true, workspaceId } = {}) {
     try {
-      return JSON.parse(await fs.readFile(this.pathFor(id), "utf8"));
+      return JSON.parse(await fs.readFile(this.pathFor(id, { workspaceId }), "utf8"));
     } catch (error) {
       if (error?.code === "ENOENT" && !required) return null;
       if (error?.code === "ENOENT") {
@@ -79,10 +91,10 @@ export class ProjectStore {
     }
   }
 
-  async list() {
+  async list({ workspaceId } = {}) {
     try {
-      const names = (await fs.readdir(this.directory)).filter((name) => /^project_[a-f0-9-]{36}\.json$/.test(name));
-      const projects = await Promise.all(names.map((name) => this.get(name.slice(0, -5))));
+      const names = (await fs.readdir(this.directoryFor(workspaceId))).filter((name) => /^project_[a-f0-9-]{36}\.json$/.test(name));
+      const projects = await Promise.all(names.map((name) => this.get(name.slice(0, -5), { workspaceId })));
       return projects
         .sort((left, right) => right.updated_at.localeCompare(left.updated_at))
         .map(({ project_id, title, created_at, updated_at, current_view, roadmap, evidence }) => ({
