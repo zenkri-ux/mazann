@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-10-05",
+  "url": "https://mazann.51.254.141.28.sslip.io/",
+  "git_commit": "f568ce7",
+  "image": "mazann:f568ce7",
+  "deployment_mode": "shared_caddy_compose",
+  "container_health": "healthy",
+  "public_unauthenticated_status": 401,
+  "health": {
+    "quran_search_mode": "fielded_bm25_semantic_rrf_then_official_full_fetch",
+    "hadith_search_mode": "official_live_lexical_plus_validated_local_semantic_then_full_fetch",
+    "tafsir_mode": "verified_external_section_links_only",
+    "tafsir_sections": 4,
+    "tafsir_independent_text_records": 0
+  },
+  "smoke": {
+    "quran_4_58": { "mode": "live", "validation": "valid", "tafsir_url": "https://dorar.net/tafseer/4/18" },
+    "quran_4_60": { "mode": "live", "validation": "valid", "tafsir_url": null },
+    "hadith_66397": { "mode": "live", "validation": "valid", "locator": "سنن أبي داود رقم 2594؛ سنن الترمذي رقم 1702؛ سنن النسائي رقم 3179؛ مسند أحمد رقم 1493" },
+    "personal_fatwa": { "status": 422, "code": "PERSONAL_FATWA_REFERRAL_REQUIRED", "content_level": "d" },
+    "roadmap_first_attempt": "methodology_template_fallback",
+    "roadmap_second_attempt": "model_assisted",
+    "roadmap_note": "Intermittent planner fallback observed; the fallback remained safe and reviewable. The first fallback reason was not captured."
+  },
+  "automated_tests": { "passed": 87, "failed": 0 },
+  "runtime_volume_preserved": true
+}
