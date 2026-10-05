@@ -19,6 +19,8 @@ test("evidence review explains axis use and provides a gated next step", () => {
   assert.match(html, /id="open-coverage"[^>]*disabled/);
   assert.match(script, /const ready=total>0&&state\.reviewed===total/);
   assert.match(script, /evidenceUseLabel\(item\)/);
+  assert.match(script, /class="hadith-matn">\$\{escapeHtml\(record\.text\)\}/);
+  assert.match(script, /هذا هو المتن الكامل المنشور في سجل الإتاحة/);
 });
 
 test("coverage renders an evidence-linked writing outline without claiming a generated sermon", () => {

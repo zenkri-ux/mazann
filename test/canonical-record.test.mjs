@@ -64,6 +64,20 @@ Source: https://hadeethenc.com/ar/browse/hadith/3016`;
   assert.match(record.access.provider_name, /HadeethEnc/);
 });
 
+test("Hadith normalizer preserves named collections instead of calling them an unknown reference", () => {
+  const source = `──────── RETRIEVED FROM HADEETHENC — published text ────────
+ابغوني الضعفاء
+[EXACT]\nعَن أَبِي الدَّرْدَاءِ رضي الله عنه قَالَ: سَمِعْتُ رَسُولَ اللَّهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ يَقُولُ: «ابْغُونِي الضُّعَفَاءَ، فَإِنَّمَا تُرْزَقُونَ وَتُنْصَرُونَ بِضُعَفَائِكُمْ».\n[/EXACT]
+[ATTRIBUTION]\nNarrator: رواه أبو داود والترمذي والنسائي وأحمد\nGrade: صحيح\n[/ATTRIBUTION]
+Source: https://hadeethenc.com/ar/browse/hadith/66397`;
+  const record = normalizeHadithResponse({ content: [{ type: "text", text: source }] }, { id: "66397" });
+  assert.equal(record.reference.source_label_ar, "رواه أبو داود والترمذي والنسائي وأحمد");
+  assert.equal(record.reference.precision, "collection_level");
+  assert.equal(record.reference.primary_locator_available, false);
+  assert.match(record.reference.work_title_ar, /سنن أبي داود/);
+  assert.equal(record.text.endsWith("بِضُعَفَائِكُمْ»."), true);
+});
+
 test("Search results remain candidates until full retrieval", () => {
   const records = normalizeSearchResponse({ structuredContent: { results: [
     { id: "hadith:42:ar", title: "نتيجة", url: "https://example.test/42" },

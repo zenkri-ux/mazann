@@ -47,3 +47,18 @@ test("Hadith locator leaves unknown records visibly unresolved", () => {
   const unknown = { ...record(), metadata: { hadith_id: "999" } };
   assert.equal(locator.enrich(unknown), unknown);
 });
+
+test("published locator index promotes HadeethEnc 66397 only with its complete-matn checksum", async () => {
+  const published = await HadithLocatorIndex.load(new URL("../data/hadith-locators.json", import.meta.url));
+  const enriched = published.enrich({
+    id: "hadith:66397:ar",
+    source_family: "hadith",
+    checksum_sha256: "fc1ac67f4cf9f87fe1bbe1db8d63af68df6e8b9f47a5c4e428a5559ff8100390",
+    metadata: { hadith_id: "66397" },
+    reference: { primary_locator_available: false, precision: "collection_level" },
+  });
+  assert.equal(enriched.reference.primary_locator_available, true);
+  assert.equal(enriched.reference.source_label_ar, "رواه أبو داود والترمذي والنسائي وأحمد");
+  assert.equal(enriched.reference.locator_ar, "سنن أبي داود رقم 2594؛ سنن الترمذي رقم 1702؛ سنن النسائي رقم 3179؛ مسند أحمد رقم 1493");
+  assert.equal(enriched.reference.primary_sources.length, 4);
+});

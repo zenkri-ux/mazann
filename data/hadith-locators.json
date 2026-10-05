@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "metadata": {
-    "version": "2026-10-05.1",
+    "version": "2026-10-05.2",
     "policy": "A locator is applied only when both the HadeethEnc record id and exact matn SHA-256 match.",
     "fallback": "Keep collection-level attribution and block final reference approval when no verified locator exists."
   },
@@ -27,6 +27,40 @@
         "authority": "موسوعة الدرر السنية الحديثية",
         "evidence_url": "https://dorar.net/hadith/sharh/10938",
         "note_ar": "صفحة التخريج تذكر: أخرجه البخاري (6497)، ومسلم (143) باختلاف يسير."
+      },
+      "verified_at": "2026-10-05"
+    },
+    {
+      "hadeethenc_id": "66397",
+      "matn_checksum_sha256": "fc1ac67f4cf9f87fe1bbe1db8d63af68df6e8b9f47a5c4e428a5559ff8100390",
+      "reference_key": "hadith:abu-dawud-tirmidhi-nasai-ahmad",
+      "source_label_ar": "رواه أبو داود والترمذي والنسائي وأحمد",
+      "primary_sources": [
+        {
+          "collection_ar": "سنن أبي داود",
+          "number_ar": "2594",
+          "verification_url": "https://hadeethenc.com/ar/browse/hadith/66397"
+        },
+        {
+          "collection_ar": "سنن الترمذي",
+          "number_ar": "1702",
+          "verification_url": "https://hadeethenc.com/ar/browse/hadith/66397"
+        },
+        {
+          "collection_ar": "سنن النسائي",
+          "number_ar": "3179",
+          "verification_url": "https://hadeethenc.com/ar/browse/hadith/66397"
+        },
+        {
+          "collection_ar": "مسند أحمد",
+          "number_ar": "1493",
+          "verification_url": "https://hadeethenc.com/ar/browse/hadith/66397"
+        }
+      ],
+      "verification": {
+        "authority": "موسوعة الأحاديث النبوية HadeethEnc",
+        "evidence_url": "https://hadeethenc.com/ar/browse/hadith/66397",
+        "note_ar": "تذكر صفحة السجل: سنن أبي داود (2594)، سنن الترمذي (1702)، سنن النسائي (3179)، ومسند أحمد (1493)."
       },
       "verified_at": "2026-10-05"
     }

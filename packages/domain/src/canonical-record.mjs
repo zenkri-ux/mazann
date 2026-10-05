@@ -26,6 +26,13 @@ function sourceUrl(text) {
   return text.match(SOURCE_URL)?.[1] ?? text.match(CITE_URL)?.[1] ?? null;
 }
 
+const hadithCollections = [
+  { match: "أبو داود", key: "abu-dawud", title: "سنن أبي داود" },
+  { match: "الترمذي", key: "tirmidhi", title: "سنن الترمذي" },
+  { match: "النسائي", key: "nasai", title: "سنن النسائي" },
+  { match: "أحمد", key: "ahmad", title: "مسند أحمد" },
+];
+
 function hadithReference(label, providerId) {
   const value = label?.trim() ?? "";
   if (value.includes("متفق عليه")) return {
@@ -40,6 +47,16 @@ function hadithReference(label, providerId) {
     work_title_ar: collection, locator_ar: value, source_label_ar: collection,
     precision: "collection_level", primary_locator_available: false,
     verification_note_ar: "رقم الموضع داخل الكتاب الأصلي غير متاح من الموصل الحالي.",
+  };
+  const namedCollections = hadithCollections.filter((entry) => value.includes(entry.match));
+  if (namedCollections.length) return {
+    key: `hadith:${namedCollections.map((entry) => entry.key).join("-")}`,
+    work_title_ar: namedCollections.map((entry) => entry.title).join(" و"),
+    locator_ar: value,
+    source_label_ar: value,
+    precision: "collection_level",
+    primary_locator_available: false,
+    verification_note_ar: "أسماء المصادر مثبتة في سجل HadeethEnc، لكن أرقام المواضع داخلها تحتاج إلى تحقق مستقل.",
   };
   return {
     key: `hadith:provider:${providerId}`, work_title_ar: "لم يحدد الكتاب الحديثي في بيانات الموصل",
