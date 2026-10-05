@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-10-05",
+  "image": "mazann:day2-gate",
+  "image_manifest_sha256": "52c3622a9ea6d73e4cc3c02f7e7c409f9678223cb9fd7b787159851c6f882585",
+  "build": {
+    "status": "PASS",
+    "base": "node:22.23.0-bookworm-slim",
+    "npm_audit_vulnerabilities": 0
+  },
+  "runtime": {
+    "container_health": "healthy",
+    "quran_index_units": 6236,
+    "quran_retrieval_mode": "local_quran_fielded_bm25",
+    "quran_test_query": "خطر الشائعات والتثبت من الأخبار",
+    "quran_first_result": "quran:49:6:ar",
+    "quran_candidate_contained_sacred_text": false,
+    "hadith_record": "hadith:3016:ar",
+    "hadith_retrieval_mode": "live",
+    "hadith_locator": "صحيح البخاري رقم 6497؛ صحيح مسلم رقم 143",
+    "hadith_locator_audit": "matched_id_and_checksum",
+    "personal_fatwa_http_status": 422,
+    "personal_fatwa_code": "PERSONAL_FATWA_REFERRAL_REQUIRED"
+  },
+  "automated_tests": {
+    "passed": 55,
+    "failed": 0
+  },
+  "deployment_changed": false
+}
