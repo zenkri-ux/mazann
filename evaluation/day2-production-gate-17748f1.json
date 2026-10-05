@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-10-05",
+  "url": "https://mazann.51.254.141.28.sslip.io/",
+  "git_commit": "17748f1",
+  "image": "mazann:17748f1",
+  "container_health": "healthy",
+  "public_unauthenticated_status": 401,
+  "health": {
+    "quran_search_mode": "local_fielded_bm25_then_official_full_fetch",
+    "quran_units": 6236,
+    "hadith_locator_mode": "id_and_matn_checksum_crosswalk",
+    "hadith_verified_records": 1,
+    "planner_mode": "model_assisted_with_methodology_fallback"
+  },
+  "smoke": {
+    "quran_status": 200,
+    "quran_query": "خطر الشائعات والتثبت من الأخبار",
+    "quran_first_result": "quran:49:6:ar",
+    "hadith_status": 200,
+    "hadith_retrieval_mode": "live",
+    "hadith_locator": "صحيح البخاري رقم 6497؛ صحيح مسلم رقم 143",
+    "personal_fatwa_status": 422,
+    "personal_fatwa_code": "PERSONAL_FATWA_REFERRAL_REQUIRED",
+    "roadmap_status": 200,
+    "roadmap_generation_mode": "model_assisted",
+    "roadmap_content_level": "b",
+    "roadmap_axes": 4
+  }
+}

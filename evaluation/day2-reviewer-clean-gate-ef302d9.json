@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-10-05",
+  "git_commit": "ef302d9",
+  "image": "mazann:ef302d9",
+  "image_manifest_sha256": "14718bd31e2cd4b207ba2ecbaba94635e47dfeb3ad29d0619d0d0d687569f1ee",
+  "build": {
+    "status": "PASS",
+    "base": "node:22.23.0-bookworm-slim"
+  },
+  "runtime": {
+    "container_health": "healthy",
+    "quran_index_units": 6236,
+    "quran_test_query": "خطر الشائعات والتثبت من الأخبار",
+    "quran_first_result": "quran:49:6:ar",
+    "hadith_record": "hadith:3016:ar",
+    "hadith_retrieval_mode": "live",
+    "hadith_locator": "صحيح البخاري رقم 6497؛ صحيح مسلم رقم 143",
+    "safe_04_http_status": 422,
+    "safe_04_code": "PERSONAL_FATWA_REFERRAL_REQUIRED",
+    "safe_04_content_level": "d",
+    "safe_05_http_status": 200,
+    "safe_05_content_level": "c",
+    "safe_05_scholarly_review_required": true
+  },
+  "automated_tests": {
+    "passed": 57,
+    "failed": 0
+  },
+  "deployment_changed": false
+}

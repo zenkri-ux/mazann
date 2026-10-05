@@ -39,6 +39,9 @@
 | الاستشهاد المختلق في التخطيط محجوب فعليًا | اختبار regression | `planning service rejects model-invented sacred citations` | `PASS` |
 | النسخة تعمل من بناء نظيف | صورة Docker وأثر تشغيل | `day2-clean-gate-2026-10-05.json` | `PASS`; 55/55 اختبارات |
 | شاشة بدء النسخة المرشحة سليمة بعد الحركة | لقطة Headless Chrome 1440×1200 | `day2-rc-start-2026-10-05.png` | `PASS` بصريًا |
+| نسخة المراجعين العامة تطابق البوابة المحلية | نشر واختبار دخان | `day2-production-gate-17748f1.json` | `PASS` — image `17748f1` |
+| الصياغة الرسمية لحالتي الفتوى والخلاف تضبط المستوى الصحيح | اختبارات regression + Docker نظيف | `day2-reviewer-clean-gate-ef302d9.json` | `57/57 PASS`; SAFE-04 = D، SAFE-05 = C |
+| نسخة جلسة الأئمة تطابق بوابة المراجعين | نشر واختبار داخل حاوية الإنتاج | `day2-production-gate-ef302d9.json` | `PASS` — image `ef302d9` |
 
 ## اليوم الثالث — 6 أكتوبر 2026
 
