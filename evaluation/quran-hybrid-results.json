@@ -1,5 +1,5 @@
 {
-  "evaluated_at": "2026-10-05T19:48:07.475Z",
+  "evaluated_at": "2026-10-05T21:33:52.935Z",
   "mode": "quran_bm25_semantic_rrf",
   "model": "text-embedding-3-large",
   "dimensions": 512,
@@ -30,19 +30,21 @@
           ]
         },
         {
+          "id": "quran:27:78:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:45:22:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
           "id": "quran:10:109:ar",
-          "channels": [
-            "lexical"
-          ]
-        },
-        {
-          "id": "quran:33:72:ar",
-          "channels": [
-            "lexical"
-          ]
-        },
-        {
-          "id": "quran:54:5:ar",
           "channels": [
             "lexical"
           ]
@@ -86,9 +88,10 @@
           ]
         },
         {
-          "id": "quran:47:31:ar",
+          "id": "quran:11:100:ar",
           "channels": [
-            "lexical"
+            "lexical",
+            "semantic"
           ]
         }
       ]
@@ -199,14 +202,14 @@
           ]
         },
         {
-          "id": "quran:93:9:ar",
+          "id": "quran:107:2:ar",
           "channels": [
             "lexical",
             "semantic"
           ]
         },
         {
-          "id": "quran:107:2:ar",
+          "id": "quran:93:9:ar",
           "channels": [
             "lexical",
             "semantic"
@@ -220,7 +223,7 @@
           ]
         },
         {
-          "id": "quran:17:34:ar",
+          "id": "quran:89:17:ar",
           "channels": [
             "lexical",
             "semantic"
@@ -265,9 +268,10 @@
           ]
         },
         {
-          "id": "quran:53:9:ar",
+          "id": "quran:9:79:ar",
           "channels": [
-            "lexical"
+            "lexical",
+            "semantic"
           ]
         }
       ]
@@ -287,14 +291,14 @@
           ]
         },
         {
-          "id": "quran:23:8:ar",
+          "id": "quran:9:7:ar",
           "channels": [
             "lexical",
             "semantic"
           ]
         },
         {
-          "id": "quran:9:7:ar",
+          "id": "quran:23:8:ar",
           "channels": [
             "lexical",
             "semantic"
@@ -308,7 +312,7 @@
           ]
         },
         {
-          "id": "quran:16:91:ar",
+          "id": "quran:8:27:ar",
           "channels": [
             "lexical",
             "semantic"
@@ -333,13 +337,6 @@
           ]
         },
         {
-          "id": "quran:31:14:ar",
-          "channels": [
-            "lexical",
-            "semantic"
-          ]
-        },
-        {
           "id": "quran:4:36:ar",
           "channels": [
             "lexical",
@@ -347,13 +344,21 @@
           ]
         },
         {
-          "id": "quran:23:70:ar",
+          "id": "quran:31:14:ar",
           "channels": [
-            "lexical"
+            "lexical",
+            "semantic"
           ]
         },
         {
-          "id": "quran:2:166:ar",
+          "id": "quran:17:26:ar",
+          "channels": [
+            "lexical",
+            "semantic"
+          ]
+        },
+        {
+          "id": "quran:23:70:ar",
           "channels": [
             "lexical"
           ]
@@ -383,20 +388,7 @@
           ]
         },
         {
-          "id": "quran:30:38:ar",
-          "channels": [
-            "lexical",
-            "semantic"
-          ]
-        },
-        {
           "id": "quran:17:88:ar",
-          "channels": [
-            "lexical"
-          ]
-        },
-        {
-          "id": "quran:89:17:ar",
           "channels": [
             "lexical"
           ]
@@ -434,14 +426,14 @@
           ]
         },
         {
-          "id": "quran:19:50:ar",
+          "id": "quran:9:91:ar",
           "channels": [
             "lexical",
             "semantic"
           ]
         },
         {
-          "id": "quran:17:24:ar",
+          "id": "quran:19:50:ar",
           "channels": [
             "lexical",
             "semantic"
@@ -461,10 +453,10 @@
         "quran:9:94:ar"
       ],
       "hybrid_ids": [
-        "quran:49:6:ar",
         "quran:99:4:ar",
-        "quran:17:36:ar",
         "quran:47:31:ar",
+        "quran:17:36:ar",
+        "quran:98:3:ar",
         "quran:27:22:ar"
       ],
       "note": "Unlabelled exploration; a qualified reviewer must judge relevance before using this as a quality claim"
@@ -479,11 +471,11 @@
         "quran:26:211:ar"
       ],
       "hybrid_ids": [
+        "quran:18:101:ar",
         "quran:4:98:ar",
         "quran:7:192:ar",
-        "quran:18:101:ar",
-        "quran:20:112:ar",
-        "quran:22:39:ar"
+        "quran:107:2:ar",
+        "quran:17:26:ar"
       ],
       "note": "Unlabelled exploration; a qualified reviewer must judge relevance before using this as a quality claim"
     },
@@ -499,9 +491,9 @@
       "hybrid_ids": [
         "quran:92:6:ar",
         "quran:47:21:ar",
+        "quran:39:74:ar",
         "quran:39:33:ar",
-        "quran:23:8:ar",
-        "quran:2:283:ar"
+        "quran:23:8:ar"
       ],
       "note": "Unlabelled exploration; a qualified reviewer must judge relevance before using this as a quality claim"
     }

@@ -7,6 +7,7 @@ const ARABIC_RETRIEVAL_STOPWORDS = new Set([
   "التي", "الذي", "الذين", "بين", "ضمن", "حول", "لدى", "عند", "كل", "ثم", "دون", "نحو",
   "الموضوع", "البحث", "المحور", "السياق", "الواقع", "المحلي", "فهم", "تأصيل", "معنى", "أثر",
   "المؤسس", "التطبيقي", "تطبيق", "تحويل", "بيان", "عرض", "صور", "أبرز", "يمكن", "ينبغي",
+  "أهمية", "اهمية", "مكانة", "المقصود", "المصادر", "المعتمدة", "تعرض", "البناء", "الإيماني", "الاخلاقي",
 ]);
 
 const CURATED_TOPIC_QUERIES = Object.freeze([
@@ -39,6 +40,12 @@ export function compileRetrievalQuery({ roadmap, axis, maxTokens = 7, maxLength 
   const topicKey = normalizedTopicKey(roadmap?.brief?.topic);
   const curated = CURATED_TOPIC_QUERIES.find((entry) => entry.matches.test(topicKey));
   if (curated) return curated.query;
+
+  if (/(?:^|\s)صله\s+(?:ال)?(?:رحم|ارحام)(?:\s|$)/u.test(topicKey)) {
+    const axisTerms = retrievalTokens([axis?.title, axis?.research_question].filter(Boolean).join(" "))
+      .filter((token) => !/(?:صل[هة]|رحم|قرب|اخلاق|ايمان|ادله)/u.test(normalizedTopicKey(token)));
+    return ["صلة", "الرحم", "الأرحام", "القربى", ...new Set(axisTerms)].slice(0, maxTokens).join(" ").slice(0, maxLength);
+  }
 
   const ordered = [
     ...retrievalTokens(roadmap?.brief?.topic),
@@ -113,8 +120,8 @@ function fuseQuranCandidates(lexical, semantic, limit) {
   const strongLexicalAnchor = lexical[0]?.retrieval?.exact_quran_phrase
     || (lexical[0]?.retrieval?.query_coverage ?? 0) >= 0.5
     || lexical[0]?.retrieval?.matched_fields?.includes("curated_topic_expansion");
-  const lexicalWeight = strongLexicalAnchor ? 3 : 1;
-  const semanticWeight = strongLexicalAnchor ? 1 : 1.5;
+  const lexicalWeight = strongLexicalAnchor ? 3 : 2;
+  const semanticWeight = 1;
   for (const [channel, candidates] of [["lexical", lexical], ["semantic", semantic]]) {
     candidates.forEach((candidate, rank) => {
       const current = fused.get(candidate.id) ?? { candidate, score: 0, channels: [] };
@@ -142,7 +149,7 @@ function fuseQuranCandidates(lexical, semantic, limit) {
 function fuseHadithCandidates(lexical, semantic, limit) {
   if (!semantic.length) return lexical.slice(0, limit);
   const fused = new Map();
-  for (const [channel, candidates, weight] of [["lexical", lexical, 1], ["semantic", semantic, 1.5]]) {
+  for (const [channel, candidates, weight] of [["lexical", lexical, 2], ["semantic", semantic, 1]]) {
     candidates.forEach((candidate, rank) => {
       const current = fused.get(candidate.id) ?? { candidate, score: 0, channels: [] };
       current.score += weight / (60 + rank + 1);
@@ -183,13 +190,14 @@ export class EvidenceService {
     this.tafsirLinks = tafsirLinks;
   }
 
-  async search({ query, semanticQuery = query, sources = ["quran", "hadith"], language = "ar", limit = 10 }) {
+  async search({ query, semanticQuery = query, topic = query, sources = ["quran", "hadith"], language = "ar", limit = 10 }) {
     const usesLocalQuran = sources.includes("quran") && language === "ar" && this.quranIndex;
-    const lexicalQuranCandidates = usesLocalQuran ? this.quranIndex.search(query, { limit: limit * 5 }) : [];
+    const grounded = (candidate) => !this.quranIndex.isTopicGrounded || this.quranIndex.isTopicGrounded(candidate.id, topic);
+    const lexicalQuranCandidates = usesLocalQuran ? this.quranIndex.search(query, { limit: limit * 8 }).filter(grounded) : [];
     let semanticQuranCandidates = [];
     const semanticWarnings = [];
     if (usesLocalQuran && this.quranSemanticIndex) {
-      try { semanticQuranCandidates = await this.quranSemanticIndex.search(semanticQuery, { limit: limit * 5 }); }
+      try { semanticQuranCandidates = (await this.quranSemanticIndex.search(semanticQuery, { limit: limit * 8 })).filter(grounded); }
       catch { semanticWarnings.push({ source: "quran_semantic", code: "SEMANTIC_UNAVAILABLE_LEXICAL_FALLBACK" }); }
     }
     const localQuranCandidates = usesLocalQuran
@@ -303,7 +311,7 @@ export class EvidenceService {
     });
   }
 
-  async collectForRoadmap({ roadmap, perAxisLimit = 4, maxRecords = 6 }) {
+  async collectForRoadmap({ roadmap, perAxisLimit = 8, maxRecords = 12 }) {
     if (!roadmap || typeof roadmap.roadmap_id !== "string" || !Array.isArray(roadmap.axes)) {
       throw Object.assign(new Error("خارطة البحث غير صالحة"), { status: 400, code: "INVALID_ROADMAP" });
     }
@@ -324,6 +332,7 @@ export class EvidenceService {
       const result = await this.search({
         query: compiledQuery,
         semanticQuery,
+        topic: roadmap.brief?.topic ?? compiledQuery,
         sources: effectiveSources,
         language: roadmap.brief?.language ?? "ar",
         limit: perAxisLimit,

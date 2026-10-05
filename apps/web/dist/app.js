@@ -252,12 +252,12 @@ async function loadRoadmapEvidence(){
   startRetrievalProgress();
   qs('#evidence-feed').innerHTML='<div class="evidence-empty"><b>جارٍ البحث في المصادر المعتمدة</b><p>تُدمج النتائج المتكررة، ثم يُجلب الأصل الكامل ويُتحقق من مرجعه.</p></div>';
   try{
-    const result=await api('/api/research/evidence',{roadmap:state.roadmap,max_records:6});
+    const result=await api('/api/research/evidence',{roadmap:state.roadmap,max_records:Math.min(12,Math.max(6,(state.roadmap?.axes?.length||0)*2))});
     state.evidence=result.records.map(item=>normalizeEvidencePlacement({...item,decision:null}));
     const cacheCount=state.evidence.filter(item=>item.retrieval_mode==='cache').length;
     const failedCount=result.unresolved.length+result.search_failures.length;
     const failedSourceLabels=[...new Set(result.search_failures.map(item=>item.source).filter(Boolean).map(source=>source==='quran'?'القرآن':source==='hadith'?'الحديث':source))];
-    qs('#retrieval-status').textContent=`اعتمد ${state.evidence.length} سجل كامل${cacheCount?` · ${cacheCount} من النسخة المخزنة`:''}${failedCount?` · ${failedCount} نتيجة أو مسار تعذر ولم يتحول إلى دليل`:''}${failedSourceLabels.length?` · تعذر بحث ${failedSourceLabels.join(' و')} بعد إعادة المحاولة`:''}.`;
+    qs('#retrieval-status').textContent=`وُجد ${state.evidence.length} سجل كامل للمراجعة${cacheCount?` · ${cacheCount} من النسخة المخزنة`:''}${failedCount?` · ${failedCount} نتيجة أو مسار تعذر ولم يتحول إلى دليل`:''}${failedSourceLabels.length?` · تعذر بحث ${failedSourceLabels.join(' و')} بعد إعادة المحاولة`:''}. ظهور السجل لا يعني اعتماده؛ اختر ما يخدم الخطة فقط.`;
     renderEvidence();if(state.evidence[0])selectEvidence(state.evidence[0].record.id);
   }catch(error){
     state.evidence=[];renderEvidence();qs('#retrieval-status').textContent=`تعذر إكمال الاسترجاع: ${error.message}`;

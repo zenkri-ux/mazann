@@ -191,8 +191,8 @@ async function handleApi(request, response, url) {
 
   if (url.pathname === "/api/research/evidence") {
     const maxRecords = body.max_records === undefined
-      ? 6
-      : requireInteger(body.max_records, "max_records", { min: 1, max: 10 });
+      ? Math.min(12, Math.max(6, (body.roadmap?.axes?.length ?? 0) * 2))
+      : requireInteger(body.max_records, "max_records", { min: 1, max: 12 });
     return sendJson(response, 200, await evidence.collectForRoadmap({ roadmap: body.roadmap, maxRecords }));
   }
 

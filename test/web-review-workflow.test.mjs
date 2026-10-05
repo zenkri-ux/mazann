@@ -15,6 +15,7 @@ test("retrieval wait state uses the compact mark in a symmetric activity frame",
 });
 
 test("evidence review explains axis use and provides a gated next step", () => {
+  assert.match(script, /max_records:Math\.min\(12,Math\.max\(6,\(state\.roadmap\?\.axes\?\.length\|\|0\)\*2\)\)/);
   assert.match(html, /id="tafsir-context" hidden/);
   assert.match(script, /related_tafsir/);
   assert.match(script, /تفسير مرتبط · رابط خارجي/);

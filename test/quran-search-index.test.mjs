@@ -58,3 +58,14 @@ test("A contextual trust query retains the canonical amanah verse through declar
   assert.ok(result.retrieval.matched_fields.includes("curated_topic_expansion"));
   assert.equal("text" in result, false);
 });
+
+test("topic grounding distinguishes kinship from wombs, marital settlement and prayer", async () => {
+  const full = await QuranSearchIndex.load(new URL("../data/quran-search-index.json", import.meta.url));
+  const topic = "أهمية صلة الرحم";
+  for (const id of ["quran:4:1:ar", "quran:13:21:ar", "quran:47:22:ar", "quran:17:26:ar"]) {
+    assert.equal(full.isTopicGrounded(id, topic), true, id);
+  }
+  for (const id of ["quran:3:6:ar", "quran:4:128:ar", "quran:23:2:ar", "quran:14:18:ar", "quran:60:3:ar", "quran:33:6:ar", "quran:90:16:ar"]) {
+    assert.equal(full.isTopicGrounded(id, topic), false, id);
+  }
+});

@@ -8,6 +8,11 @@ const STOPWORDS = new Set([
   "ثم", "دون", "نحو", "عند", "لدى", "هو", "هي", "كان", "كانت", "يكون", "تكون", "حول", "ضمن",
   "الي", "التي", "الذي", "الذين",
 ]);
+const GENERIC_TOPIC_TOKENS = new Set(["اهميه", "مكانه", "فضل", "اثر", "دور", "بحث", "موضوع", "خطبه", "جمعه", "اسلام"]);
+// A high-precision disambiguation pilot: these ayat mention kinship as an
+// incidental example, an inheritance rule, or a context-specific statement,
+// not as a clear primary proof for a general sermon on maintaining kinship.
+const KINSHIP_CONTEXT_ONLY = new Set(["quran:14:18:ar", "quran:33:6:ar", "quran:42:23:ar", "quran:60:3:ar"]);
 const THEMATIC_EXPANSIONS = Object.freeze({
   امانه: ["امانات", "تودوا", "اهلها", "عدل", "عهد"],
   امانات: ["امانه", "تودوا", "اهلها", "عدل", "عهد"],
@@ -126,6 +131,7 @@ export class QuranSearchIndex {
         explanation_frequencies: termFrequency(explanationTokens),
       };
     });
+    this.documentsById = new Map(this.documents.map((document) => [document.id, document]));
 
     const documentFrequencies = new Map();
     for (const document of this.documents) {
@@ -145,6 +151,26 @@ export class QuranSearchIndex {
 
   static async load(filePath) {
     return new QuranSearchIndex(JSON.parse(await fs.readFile(filePath, "utf8")));
+  }
+
+  isTopicGrounded(id, topic) {
+    const document = this.documentsById.get(id);
+    if (!document) return false;
+    const normalizedTopic = normalizeArabicForSearch(topic);
+    const content = `${document.quran_search_text} ${document.explanation_search_text}`;
+    if (/(?:^| )صله (?:ال)?(?:رحم|ارحام)(?: |$)/u.test(normalizedTopic)) {
+      if (KINSHIP_CONTEXT_ONLY.has(id)) return false;
+      const previous = this.documentsById.get(`quran:${document.surah}:${document.ayah - 1}:ar`);
+      const next = this.documentsById.get(`quran:${document.surah}:${document.ayah + 1}:ar`);
+      const sharedExplanation = document.explanation_search_text === previous?.explanation_search_text
+        || document.explanation_search_text === next?.explanation_search_text;
+      if (sharedExplanation && !/(?:ارحام|قربي|قراب|مقربه|يصلون|يوصل|تقطع)/u.test(document.quran_search_text)) return false;
+      // "الأرحام" can also refer to wombs. Require a kinship cue, not the word alone.
+      return /(?:قربي|قراب|اقارب|اقربين)/u.test(content)
+        || (/(?:ارحام|رحم)/u.test(content) && /(?:صله|يصلون|يوصل|تقطع|قطعوا|وصل|برهم)/u.test(content));
+    }
+    const anchors = arabicSearchTokens(topic).filter((token) => !GENERIC_TOPIC_TOKENS.has(token));
+    return anchors.length > 0 && anchors.some((token) => document.quran_frequencies.has(token) || document.explanation_frequencies.has(token));
   }
 
   search(query, { limit = 10 } = {}) {

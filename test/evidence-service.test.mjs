@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { compileRetrievalQuery, EvidenceService, EvidenceUnavailableError } from "../apps/api/src/services/evidence-service.mjs";
 import { TafsirLinkIndex } from "../apps/api/src/lib/tafsir-link-index.mjs";
+import { QuranSearchIndex } from "../apps/api/src/lib/quran-search-index.mjs";
 
 const validCachedRecord = {
   id: "quran:4:58:ar",
@@ -144,6 +145,29 @@ test("Quran search fuses lexical and semantic candidate ranks without promoting 
   assert.equal(result.candidates[0].id, "quran:1:1:ar");
   assert.deepEqual(result.candidates[0].retrieval.channels, ["lexical", "semantic"]);
   assert.ok(result.candidates.every((candidate) => !Object.hasOwn(candidate, "text")));
+});
+
+test("kinship query keeps lexical source grounding and rejects semantic-only distractors", async () => {
+  const quranIndex = await QuranSearchIndex.load(new URL("../data/quran-search-index.json", import.meta.url));
+  const topic = "أهمية صلة الرحم";
+  const query = compileRetrievalQuery({ roadmap: { brief: { topic } }, axis: {
+    title: "ما المقصود بصلة الرحم؟",
+    research_question: "كيف تعرض المصادر المعتمدة معنى الرحم والصلة؟",
+  } });
+  assert.match(query, /الأرحام القربى/u);
+  const service = new EvidenceService({ client: {}, cache: {}, quranIndex,
+    quranSemanticIndex: { search: async () => [
+      ...["quran:4:128:ar", "quran:23:2:ar"].map((id) => ({ id, source_family: "quran", retrieval: { score: 0.95 } })),
+      { id: "quran:13:21:ar", source_family: "quran", retrieval: { score: 0.8 } },
+    ] },
+  });
+  const result = await service.search({ query, semanticQuery: topic, topic, sources: ["quran"], limit: 10 });
+  const ids = result.candidates.map((candidate) => candidate.id);
+  assert.ok(ids.includes("quran:13:21:ar"));
+  assert.ok(ids.some((id) => ["quran:47:22:ar", "quran:17:26:ar"].includes(id)));
+  assert.ok(!ids.includes("quran:4:128:ar"));
+  assert.ok(!ids.includes("quran:23:2:ar"));
+  assert.ok(result.candidates[0].retrieval.channels.includes("lexical"));
 });
 
 test("strong lexical Quran anchor is not displaced by overlapping semantic distractors", async () => {
@@ -362,4 +386,21 @@ test("limited evidence budget gives every axis a first candidate before second-s
     })),
   } });
   assert.ok([1, 2, 3, 4].every((number) => result.records.some((item) => item.record.id === `quran:${number}:1:ar`)));
+});
+
+test("five-axis research can collect ten distinct grounded references when requested", async () => {
+  const service = new EvidenceService({ client: {}, cache: {}, cacheWrite: false });
+  service.search = async ({ semanticQuery }) => {
+    const axis = /محور (\d)/u.exec(semanticQuery)?.[1];
+    return { candidates: [
+      { id: `quran:${axis}:1:ar`, source_family: "quran" },
+      { id: `hadith:${axis}:ar`, source_family: "hadith" },
+    ], source_warnings: [] };
+  };
+  service.fetchCandidate = async ({ id }) => ({ retrieval_mode: "live", record: { id } });
+  const roadmap = { roadmap_id: "five_axes", brief: { topic: "موضوع" }, axes: [1, 2, 3, 4, 5].map((number) => ({
+    axis_id: `axis_${number}`, title: `محور ${number}`, research_question: `ما دليل محور ${number}؟`, evidence_requirements: ["quran", "hadith"],
+  })) };
+  const result = await service.collectForRoadmap({ roadmap, maxRecords: 10 });
+  assert.equal(result.records.length, 10);
 });
