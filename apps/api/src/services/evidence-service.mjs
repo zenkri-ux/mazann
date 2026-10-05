@@ -172,7 +172,7 @@ export class EvidenceUnavailableError extends Error {
 }
 
 export class EvidenceService {
-  constructor({ client, cache, cacheWrite = true, quranIndex = null, quranSemanticIndex = null, hadithSemanticIndex = null, hadithLocator = null }) {
+  constructor({ client, cache, cacheWrite = true, quranIndex = null, quranSemanticIndex = null, hadithSemanticIndex = null, hadithLocator = null, tafsirLinks = null }) {
     this.client = client;
     this.cache = cache;
     this.cacheWrite = cacheWrite;
@@ -180,6 +180,7 @@ export class EvidenceService {
     this.quranSemanticIndex = quranSemanticIndex;
     this.hadithSemanticIndex = hadithSemanticIndex;
     this.hadithLocator = hadithLocator;
+    this.tafsirLinks = tafsirLinks;
   }
 
   async search({ query, semanticQuery = query, sources = ["quran", "hadith"], language = "ar", limit = 10 }) {
@@ -267,7 +268,11 @@ export class EvidenceService {
       cacheId,
       tool: "get_quran_verses",
       args: { surah, ayah, language },
-      normalize: (result) => normalizeQuranResponse(result, { surah, ayah, language }),
+      normalize: (result) => {
+        const record = normalizeQuranResponse(result, { surah, ayah, language });
+        return this.tafsirLinks?.enrich(record) ?? record;
+      },
+      enrichCached: (record) => this.tafsirLinks?.enrich(record) ?? record,
     });
   }
 

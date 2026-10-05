@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0.0",
+  "source": "موسوعة التفسير — الدرر السنية",
+  "scope": "Verified section links only; no tafsir text is ingested or treated as independent evidence.",
+  "verified_at": "2026-10-05",
+  "sections": [
+    { "surah": 4, "from_ayah": 58, "to_ayah": 59, "title_ar": "سورة النساء، الآيتان 58–59", "url": "https://dorar.net/tafseer/4/18" },
+    { "surah": 49, "from_ayah": 6, "to_ayah": 8, "title_ar": "سورة الحجرات، الآيات 6–8", "url": "https://dorar.net/tafseer/49/2" },
+    { "surah": 2, "from_ayah": 151, "to_ayah": 157, "title_ar": "سورة البقرة، الآيات 151–157", "url": "https://dorar.net/tafseer/2/25" },
+    { "surah": 5, "from_ayah": 1, "to_ayah": 2, "title_ar": "سورة المائدة، الآيتان 1–2", "url": "https://dorar.net/tafseer/5/1" }
+  ]
+}

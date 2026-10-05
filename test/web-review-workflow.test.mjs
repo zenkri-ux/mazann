@@ -15,6 +15,9 @@ test("retrieval wait state uses the compact mark in a symmetric activity frame",
 });
 
 test("evidence review explains axis use and provides a gated next step", () => {
+  assert.match(html, /id="tafsir-context" hidden/);
+  assert.match(script, /related_tafsir/);
+  assert.match(script, /تفسير مرتبط · رابط خارجي/);
   assert.match(html, /id="evidence-use-text"/);
   assert.match(html, /id="open-coverage"[^>]*disabled/);
   assert.match(script, /const ready=total>0&&state\.reviewed===total/);

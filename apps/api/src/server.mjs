@@ -11,6 +11,7 @@ import { QuranSemanticIndex } from "./lib/quran-semantic-index.mjs";
 import { HadithSemanticIndex } from "./lib/hadith-semantic-index.mjs";
 import { OpenAIEmbeddingClient } from "./lib/openai-embedding-client.mjs";
 import { HadithLocatorIndex } from "./lib/hadith-locator-index.mjs";
+import { TafsirLinkIndex } from "./lib/tafsir-link-index.mjs";
 import { EvidenceService, EvidenceUnavailableError } from "./services/evidence-service.mjs";
 import { OpenAIPlannerClient } from "@mazann/openai-planner";
 import { TopicPlanningService } from "./services/topic-planning-service.mjs";
@@ -55,7 +56,13 @@ try {
 } catch (error) {
   console.warn(`Hadith locator index unavailable; keeping collection-level references (${error.code ?? error.message})`);
 }
-const evidence = new EvidenceService({ client, cache, cacheWrite: config.cacheWrite, quranIndex, quranSemanticIndex, hadithSemanticIndex, hadithLocator });
+let tafsirLinks = null;
+try {
+  tafsirLinks = await TafsirLinkIndex.load(config.tafsirLinkPath);
+} catch (error) {
+  console.warn(`Tafsir section links unavailable; Quran evidence remains unchanged (${error.code ?? error.message})`);
+}
+const evidence = new EvidenceService({ client, cache, cacheWrite: config.cacheWrite, quranIndex, quranSemanticIndex, hadithSemanticIndex, hadithLocator, tafsirLinks });
 const projects = new ProjectStore(config.projectDir);
 const plannerClient = config.plannerProvider === "openai" && config.openaiApiKey && config.openaiModel
   ? new OpenAIPlannerClient({
@@ -143,6 +150,12 @@ async function handleApi(request, response, url) {
         verified_records: hadithLocator.metadata.record_count,
         version: hadithLocator.metadata.version,
       } : { mode: "collection_level_only", verified_records: 0 },
+      tafsir_context: tafsirLinks ? {
+        mode: "verified_external_section_links_only",
+        source: tafsirLinks.source,
+        sections: tafsirLinks.sections.length,
+        independent_text_records: 0,
+      } : { mode: "unavailable", sections: 0, independent_text_records: 0 },
       hadith_search: hadithSemanticIndex ? {
         mode: "official_live_lexical_plus_validated_local_semantic_then_full_fetch",
         source: hadithSemanticIndex.metadata.source,

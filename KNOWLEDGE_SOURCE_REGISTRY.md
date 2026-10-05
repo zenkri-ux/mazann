@@ -50,6 +50,8 @@ ICADB's sentence-level alignment and unified identifiers should be represented e
 | Quranpedia | `quranpedia.net` | Quran material explicitly allowed in the original source table. | A reason to bypass ayah identity and edition checks. |
 | Tafsir Center for Quranic Studies | `tafsir.net`; `modoee.com`; `surahapp.com`; `wahy.net` | Scholarly Quran studies, thematic tafsir, surah study, and access to a broad tafsir library; approved apps include Gharib, Al-Kashshaf, Bayyinat, and Mufassal. | Canonical Quran text when the Complex identifier is available. |
 | Early tafsir sources and Dorar Tafsir | first three centuries; `dorar.net/tafseer` | Tafsir evidence under the original competition rule. | Quran wording; visually and structurally separate interpretation. |
+
+Current implementation (2026-10-05): four exact ayah-range links to Dorar sections are shown as contextual reading beside the Quran record and in exports. No Dorar tafsir text is ingested, and these links do not count as independent evidence or tafsir coverage. See `evaluation/TAFSIR_CONTEXT_SCOPE_2026-10-05.md`.
 | MP3Quran | `mp3quran.net`; API `mp3quran.net/api` | Reciter, riwayah/mushaf, radio, stream, recitation audio, and ayah-timing metadata. | Textual authority, translation authority, or interpretation. |
 
 ## Hadith, aqeedah, fiqh, fatwa, Sirah, and guidance

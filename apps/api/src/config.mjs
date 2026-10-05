@@ -21,6 +21,7 @@ export const config = Object.freeze({
   hadithManifestPath: path.resolve(projectRoot, process.env.MAZANN_HADITH_MANIFEST_PATH ?? "data/hadith-source-manifest.json"),
   hadithSemanticIndexPath: path.resolve(projectRoot, process.env.MAZANN_HADITH_SEMANTIC_INDEX_PATH ?? "data/hadith-semantic-index.json"),
   hadithLocatorPath: path.resolve(projectRoot, process.env.MAZANN_HADITH_LOCATOR_PATH ?? "data/hadith-locators.json"),
+  tafsirLinkPath: path.resolve(projectRoot, process.env.MAZANN_TAFSIR_LINK_PATH ?? "data/dorar-tafsir-links.json"),
   projectDir: path.resolve(projectRoot, process.env.MAZANN_PROJECT_DIR ?? "data/runtime/projects"),
   webDir: path.resolve(projectRoot, "apps/web/dist"),
   cacheWrite: (process.env.MAZANN_CACHE_WRITE ?? "true").toLowerCase() !== "false",

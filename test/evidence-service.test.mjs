@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { compileRetrievalQuery, EvidenceService, EvidenceUnavailableError } from "../apps/api/src/services/evidence-service.mjs";
+import { TafsirLinkIndex } from "../apps/api/src/lib/tafsir-link-index.mjs";
 
 const validCachedRecord = {
   id: "quran:4:58:ar",
@@ -40,6 +41,21 @@ test("evidence service exposes cache fallback and upstream failure", async () =>
   const result = await service.quran({ surah: 4, ayah: 58 });
   assert.equal(result.retrieval_mode, "cache");
   assert.equal(result.upstream_error.code, "MCP_NETWORK_ERROR");
+});
+
+test("cached Quran evidence receives the verified tafsir section link without changing its text", async () => {
+  const tafsirLinks = await TafsirLinkIndex.load(new URL("../data/dorar-tafsir-links.json", import.meta.url));
+  const cachedRecord = { ...validCachedRecord, source_family: "quran", metadata: { surah: 4, ayah: 58 }, text: "آية كاملة محفوظة" };
+  const service = new EvidenceService({
+    client: { callTool: async () => { throw new Error("offline"); } },
+    cache: { read: async () => ({ cached_at: "2026-10-05T09:00:00.000Z", record: cachedRecord }) },
+    cacheWrite: false,
+    tafsirLinks,
+  });
+  const result = await service.quran({ surah: 4, ayah: 58 });
+  assert.equal(result.record.related_tafsir.citation_url, "https://dorar.net/tafseer/4/18");
+  assert.equal(result.record.text, cachedRecord.text);
+  assert.equal(result.record.related_tafsir.text_included, false);
 });
 
 test("search retries a source reported unavailable and recovers its candidates", async () => {
