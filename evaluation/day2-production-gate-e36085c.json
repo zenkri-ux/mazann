@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-10-05",
+  "url": "https://mazann.51.254.141.28.sslip.io/",
+  "git_commit": "e36085c",
+  "image": "mazann:e36085c",
+  "deployment_mode": "shared_caddy_compose",
+  "container_health": "healthy",
+  "public_unauthenticated_status": 401,
+  "automated_tests": { "passed": 90, "failed": 0 },
+  "local_evaluation": {
+    "quran_hybrid_cases": 10,
+    "hit_at_5": 1,
+    "mrr": 1,
+    "scope_note": "Only the existing ten labelled cases; this does not establish general quality."
+  },
+  "production_smoke": {
+    "topic": "أهمية صلة الرحم",
+    "axes": 5,
+    "status": 200,
+    "full_records": 10,
+    "quran_records": 6,
+    "hadith_records": 4,
+    "reported_unrelated_ayat_present": false,
+    "unresolved": 0,
+    "search_failures": 0
+  },
+  "runtime_volume_preserved": true
+}
