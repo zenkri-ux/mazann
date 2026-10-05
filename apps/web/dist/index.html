@@ -12,10 +12,11 @@
   <body>
     <a class="skip-link" href="#main-content">انتقل إلى المحتوى</a>
     <div class="app-shell">
-      <aside class="sidebar" aria-label="التنقل الرئيسي">
+      <aside class="sidebar" id="mobile-navigation" aria-label="التنقل الرئيسي">
         <header class="brand-lockup">
           <img class="mazann-mark" src="./assets/mazann-symbol-dark.svg" alt="شعار مَظَانّ: مخطوط مفتوح داخل قوس، يمر فيه مسار البحث البنفسجي إلى نقطة المصدر" />
           <div><strong>مَظَانّ</strong><span>مساحة إعداد الأدلة</span></div>
+          <button class="sidebar-close" id="sidebar-close" type="button" aria-label="إغلاق القائمة">×</button>
         </header>
         <nav class="primary-nav" aria-label="شاشات النموذج">
           <p>مسار العمل</p>
@@ -29,9 +30,10 @@
           <button class="theme-toggle" id="theme-toggle" type="button" aria-label="تبديل المظهر"><span>◐</span><b>المظهر</b><small id="theme-label">فاتح</small></button>
         </div>
       </aside>
+      <button class="sidebar-backdrop" id="sidebar-backdrop" type="button" aria-label="إغلاق القائمة" hidden></button>
       <main id="main-content" class="main-content">
         <header class="topbar">
-          <button class="mobile-menu" id="mobile-menu" type="button" aria-label="فتح القائمة">☰</button>
+          <button class="mobile-menu" id="mobile-menu" type="button" aria-label="فتح القائمة" aria-controls="mobile-navigation" aria-expanded="false">☰</button>
           <div class="project-context"><span class="context-dot"></span><div><b id="project-title">حقيبة بحث جديدة</b><small id="context-label">لم يبدأ جمع الأدلة بعد</small></div></div>
           <div class="top-actions"><button class="demo-button" id="demo-mode" type="button"><span class="demo-button-dot"></span>وضع العرض</button><button class="ghost-button" id="save-project" type="button">حفظ البحث</button><button class="ghost-button" id="saved-projects" type="button">أبحاثي</button><button class="ghost-button" id="prototype-info" type="button">عن النموذج</button><button class="profile-button" type="button" aria-label="حساب الباحث">ز</button></div>
         </header>

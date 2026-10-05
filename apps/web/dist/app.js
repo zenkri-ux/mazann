@@ -4,13 +4,28 @@ const qsa=(selector,root=document)=>[...root.querySelectorAll(selector)];
 const labels={start:'لم يبدأ جمع الأدلة بعد',plan:'الخطة جاهزة للمراجعة',evidence:'مراجعة المصادر والسياق',coverage:'الحقيبة جاهزة للمراجعة'};
 const workspaceId=(()=>{const key='mazann-workspace-id';try{const existing=localStorage.getItem(key);if(/^workspace_[a-f0-9-]{36}$/.test(existing||''))return existing;const created=`workspace_${crypto.randomUUID()}`;localStorage.setItem(key,created);return created}catch{return `workspace_${crypto.randomUUID()}`}})();
 
+function setMobileMenu(open,{restoreFocus=true}={}){
+  const menu=qs('#mobile-menu');const sidebar=qs('#mobile-navigation');const wasOpen=sidebar.classList.contains('open');
+  const nextOpen=Boolean(open&&window.matchMedia('(max-width: 800px)').matches);
+  sidebar.classList.toggle('open',nextOpen);
+  qs('#sidebar-backdrop').hidden=!nextOpen;
+  document.body.classList.toggle('mobile-menu-open',nextOpen);
+  qs('#main-content').inert=nextOpen;
+  menu.setAttribute('aria-expanded',String(nextOpen));
+  menu.setAttribute('aria-label',nextOpen?'القائمة مفتوحة':'فتح القائمة');
+  if(nextOpen)qs('#sidebar-close').focus();
+  else if(wasOpen&&restoreFocus)menu.focus();
+}
+
 function showView(view){
+  const menuWasOpen=qs('#mobile-navigation').classList.contains('open');
   state.view=view;
   if(view==='coverage')renderCoverage();
   qsa('.screen').forEach(el=>el.classList.toggle('active',el.dataset.screen===view));
   qsa('.nav-item').forEach((el,index)=>{const active=el.dataset.view===view;el.classList.toggle('active',active);el.classList.toggle('complete',index<['start','plan','evidence','coverage'].indexOf(view));});
   qs('#context-label').textContent=labels[view];
-  qs('.sidebar').classList.remove('open');
+  setMobileMenu(false,{restoreFocus:false});
+  if(menuWasOpen){const heading=qs(`#screen-${view} h1`);if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true})}}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function toast(message){const el=qs('#toast');el.textContent=message;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2800)}
@@ -396,7 +411,10 @@ function exportResearchPackage(format){
 qs('#check-expert').addEventListener('change',event=>{state.expertReviewed=event.target.checked;renderCoverage()});
 qsa('[data-export-format]').forEach(button=>button.addEventListener('click',()=>exportResearchPackage(button.dataset.exportFormat)));
 qs('#theme-toggle').addEventListener('click',()=>{state.theme=state.theme==='light'?'dark':'light';document.body.classList.toggle('dark',state.theme==='dark');qs('#theme-label').textContent=state.theme==='dark'?'داكن':'فاتح'});
-qs('#mobile-menu').addEventListener('click',()=>qs('.sidebar').classList.toggle('open'));
+qs('#mobile-menu').addEventListener('click',()=>setMobileMenu(true));
+qs('#sidebar-close').addEventListener('click',()=>setMobileMenu(false));
+qs('#sidebar-backdrop').addEventListener('click',()=>setMobileMenu(false));
+window.addEventListener('resize',()=>{if(window.innerWidth>800&&qs('#mobile-navigation').classList.contains('open'))setMobileMenu(false,{restoreFocus:false})});
 qs('#prototype-info').addEventListener('click',()=>{qs('#info-modal').hidden=false;qs('.modal-close').focus()});
 qsa('[data-close-modal]').forEach(el=>el.addEventListener('click',()=>{const modal=qs(`#${el.dataset.closeModal}`);if(modal)modal.hidden=true}));
 async function saveProject(){
@@ -436,7 +454,20 @@ async function openProject(projectId){
 qs('#save-project').addEventListener('click',saveProject);
 qs('#saved-projects').addEventListener('click',showSavedProjects);
 qs('#projects-list').addEventListener('click',event=>{const button=event.target.closest('[data-project-id]');if(button)openProject(button.dataset.projectId)});
-document.addEventListener('keydown',event=>{if(event.key==='Escape'){qsa('.modal').forEach(modal=>modal.hidden=true);qs('.sidebar').classList.remove('open')}});
+document.addEventListener('keydown',event=>{
+  const sidebar=qs('#mobile-navigation');
+  if(event.key==='Escape'){
+    qsa('.modal').forEach(modal=>modal.hidden=true);
+    if(sidebar.classList.contains('open')){event.preventDefault();setMobileMenu(false)}
+  }
+  if(event.key==='Tab'&&sidebar.classList.contains('open')){
+    const buttons=qsa('button:not([disabled]),a[href]',sidebar).filter(item=>item.getClientRects().length);
+    const first=buttons[0],last=buttons[buttons.length-1];
+    if(!first)return;
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+  }
+});
 
 const motionGroups={
   start:['.hero-copy','.identity-emblem','.research-brief','.scenario-strip button'],

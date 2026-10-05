@@ -89,3 +89,18 @@ test("user-facing exports include print-PDF and Word while retaining Markdown fo
   assert.match(script, /application\/msword/);
   assert.match(script, /printWindow\.print/);
 });
+
+test("mobile navigation has visible close paths, background isolation and keyboard escape", () => {
+  assert.match(html, /id="mobile-navigation"/);
+  assert.match(html, /id="sidebar-close"[^>]*aria-label="إغلاق القائمة"/);
+  assert.match(html, /id="sidebar-backdrop"[^>]*hidden/);
+  assert.match(html, /id="mobile-menu"[^>]*aria-controls="mobile-navigation" aria-expanded="false"/);
+  assert.match(script, /function setMobileMenu\(open/);
+  assert.match(script, /document\.body\.classList\.toggle\('mobile-menu-open',nextOpen\)/);
+  assert.match(script, /qs\('#main-content'\)\.inert=nextOpen/);
+  assert.match(script, /menu\.setAttribute\('aria-expanded',String\(nextOpen\)\)/);
+  assert.match(script, /qs\('#sidebar-close'\)\.addEventListener\('click',\(\)=>setMobileMenu\(false\)\)/);
+  assert.match(script, /qs\('#sidebar-backdrop'\)\.addEventListener\('click',\(\)=>setMobileMenu\(false\)\)/);
+  assert.match(script, /event\.key==='Escape'.*setMobileMenu\(false\)/s);
+  assert.match(styles, /\.sidebar-backdrop:not\(\[hidden\]\)\{display:block/);
+});

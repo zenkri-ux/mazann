@@ -93,6 +93,17 @@ body.demo-mode .sidebar{box-shadow:-24px 0 70px rgba(13,18,51,.12)}body.demo-mod
 body{font-weight:400;background:linear-gradient(180deg,#fbfbff 0%,var(--paper) 100%)}
 button:focus-visible,textarea:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid rgba(46,242,194,.42)}
 .sidebar{padding:24px 18px;background:radial-gradient(circle at 8% 105%,rgba(97,80,234,.34),transparent 36%),linear-gradient(155deg,var(--navy) 0%,var(--navy-deep) 100%)}
+.sidebar-close,.sidebar-backdrop{display:none}
+@media(max-width:800px){
+  body.mobile-menu-open{overflow:hidden}
+  .sidebar{display:flex;width:min(300px,calc(100vw - 42px));height:100dvh;overflow-y:auto;overscroll-behavior:contain;transform:translateX(105%);visibility:hidden;pointer-events:none;transition:transform .24s ease,visibility .24s ease}
+  .sidebar.open{display:flex;transform:none;visibility:visible;pointer-events:auto;box-shadow:-20px 0 60px rgba(0,0,0,.3)}
+  .sidebar-backdrop:not([hidden]){display:block;position:fixed;inset:0;z-index:19;width:100%;border:0;background:rgba(9,13,37,.58);backdrop-filter:blur(3px);cursor:pointer}
+  .sidebar-close{display:grid;place-items:center;width:40px;height:40px;flex:0 0 40px;margin-inline-start:auto;border:1px solid rgba(255,255,255,.18);border-radius:10px;color:#fff;background:rgba(255,255,255,.08);font-size:1.55rem;line-height:1;cursor:pointer}
+  .sidebar-close:hover,.sidebar-close:focus-visible{background:rgba(255,255,255,.17)}
+  .sidebar-close:focus-visible,.mobile-menu:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+}
+@media(prefers-reduced-motion:reduce){.sidebar{transition:none}}
 .sidebar:before{opacity:.42;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='188' height='188' viewBox='0 0 188 188'%3E%3Cg fill='none' stroke='%236150EA' stroke-width='1.2' opacity='.28'%3E%3Cpath d='M94 20c-24 0-42 20-42 43 0 29 42 61 42 61s42-32 42-61c0-23-18-43-42-43Z'/%3E%3Cpath d='M59 54c21-2 35 8 35 31m35-31c-21-2-35 8-35 31M72 106c11-13 33-13 44 0'/%3E%3C/g%3E%3C/svg%3E");background-position:-72px 350px}
 .brand-lockup{gap:12px;padding:0 8px 24px;border-bottom-color:rgba(255,255,255,.1)}
 .mazann-mark{width:58px;height:58px;filter:none}
