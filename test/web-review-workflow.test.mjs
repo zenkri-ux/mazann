@@ -20,6 +20,10 @@ test("evidence review explains axis use and provides a gated next step", () => {
   assert.match(script, /const ready=total>0&&state\.reviewed===total/);
   assert.match(script, /evidenceUseLabel\(item\)/);
   assert.match(html, /id="evidence-axis-select"/);
+  assert.match(html, /id="evidence-axis-change"/);
+  assert.match(html, /تغيير المحور المقترح/);
+  assert.match(script, /axisChange\.open=!hasSuggestion/);
+  assert.match(script, /qs\('#evidence-axis-change'\)\.open=true/);
   assert.match(script, /item\.axis_ids=\(state\.roadmap\?\.axes\|\|\[\]\)\.some/);
   assert.match(script, /if\(evidenceAxes\(item\)\.length!==1\)/);
   assert.match(script, /class="hadith-matn">\$\{escapeHtml\(record\.text\)\}/);
