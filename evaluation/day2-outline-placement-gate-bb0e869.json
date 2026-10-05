@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-10-05",
+  "git_commit": "bb0e869c3151293fceef7e5a6ea514ebea8d32f8",
+  "image": "mazann:bb0e869",
+  "automated_tests": { "passed": 67, "failed": 0 },
+  "local_browser_check": {
+    "quran_outline_first_line": "complete_ayah_text",
+    "quran_outline_second_line": "surah_and_ayah_locator",
+    "evidence_use": "one_axis_per_record",
+    "missing_axis": "visible_gap_instead_of_inflated_coverage",
+    "axis_selector": "manual_reassignment_updates_evidence_card",
+    "demo_axis_counts": [1, 1, 0]
+  },
+  "placement_policy": {
+    "search_axis_ids": "preserved_as_retrieval_trace",
+    "axis_ids": "at_most_one_outline_placement",
+    "weak_or_tied_match": "needs_user_assignment",
+    "legacy_multi_axis_saved_record": "cleared_for_user_reassignment",
+    "acceptance": "requires_one_reviewed_axis"
+  },
+  "production": {
+    "container_health": "healthy",
+    "public_unauthenticated_status": 401
+  }
+}
