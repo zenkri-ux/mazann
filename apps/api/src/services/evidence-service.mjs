@@ -1,4 +1,5 @@
 import { ensureReferenceProvenance, normalizeHadithResponse, normalizeQuranResponse, normalizeSearchResponse } from "@mazann/domain";
+import { suggestEvidenceAxis } from "../lib/evidence-axis-placement.mjs";
 
 const ARABIC_RETRIEVAL_STOPWORDS = new Set([
   "إلى", "الى", "أو", "او", "أي", "اي", "أن", "ان", "إن", "عن", "على", "في", "من", "مع",
@@ -284,7 +285,11 @@ export class EvidenceService {
     fetched.forEach((result, index) => {
       const selectedCandidate = selected[index];
       if (result.status === "fulfilled") {
-        records.push({ ...result.value, axis_ids: selectedCandidate.axis_ids });
+        records.push({
+          ...result.value,
+          ...suggestEvidenceAxis(result.value.record, roadmap.axes),
+          search_axis_ids: selectedCandidate.axis_ids,
+        });
       } else {
         unresolved.push({
           id: selectedCandidate.candidate.id,

@@ -19,6 +19,9 @@ test("evidence review explains axis use and provides a gated next step", () => {
   assert.match(html, /id="open-coverage"[^>]*disabled/);
   assert.match(script, /const ready=total>0&&state\.reviewed===total/);
   assert.match(script, /evidenceUseLabel\(item\)/);
+  assert.match(html, /id="evidence-axis-select"/);
+  assert.match(script, /item\.axis_ids=\(state\.roadmap\?\.axes\|\|\[\]\)\.some/);
+  assert.match(script, /if\(evidenceAxes\(item\)\.length!==1\)/);
   assert.match(script, /class="hadith-matn">\$\{escapeHtml\(record\.text\)\}/);
   assert.match(script, /هذا هو المتن الكامل المنشور في سجل الإتاحة/);
 });
@@ -29,6 +32,8 @@ test("coverage renders an evidence-linked writing outline without claiming a gen
   assert.match(script, /زاوية المعالجة/);
   assert.match(script, /row\.included/);
   assert.match(script, /content_type==='ayah'\)return item\.record\.reference\?\.locator_ar/);
+  assert.match(script, /item\.record\.source_family==='quran'\?item\.record\.text:evidenceTitle\(item\)/);
+  assert.match(script, /ids\.length===1\?ids:\[\]/);
   assert.doesNotMatch(script, /return `سورة النساء، الآية \$\{item\.record\.metadata\.ayah\}`/);
 });
 

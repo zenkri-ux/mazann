@@ -157,7 +157,9 @@ test("roadmap collection fetches complete unique records and preserves axis trac
     },
   });
   assert.equal(result.records.length, 2);
-  assert.deepEqual(result.records[0].axis_ids, ["foundation", "context"]);
+  assert.deepEqual(result.records[0].search_axis_ids, ["foundation", "context"]);
+  assert.deepEqual(result.records[0].axis_ids, []);
+  assert.equal(result.records[0].placement_status, "needs_user_assignment");
   assert.equal(result.unresolved.length, 0);
   assert.equal(result.search_trace.length, 2);
   assert.equal(result.search_trace[0].original_question, "ما الأصل؟");

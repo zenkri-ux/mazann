@@ -167,8 +167,13 @@ function referenceKey(item){return item.record.reference?.key||`unknown:${item.r
 function evidenceAxes(item){
   const ids=new Set(item.axis_ids||[]);return (state.roadmap?.axes||[]).filter(axis=>ids.has(axis.axis_id));
 }
+function normalizeEvidencePlacement(item){
+  const valid=new Set((state.roadmap?.axes||[]).map(axis=>axis.axis_id));
+  const ids=Array.isArray(item.axis_ids)?item.axis_ids.filter(id=>valid.has(id)):[];
+  return {...item,axis_ids:ids.length===1?ids:[],placement_status:ids.length===1?(item.placement_status||'needs_confirmation'):'needs_user_assignment'};
+}
 function evidenceUseLabel(item){
-  const axes=evidenceAxes(item);return axes.length?axes.map(axis=>axis.title).join(' · '):'لم يُربط بمحور محدد بعد';
+  const axes=evidenceAxes(item);return axes.length?axes[0].title:'اختر المحور المناسب قبل اعتماد الدليل';
 }
 function updateEvidenceCounts(){
   const counts={all:state.evidence.length,quran:0,hadith:0};
@@ -177,9 +182,9 @@ function updateEvidenceCounts(){
   qs('#evidence-count').textContent=state.evidence.length;
   state.reviewed=state.evidence.filter(item=>item.decision).length;
   qs('#reviewed-count').textContent=state.reviewed;
-  const next=qs('#evidence-next');const total=state.evidence.length;const ready=total>0&&state.reviewed===total;
+  const next=qs('#evidence-next');const total=state.evidence.length;const assigned=state.evidence.every(item=>item.decision==='excluded'||evidenceAxes(item).length===1);const ready=total>0&&state.reviewed===total&&assigned;
   next.hidden=total===0||state.loadingEvidence;qs('#evidence-next-count').textContent=`${state.reviewed} / ${total}`;qs('#open-coverage').disabled=!ready;
-  qs('#evidence-next-title').textContent=ready?'اكتملت قرارات الأدلة — ابنِ هيكل الكتابة':'احسم قرار كل دليل، ثم ابنِ هيكل الكتابة';
+  qs('#evidence-next-title').textContent=ready?'اكتملت قرارات الأدلة — ابنِ هيكل الكتابة':state.reviewed===total&&!assigned?'حدّد محور كل دليل مدرج قبل بناء الحقيبة':'احسم قرار كل دليل، ثم ابنِ هيكل الكتابة';
   qs('#evidence-next-description').textContent=ready?'سترى كل محور مع وظيفته والأدلة التي اعتمدتها والفجوات التي بقيت.':'اعتمد ما يخدم محاورك واستبعد ما لا يناسبها؛ لا يعني ظهور الدليل أنه دخل الحقيبة.';
   qs('#source-rail h2').textContent=state.evidence.length===2?'موضعان موثقان':`${state.evidence.length} مواضع موثقة`;
   const groups=new Map();state.evidence.forEach(item=>{const key=referenceKey(item);const group=groups.get(key)||{key,label:referenceLabel(item),family:item.record.source_family,count:0,precise:true};group.count++;group.precise=group.precise&&Boolean(item.record.reference?.primary_locator_available);groups.set(key,group)});
@@ -194,7 +199,8 @@ function renderEvidence(){
     const body=record.content_type==='ayah'?`<blockquote>${escapeHtml(record.text)}</blockquote><p>${escapeHtml(record.metadata.translation||'لا يوجد شرح منشور في السجل.')}</p>`:`<h2>${escapeHtml(evidenceTitle(item))}</h2><blockquote class="hadith-matn">${escapeHtml(record.text)}</blockquote><p>هذا هو المتن الكامل المنشور في سجل الإتاحة. الحكم المنشور: <b>${escapeHtml(record.metadata.grade||'غير متاح')}</b>.</p>`;
     const locatorBadge=record.reference?.primary_locator_available===false?'<span class="review-badge">موضع الكتاب يحتاج استكمالًا</span>':'';
     const decision=item.decision?`<span class="decision-chip ${escapeHtml(item.decision)}">${escapeHtml(decisionLabel(item.decision))}</span>`:'<span class="decision-chip pending">بانتظار قرارك</span>';
-    return `<article class="evidence-card${accepted}${warning}${selected}" data-type="${escapeHtml(type)}" data-reference-key="${escapeHtml(referenceKey(item))}" data-record-id="${escapeHtml(record.id)}"><header><div><span class="type-badge ${escapeHtml(type)}">${escapeHtml(referenceLabel(item))}</span><span class="verified-badge">✓ سجل كامل · ${mode}</span>${locatorBadge}</div>${decision}</header><div class="evidence-purpose"><span>يخدم</span><b>${escapeHtml(evidenceUseLabel(item))}</b></div>${body}<footer><span>${escapeHtml(evidenceLocation(item))}</span><a href="${escapeHtml(safeExternalUrl(record.citation_url))}" target="_blank" rel="noreferrer">فتح سجل الإتاحة</a></footer></article>`;
+    const purposeLabel=item.placement_status==='confirmed_by_user'?'يخدم':evidenceAxes(item).length?'محور مقترح':'حدد موضعه';
+    return `<article class="evidence-card${accepted}${warning}${selected}" data-type="${escapeHtml(type)}" data-reference-key="${escapeHtml(referenceKey(item))}" data-record-id="${escapeHtml(record.id)}"><header><div><span class="type-badge ${escapeHtml(type)}">${escapeHtml(referenceLabel(item))}</span><span class="verified-badge">✓ سجل كامل · ${mode}</span>${locatorBadge}</div>${decision}</header><div class="evidence-purpose"><span>${purposeLabel}</span><b>${escapeHtml(evidenceUseLabel(item))}</b></div>${body}<footer><span>${escapeHtml(evidenceLocation(item))}</span><a href="${escapeHtml(safeExternalUrl(record.citation_url))}" target="_blank" rel="noreferrer">فتح سجل الإتاحة</a></footer></article>`;
   }).join('');
   updateEvidenceCounts();
   qsa('.evidence-card',feed).forEach(card=>card.addEventListener('click',event=>{if(event.target.closest('a'))return;selectEvidence(card.dataset.recordId)}));
@@ -204,7 +210,8 @@ function selectEvidence(id){
   qsa('.evidence-card').forEach(card=>card.classList.toggle('selected',card.dataset.recordId===id));
   const panel=qs('#source-inspector');panel.classList.remove('is-refreshing');void panel.offsetWidth;panel.classList.add('is-refreshing');
   qs('h2',panel).textContent=evidenceTitle(item);qs('.original-text p',panel).textContent=item.record.text;qs('.verified-seal',panel).textContent='✓';
-  const axes=evidenceAxes(item);qs('#evidence-use-text').textContent=axes.length?axes.map(axis=>`«${axis.title}»: ${axis.purpose||axis.research_question}`).join(' — '):'ظهر هذا السجل في البحث، لكنه لم يُربط بمحور محدد؛ راجع صلته قبل اعتماده.';
+  const axes=evidenceAxes(item);qs('#evidence-use-text').textContent=axes.length?`«${axes[0].title}»: ${axes[0].purpose||axes[0].research_question}`:'لم تتضح صلة قوية بمحور واحد؛ اختر موضع استخدامه بعد مراجعة النص.';
+  const axisSelect=qs('#evidence-axis-select');axisSelect.innerHTML=`<option value="">اختر محورًا مناسبًا</option>${(state.roadmap?.axes||[]).map(axis=>`<option value="${escapeHtml(axis.axis_id)}">${escapeHtml(axis.title)}</option>`).join('')}`;axisSelect.value=axes[0]?.axis_id||'';axisSelect.disabled=!state.roadmap?.axes?.length;
   const meta=qsa('.source-meta b',panel);meta[0].textContent=referenceLabel(item);meta[1].textContent=evidenceLocation(item);meta[2].textContent=item.record.access?.provider_name||item.record.origin_platform;meta[3].textContent=item.retrieval_mode==='live'?'حي من منصة الإتاحة':'نسخة مخزنة موثقة';meta[3].classList.add('mint-text');
   const referenceNote=item.record.reference?.verification_note_ar;qs('.relevance p',panel).textContent=referenceNote|| (item.record.content_type==='ayah'?`موضع الآية محدد، والتفسير المنشور محفوظ منفصلًا عن نصها. البصمة: ${item.record.checksum_sha256.slice(0,12)}…`:`الحكم المنشور: ${item.record.metadata.grade||'غير متاح'}. الشرح محفوظ منفصلًا عن المتن. البصمة: ${item.record.checksum_sha256.slice(0,12)}…`);
   const verification=item.record.reference?.verification;const audit=item.record.metadata?.locator_audit;
@@ -219,7 +226,7 @@ async function loadRoadmapEvidence(){
   qs('#evidence-feed').innerHTML='<div class="evidence-empty"><b>جارٍ البحث في المصادر المعتمدة</b><p>تُدمج النتائج المتكررة، ثم يُجلب الأصل الكامل ويُتحقق من مرجعه.</p></div>';
   try{
     const result=await api('/api/research/evidence',{roadmap:state.roadmap,max_records:6});
-    state.evidence=result.records.map(item=>({...item,decision:null}));
+    state.evidence=result.records.map(item=>normalizeEvidencePlacement({...item,decision:null}));
     const cacheCount=state.evidence.filter(item=>item.retrieval_mode==='cache').length;
     const failedCount=result.unresolved.length+result.search_failures.length;
     const failedSourceLabels=[...new Set(result.search_failures.map(item=>item.source).filter(Boolean).map(source=>source==='quran'?'القرآن':source==='hadith'?'الحديث':source))];
@@ -246,17 +253,19 @@ async function loadDemoEvidence(){
   if(!state.roadmap){state.roadmap=demoReviewRoadmap();renderRoadmap(state.roadmap)}
   state.loadingEvidence=true;state.evidence=[];state.selectedEvidence=null;qs('#retrieval-status').textContent='جارٍ طلب السجلين الكاملين والتحقق من المرجع والبصمة…';qs('#evidence-feed').innerHTML='<div class="evidence-empty"><b>جارٍ الاتصال بالمصدر</b><p>لن يظهر مقتطف البحث بوصفه دليلًا.</p></div>';
   const requests=[api('/api/evidence/quran',{surah:4,ayah:58,language:'ar'}),api('/api/evidence/hadith',{id:'3016',language:'ar'})];
-  const results=await Promise.allSettled(requests);state.evidence=results.filter(result=>result.status==='fulfilled').map((result,index)=>({...result.value,axis_ids:index===0?['demo_foundation','demo_application']:['demo_application','demo_outcome'],decision:null}));
+  const results=await Promise.allSettled(requests);state.evidence=results.filter(result=>result.status==='fulfilled').map((result,index)=>({...result.value,axis_ids:[index===0?'demo_foundation':'demo_application'],decision:null}));
   const failures=results.filter(result=>result.status==='rejected');const cacheCount=state.evidence.filter(item=>item.retrieval_mode==='cache').length;
   qs('#retrieval-status').textContent=`وصل ${state.evidence.length} سجل كامل صالح${cacheCount?` · ${cacheCount} من النسخة المخزنة`:''}${failures.length?` · تعذر ${failures.length} ولم يُستبدل بمحتوى مولد`:''}.`;
   renderEvidence();if(state.evidence[0])selectEvidence(state.evidence[0].record.id);state.loadingEvidence=false;
 }
-qs('#accept-evidence').addEventListener('click',()=>{const item=state.evidence.find(entry=>entry.record.id===state.selectedEvidence);if(!item)return;const complete=item.record.reference?.primary_locator_available!==false;item.decision=complete?'accepted':'needs_reference';renderEvidence();selectEvidence(item.record.id);toast(complete?'أُضيف السجل الكامل إلى الحقيبة مع مرجعه وبصمته':'حُفظ مبدئيًا، ولن يعد مرجعًا نهائيًا حتى يستكمل موضعه في الكتاب')});
+qs('#evidence-axis-select').addEventListener('change',event=>{const item=state.evidence.find(entry=>entry.record.id===state.selectedEvidence);if(!item)return;const id=event.target.value;item.axis_ids=(state.roadmap?.axes||[]).some(axis=>axis.axis_id===id)?[id]:[];item.placement_status=id?'confirmed_by_user':'needs_user_assignment';renderEvidence();selectEvidence(item.record.id)});
+qs('#accept-evidence').addEventListener('click',()=>{const item=state.evidence.find(entry=>entry.record.id===state.selectedEvidence);if(!item)return;if(evidenceAxes(item).length!==1){toast('اختر المحور الذي يخدمه هذا الدليل قبل اعتماده');qs('#evidence-axis-select').focus();return}const complete=item.record.reference?.primary_locator_available!==false;item.decision=complete?'accepted':'needs_reference';item.placement_status='confirmed_by_user';renderEvidence();selectEvidence(item.record.id);toast(complete?'أُضيف السجل الكامل إلى الحقيبة مع مرجعه وبصمته':'حُفظ مبدئيًا، ولن يعد مرجعًا نهائيًا حتى يستكمل موضعه في الكتاب')});
 qs('#reject-evidence').addEventListener('click',()=>{const item=state.evidence.find(entry=>entry.record.id===state.selectedEvidence);if(!item)return;item.decision='excluded';renderEvidence();selectEvidence(item.record.id);toast('استُبعد الدليل وبقي قرار الاستبعاد قابلًا للمراجعة')});
 qs('#open-coverage').addEventListener('click',()=>showView('coverage'));
 function decisionLabel(decision){return ({accepted:'معتمد',needs_reference:'اعتماد مبدئي — يحتاج استكمال الموضع',excluded:'مستبعد'})[decision]||'لم يُحسم'}
 function buildCoverageModel(){
   const axes=state.roadmap?.axes||[];
+  const unassigned=state.evidence.filter(item=>['accepted','needs_reference'].includes(item.decision)&&evidenceAxes(item).length!==1);
   const rows=axes.map(axis=>{
     const requirements=axis.evidence_requirements?.length?axis.evidence_requirements:['quran','hadith'];
     const cells=requirements.map(source=>{
@@ -272,15 +281,15 @@ function buildCoverageModel(){
   });
   const score=rows.length?Math.round(rows.reduce((sum,row)=>sum+row.percent,0)/rows.length):0;
   const gaps=rows.flatMap(row=>row.cells.filter(cell=>cell.status==='gap').map(cell=>({axis:row.axis,source:cell.source})));
-  return {rows,score,gaps};
+  return {rows,score,gaps,unassigned};
 }
 function renderCoverage(){
   const model=buildCoverageModel();const axes=state.roadmap?.axes||[];
   qs('#coverage-score').innerHTML=`${model.score}<small>%</small>`;
   qs('#coverage-title').textContent=model.score>=80?'الحقيبة متماسكة، وتبقى المراجعة العلمية النهائية.':model.score>=50?'هناك أساس جيد، لكن بعض المصادر أو القرارات تحتاج استكمالًا.':'الحقيبة تحتاج مراجعة الأدلة قبل اعتمادها.';
-  qs('#coverage-meta').textContent=`${axes.length} محاور · ${state.evidence.length} سجلات كاملة · ${model.gaps.length} فجوات مصدرية`;
+  qs('#coverage-meta').textContent=`${axes.length} محاور · ${state.evidence.length} سجلات كاملة · ${model.gaps.length} فجوات مصدرية${model.unassigned.length?` · ${model.unassigned.length} أدلة بلا محور`:''}`;
   qs('#writing-outline-list').innerHTML=model.rows.length?model.rows.map((row,index)=>{
-    const records=row.included;const evidenceMarkup=records.length?records.map(item=>`<li><span class="outline-source ${escapeHtml(item.record.source_family)}">${escapeHtml(item.record.source_family==='quran'?'قرآن':'حديث')}</span><span><b>${escapeHtml(evidenceTitle(item))}</b><small>${escapeHtml(referenceLabel(item))} · ${escapeHtml(evidenceLocation(item))}</small></span></li>`).join(''):'<li class="outline-gap">لا يوجد دليل معتمد لهذا الجزء بعد.</li>';
+    const records=row.included;const evidenceMarkup=records.length?records.map(item=>`<li><span class="outline-source ${escapeHtml(item.record.source_family)}">${escapeHtml(item.record.source_family==='quran'?'قرآن':'حديث')}</span><span><b>${escapeHtml(item.record.source_family==='quran'?item.record.text:evidenceTitle(item))}</b><small>${escapeHtml(referenceLabel(item))} · ${escapeHtml(evidenceLocation(item))}</small></span></li>`).join(''):'<li class="outline-gap">لا يوجد دليل معتمد لهذا الجزء بعد.</li>';
     return `<article class="outline-part"><div class="outline-number"><span>${String(index+1).padStart(2,'0')}</span><small>${escapeHtml(row.axis.time_minutes||'—')} د</small></div><div class="outline-copy"><span class="outline-role">${escapeHtml(axisLabels[row.axis.role]||'جزء الموضوع')}</span><h3>${escapeHtml(row.axis.title)}</h3><p><b>زاوية المعالجة:</b> ${escapeHtml(row.axis.purpose||'تحديد وظيفة هذا الجزء قبل الكتابة.')}</p><p><b>السؤال الذي يجيب عنه:</b> ${escapeHtml(row.axis.research_question)}</p><ul>${evidenceMarkup}</ul></div><span class="outline-score ${row.percent>=80?'ready':row.percent?'partial':'empty'}">${row.percent}%</span></article>`;
   }).join(''):'<div class="outline-empty">ابنِ خطة البحث وراجع الأدلة ليظهر هيكل الكتابة.</div>';
   qs('#coverage-axis-list').innerHTML=model.rows.length?model.rows.map((row,index)=>{
@@ -289,17 +298,17 @@ function renderCoverage(){
     return `<div class="axis-row"><div><span>${String(index+1).padStart(2,'0')}</span><div><b>${escapeHtml(row.axis.title)}</b><small>${escapeHtml(detail)}</small></div></div><div class="coverage-cells" style="grid-template-columns:repeat(${Math.max(row.cells.length,1)},1fr)">${row.cells.map(cell=>`<i class="${cell.status}" title="${escapeHtml(sourceLabels[cell.source]||cell.source)}"></i>`).join('')}</div><strong>${row.percent}%</strong></div>`;
   }).join(''):'<div class="coverage-empty">ابنِ خطة البحث أولًا لتظهر خريطة التغطية.</div>';
   const gap=model.gaps[0];const gapCard=qs('#coverage-gap');const hasRoadmap=axes.length>0;
-  gapCard.classList.toggle('resolved',hasRoadmap&&!gap);
-  qs('#coverage-gap-label').textContent=!hasRoadmap?'بانتظار خطة البحث':gap?'فجوة ذات أولوية':'لا توجد فجوة مصدرية مفتوحة';
-  qs('#coverage-gap-title').textContent=!hasRoadmap?'ابنِ خطة البحث وراجع الأدلة أولًا':gap?`محور «${gap.axis.title}» يحتاج ${sourceLabels[gap.source]||gap.source}`:'اكتملت أنواع المصادر المطلوبة وفق القرارات الحالية';
-  qs('#coverage-gap-description').textContent=!hasRoadmap?'لن يدّعي النظام اكتمالًا قبل وجود محاور وأدلة وقرارات مراجعة.':gap?'ابحث عن سجل كامل مناسب، أو عدّل متطلبات المحور بقرار منهجي واضح.':'تبقى مراجعة المتخصص إلزامية قبل استخدام المادة أو نشرها.';
-  const included=state.evidence.filter(item=>['accepted','needs_reference'].includes(item.decision));
+  gapCard.classList.toggle('resolved',hasRoadmap&&!gap&&!model.unassigned.length);
+  qs('#coverage-gap-label').textContent=!hasRoadmap?'بانتظار خطة البحث':model.unassigned.length?'دليل يحتاج تحديد موضعه':gap?'فجوة ذات أولوية':'لا توجد فجوة مصدرية مفتوحة';
+  qs('#coverage-gap-title').textContent=!hasRoadmap?'ابنِ خطة البحث وراجع الأدلة أولًا':model.unassigned.length?`${model.unassigned.length} أدلة مدرجة بلا محور محدد`:gap?`محور «${gap.axis.title}» يحتاج ${sourceLabels[gap.source]||gap.source}`:'اكتملت أنواع المصادر المطلوبة وفق القرارات الحالية';
+  qs('#coverage-gap-description').textContent=!hasRoadmap?'لن يدّعي النظام اكتمالًا قبل وجود محاور وأدلة وقرارات مراجعة.':model.unassigned.length?'ارجع إلى مراجعة الأدلة وحدد موضع استخدام واحدًا لكل دليل؛ لا تُحسب الأدلة غير المرتبطة ضمن التغطية.':gap?'ابحث عن سجل كامل مناسب، أو عدّل متطلبات المحور بقرار منهجي واضح.':'تبقى مراجعة المتخصص إلزامية قبل استخدام المادة أو نشرها.';
+  const included=state.evidence.filter(item=>['accepted','needs_reference'].includes(item.decision)&&evidenceAxes(item).length===1);
   const quran=included.filter(item=>item.record.source_family==='quran');const hadith=included.filter(item=>item.record.source_family==='hadith');
   const checks={
     quran:quran.length>0&&quran.every(item=>item.record.content_type==='ayah'&&item.record.validation?.status==='valid'),
     hadith:hadith.length>0&&hadith.every(item=>Boolean(item.record.metadata?.grade)&&item.record.validation?.status==='valid'),
     references:included.length>0&&included.every(item=>Boolean(item.record.reference?.source_label_ar)&&Boolean(evidenceLocation(item))&&item.record.reference?.primary_locator_available!==false),
-    decisions:state.evidence.length>0&&state.evidence.every(item=>Boolean(item.decision)),
+    decisions:state.evidence.length>0&&state.evidence.every(item=>Boolean(item.decision)&&(item.decision==='excluded'||evidenceAxes(item).length===1)),
   };
   qs('#check-quran').checked=checks.quran;qs('#check-hadith').checked=checks.hadith;qs('#check-references').checked=checks.references;qs('#check-decisions').checked=checks.decisions;qs('#check-expert').checked=state.expertReviewed;
   const passed=Object.values(checks).filter(Boolean).length+(state.expertReviewed?1:0);qs('#readiness-count').textContent=`${passed} / 5`;
@@ -321,6 +330,7 @@ function buildMarkdownPackage(){
     if(!records.length)lines.push('- لا يوجد سجل كامل مرتبط بهذا المحور.','');
     records.forEach(item=>{const record=item.record;lines.push(`#### ${evidenceTitle(item)}`,'',`- القرار: ${decisionLabel(item.decision)}`,`- المصدر المرجعي: ${referenceLabel(item)}`,`- الموضع: ${evidenceLocation(item)}`,`- دقة الموضع: ${record.reference?.precision||'غير محددة'}`,`- حالة الجلب: ${item.retrieval_mode==='live'?'حي':'نسخة مخزنة'}`,`- حالة التحقق: ${record.validation?.status||'غير محددة'}`,`- البصمة: ${record.checksum_sha256}`,`- رابط الإتاحة: ${record.citation_url}`);(record.reference?.primary_sources||[]).forEach(source=>lines.push(`- تحقق ${source.collection_ar} ${source.number_ar}: ${source.verification_url}`));if(record.reference?.verification?.evidence_url)lines.push(`- شاهد التخريج (${record.reference.verification.authority}): ${record.reference.verification.evidence_url}`);lines.push('','> '+String(record.text).replace(/\n/g,'\n> '),'');});
   });
+  if(model.unassigned.length){lines.push('## أدلة مدرجة تنتظر تحديد المحور','');model.unassigned.forEach(item=>lines.push(`- ${evidenceTitle(item)} — ${referenceLabel(item)} — ${item.record.citation_url}`));lines.push('')}
   lines.push('## الفجوات','');
   if(model.gaps.length)model.gaps.forEach(gap=>lines.push(`- ${gap.axis.title}: يحتاج ${sourceLabels[gap.source]||gap.source}.`));else lines.push('- لا توجد فجوات مصدرية وفق متطلبات المحاور وقرارات المراجعة الحالية.');
   lines.push('','## سجل الاستبعاد','');
@@ -334,7 +344,8 @@ function buildDocumentPackage(){
     return `<section class="part"><header><span>${String(index+1).padStart(2,'0')}</span><div><small>${escapeHtml(axisLabels[row.axis.role]||'جزء الموضوع')} · ${escapeHtml(row.axis.time_minutes||'—')} دقيقة</small><h2>${escapeHtml(row.axis.title)}</h2></div></header><p><b>زاوية المعالجة:</b> ${escapeHtml(row.axis.purpose||'—')}</p><p><b>السؤال:</b> ${escapeHtml(row.axis.research_question)}</p><h3>الأدلة المختارة</h3>${records}</section>`;
   }).join('');
   const gaps=model.gaps.length?model.gaps.map(gap=>`<li>${escapeHtml(gap.axis.title)}: يحتاج ${escapeHtml(sourceLabels[gap.source]||gap.source)}</li>`).join(''):'<li>لا توجد فجوات مصدرية وفق القرارات الحالية.</li>';
-  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>حقيبة مَظَانّ — ${escapeHtml(topic)}</title><style>@page{size:A4;margin:18mm}*{box-sizing:border-box}body{font-family:"Arial",sans-serif;color:#171b3f;line-height:1.8;margin:0}main{max-width:780px;margin:auto}.brand{color:#6150ea;font-weight:700}.boundary{padding:12px 16px;border-right:4px solid #e9a63d;background:#fff7e5}.summary{display:flex;gap:20px;padding:12px 0;border-block:1px solid #ddd}.part{margin:26px 0;break-inside:avoid}.part>header{display:flex;gap:12px;align-items:center}.part>header>span{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#f0edff;color:#6150ea;font-weight:700}.part h2{margin:0}.part small,.meta{color:#667085}.reference{margin:12px 0;padding:14px;border:1px solid #e3e4ec;border-radius:12px}.reference h4,.reference p{margin:0 0 6px}.reference blockquote{margin:10px 0;padding:10px 14px;border-right:3px solid #2ef2c2;background:#f7f8fb}.gap{color:#9f394a}.footer{margin-top:28px;padding-top:14px;border-top:1px solid #ddd;color:#667085;font-size:12px}@media print{a{color:inherit;text-decoration:none}}</style></head><body><main><p class="brand">مَظَانّ · حقيبة إعداد الأدلة</p><h1>${escapeHtml(topic)}</h1><div class="summary"><span>${escapeHtml(state.roadmap.brief?.target_audience||'جمهور غير محدد')}</span><span>${escapeHtml(state.roadmap.brief?.country_or_context||'سياق غير محدد')}</span><span>جاهزية الأدلة ${model.score}%</span></div><p class="boundary"><b>حدود الاستخدام:</b> هذه خريطة كتابة وحقيبة مصادر، وليست خطبة مولدة أو فتوى. يلزم التحقق والمراجعة العلمية قبل الاستخدام أو النشر.</p>${parts}<section><h2>الفجوات المفتوحة</h2><ul>${gaps}</ul></section><p class="footer">أُنشئت الحقيبة في ${new Date().toLocaleString('ar')} · تبقى صياغة الخطبة وقرار استخدامها مسؤولية الباحث والمراجع المؤهل.</p></main></body></html>`;
+  const unassigned=model.unassigned.length?`<section><h2>أدلة تنتظر تحديد المحور</h2><ul>${model.unassigned.map(item=>`<li>${escapeHtml(evidenceTitle(item))} — ${escapeHtml(referenceLabel(item))}</li>`).join('')}</ul></section>`:'';
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>حقيبة مَظَانّ — ${escapeHtml(topic)}</title><style>@page{size:A4;margin:18mm}*{box-sizing:border-box}body{font-family:"Arial",sans-serif;color:#171b3f;line-height:1.8;margin:0}main{max-width:780px;margin:auto}.brand{color:#6150ea;font-weight:700}.boundary{padding:12px 16px;border-right:4px solid #e9a63d;background:#fff7e5}.summary{display:flex;gap:20px;padding:12px 0;border-block:1px solid #ddd}.part{margin:26px 0;break-inside:avoid}.part>header{display:flex;gap:12px;align-items:center}.part>header>span{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#f0edff;color:#6150ea;font-weight:700}.part h2{margin:0}.part small,.meta{color:#667085}.reference{margin:12px 0;padding:14px;border:1px solid #e3e4ec;border-radius:12px}.reference h4,.reference p{margin:0 0 6px}.reference blockquote{margin:10px 0;padding:10px 14px;border-right:3px solid #2ef2c2;background:#f7f8fb}.gap{color:#9f394a}.footer{margin-top:28px;padding-top:14px;border-top:1px solid #ddd;color:#667085;font-size:12px}@media print{a{color:inherit;text-decoration:none}}</style></head><body><main><p class="brand">مَظَانّ · حقيبة إعداد الأدلة</p><h1>${escapeHtml(topic)}</h1><div class="summary"><span>${escapeHtml(state.roadmap.brief?.target_audience||'جمهور غير محدد')}</span><span>${escapeHtml(state.roadmap.brief?.country_or_context||'سياق غير محدد')}</span><span>جاهزية الأدلة ${model.score}%</span></div><p class="boundary"><b>حدود الاستخدام:</b> هذه خريطة كتابة وحقيبة مصادر، وليست خطبة مولدة أو فتوى. يلزم التحقق والمراجعة العلمية قبل الاستخدام أو النشر.</p>${parts}${unassigned}<section><h2>الفجوات المفتوحة</h2><ul>${gaps}</ul></section><p class="footer">أُنشئت الحقيبة في ${new Date().toLocaleString('ar')} · تبقى صياغة الخطبة وقرار استخدامها مسؤولية الباحث والمراجع المؤهل.</p></main></body></html>`;
 }
 function downloadFile(content,type,extension){
   const blob=new Blob([`\ufeff${content}`],{type});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`mazann-research-${new Date().toISOString().slice(0,10)}.${extension}`;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -380,7 +391,7 @@ async function showSavedProjects(){
 async function openProject(projectId){
   try{
     const project=await apiGet(`/api/projects/${encodeURIComponent(projectId)}`);
-    state.projectId=project.project_id;state.roadmap=project.roadmap;state.evidence=project.evidence||[];state.selectedEvidence=state.evidence[0]?.record?.id||null;
+    state.projectId=project.project_id;state.roadmap=project.roadmap;state.evidence=(project.evidence||[]).map(normalizeEvidencePlacement);state.selectedEvidence=state.evidence[0]?.record?.id||null;
     restoreBrief(project.brief);if(state.roadmap)renderRoadmap(state.roadmap);renderEvidence();if(state.selectedEvidence)selectEvidence(state.selectedEvidence);
     qs('#project-title').textContent=project.title;qs('#save-project').textContent='حفظ التغييرات';qs('#projects-modal').hidden=true;
     const safeView=['start','plan','evidence','coverage'].includes(project.current_view)?project.current_view:'start';showView(safeView);toast('فُتح البحث من آخر حالة محفوظة');
