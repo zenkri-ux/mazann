@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/canonical-record.mjs",
     "./topic-roadmap": "./src/topic-roadmap.mjs",
-    "./planner-evaluation": "./src/planner-evaluation.mjs"
+    "./planner-evaluation": "./src/planner-evaluation.mjs",
+    "./content-safety": "./src/content-safety.mjs"
   }
 }

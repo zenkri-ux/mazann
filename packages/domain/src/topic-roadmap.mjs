@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { classifyContentLevel, ContentSafetyReferralError } from "./content-safety.mjs";
 
 export class RoadmapInputError extends Error {
   constructor(message, details = {}) {
@@ -6,6 +7,15 @@ export class RoadmapInputError extends Error {
     this.name = "RoadmapInputError";
     this.code = "INVALID_RESEARCH_BRIEF";
     this.status = 400;
+    this.details = details;
+  }
+}
+
+export class PlannerSafetyError extends Error {
+  constructor(message, details = {}) {
+    super(message);
+    this.name = "PlannerSafetyError";
+    this.code = "UNSAFE_PLANNER_OUTPUT";
     this.details = details;
   }
 }
@@ -71,6 +81,8 @@ export function createTopicRoadmap(input = {}) {
   const duration = cleanText(input.duration ?? "15–20 دقيقة", "duration", { max: 50 });
   const countryOrContext = cleanText(input.country_or_context ?? "السياق المحلي للمستخدم", "country_or_context", { max: 120 });
   const intendedOutcome = cleanText(input.intended_outcome ?? "بناء فهم مؤصل يقود إلى تطبيق مسؤول", "intended_outcome", { max: 180 });
+  const contentSafety = classifyContentLevel({ topic, intended_outcome: intendedOutcome });
+  if (contentSafety.level === "d") throw new ContentSafetyReferralError(contentSafety);
   const language = input.language ?? "ar";
   if (language !== "ar") throw new RoadmapInputError("الإصدار الحالي يدعم خارطة البحث العربية فقط", { field: "language" });
 
@@ -90,7 +102,14 @@ export function createTopicRoadmap(input = {}) {
     language,
   };
   const minutes = allocate(durationMinutes(duration), [0.3, 0.4, 0.3]);
-  const policyDecision = instructionState === "unverified" ? "proceed_with_visible_caveat" : "proceed";
+  const policyDecision = contentSafety.level === "c"
+    ? "proceed_with_scholarly_review"
+    : instructionState === "unverified" ? "proceed_with_visible_caveat" : "proceed";
+  const instructionNote = instructionState === "verified"
+    ? `تراعي الخطة التوجيه «${instruction.title}» الصادر عن ${instruction.issuing_authority}، وتبقى مرجعيته منفصلة عن الأدلة الشرعية.`
+    : instructionState === "none_declared"
+      ? "سجل المستخدم أن الموضوع من اختياره ولا يعمل بناءً على تعميم خاص."
+      : "لم يتحقق المستخدم بعد من وجود تعميم خاص؛ يمكن متابعة البحث مع إبقاء التذكير ظاهرًا قبل اعتماد الحقيبة.";
 
   return {
     roadmap_id: roadmapId({ ...brief, official_instruction_state: instructionState, governing_instruction: instruction }),
@@ -101,13 +120,11 @@ export function createTopicRoadmap(input = {}) {
     policy_gate: {
       official_instruction_state: instructionState,
       decision: policyDecision,
-      content_level: "requires_classification",
+      content_level: contentSafety.level,
+      reason_codes: contentSafety.reason_codes,
+      scholarly_review_required: contentSafety.review_required,
       governing_instruction: instruction,
-      note: instructionState === "verified"
-        ? `تراعي الخطة التوجيه «${instruction.title}» الصادر عن ${instruction.issuing_authority}، وتبقى مرجعيته منفصلة عن الأدلة الشرعية.`
-        : instructionState === "none_declared"
-          ? "سجل المستخدم أن الموضوع من اختياره ولا يعمل بناءً على تعميم خاص."
-          : "لم يتحقق المستخدم بعد من وجود تعميم خاص؛ يمكن متابعة البحث مع إبقاء التذكير ظاهرًا قبل اعتماد الحقيبة.",
+      note: `${contentSafety.note_ar} ${instructionNote}`,
     },
     axes: [
       {
@@ -142,6 +159,7 @@ export function createTopicRoadmap(input = {}) {
       required: true,
       checkpoint: "approve_or_edit_plan",
       questions: [
+        ...(contentSafety.level === "c" ? ["من المتخصص الذي سيعتمد عرض الخلاف وحدوده قبل استخدام المادة؟"] : []),
         "هل يعكس ترتيب المحاور حاجة الجمهور الفعلية؟",
         "هل يوجد توجيه رسمي نافذ يجب توثيقه قبل البحث؟",
         "هل يمكن تناول الموضوع ضمن المدة من دون اختزال مخل؟",
@@ -156,6 +174,13 @@ export function createTopicRoadmap(input = {}) {
 }
 
 export function enhanceTopicRoadmap(base, draft, { provider, model, responseId = null } = {}) {
+  const draftText = JSON.stringify(draft ?? {});
+  const sacredCitationPattern = /(قال الله تعالى|قال رسول الله|قال النبي|رواه\s+(?:البخاري|مسلم|الترمذي|أبو داود|النسائي|ابن ماجه)|سورة\s+\S+\s+(?:آية|رقم)|﴿|ﷺ)/u;
+  if (sacredCitationPattern.test(draftText)) {
+    throw new PlannerSafetyError("رفضت بوابة السلامة مخرج التخطيط لأنه تضمن نصًا أو إحالة مقدسة قبل الاسترجاع الموثق", {
+      reason: "sacred_citation_in_planning_output",
+    });
+  }
   if (!draft || !Array.isArray(draft.axes) || draft.axes.length < 3 || draft.axes.length > 5) {
     throw new RoadmapInputError("مخرجات التخطيط لا تحتوي عددًا صالحًا من المحاور", { field: "axes" });
   }

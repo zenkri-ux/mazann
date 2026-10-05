@@ -73,7 +73,8 @@ function renderRoadmap(roadmap){
   qs('#summary-audience').textContent=`${roadmap.brief.target_audience} · ${roadmap.brief.country_or_context}`;
   qs('#summary-format').textContent=`${roadmap.brief.format} · ${roadmap.brief.duration}`;
   const instructionLabels={none_declared:'موضوع اختاره المستخدم',verified:'الخطة تراعي تعميمًا رسميًا',unverified:'حالة التعميم تحتاج تحققًا'};
-  qs('#policy-note').innerHTML=`<b>${escapeHtml(instructionLabels[roadmap.policy_gate.official_instruction_state])}</b>${escapeHtml(roadmap.policy_gate.note)}`;
+  const levelLabel=({a:'أ — معلومة مستقرة',b:'ب — شرح مؤصل',c:'ج — حساس ويستلزم مراجعة'})[roadmap.policy_gate.content_level]||'قيد التصنيف';
+  qs('#policy-note').innerHTML=`<b>${escapeHtml(levelLabel)} · ${escapeHtml(instructionLabels[roadmap.policy_gate.official_instruction_state])}</b>${escapeHtml(roadmap.policy_gate.note)}`;
   qs('#plan-status').textContent=roadmap.generation_mode==='model_assisted'
     ?'حلل النموذج الموضوع والجمهور، ثم قُيدت مخرجاته بعقد مَظَانّ وبوابة المراجعة. لم يولد أدلة أو أحكامًا.'
     :roadmap.planner_status?.state==='fallback'

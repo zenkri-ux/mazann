@@ -42,7 +42,7 @@
       "required": ["official_instruction_state", "decision", "content_level"],
       "properties": {
         "official_instruction_state": { "enum": ["none_declared", "unverified", "verified"] },
-        "decision": { "enum": ["proceed_with_visible_caveat", "proceed", "hold_for_verification"] },
+        "decision": { "enum": ["proceed_with_visible_caveat", "proceed", "proceed_with_scholarly_review", "hold_for_verification"] },
         "content_level": { "enum": ["requires_classification", "a", "b", "c", "d"] },
         "governing_instruction": {
           "type": ["object", "null"],

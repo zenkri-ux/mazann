@@ -44,3 +44,28 @@ test("planning service falls back visibly when the model provider fails", async 
   assert.equal(roadmap.planner_status.state, "fallback");
   assert.equal(roadmap.planner_status.code, "PLANNER_NETWORK_ERROR");
 });
+
+test("planning service rejects model-invented sacred citations and falls back safely", async () => {
+  const unsafeDraft = structuredClone(draft);
+  unsafeDraft.axes[0].purpose = "قال الله تعالى: نص مقترح يضاف إلى الخطة";
+  const service = new TopicPlanningService({
+    provider: { plan: async () => ({ draft: unsafeDraft, provider: "openai", model: "test-model" }) },
+  });
+  const roadmap = await service.create(input);
+  assert.equal(roadmap.generation_mode, "methodology_template");
+  assert.equal(roadmap.planner_status.state, "fallback");
+  assert.equal(roadmap.planner_status.code, "UNSAFE_PLANNER_OUTPUT");
+  assert.doesNotMatch(JSON.stringify(roadmap.axes), /قال الله تعالى/u);
+});
+
+test("level D refusal happens before the external planning provider is called", async () => {
+  let providerCalls = 0;
+  const service = new TopicPlanningService({
+    provider: { plan: async () => { providerCalls += 1; return { draft, provider: "openai", model: "test-model" }; } },
+  });
+  await assert.rejects(
+    () => service.create({ ...input, topic: "زوجي طلقني وأريد فتوى في حالتي الآن" }),
+    (error) => error.code === "PERSONAL_FATWA_REFERRAL_REQUIRED",
+  );
+  assert.equal(providerCalls, 0);
+});

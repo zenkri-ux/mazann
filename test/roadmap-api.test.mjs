@@ -53,6 +53,29 @@ test("roadmap API rejects a vague topic with a structured client error", async (
   });
 });
 
+test("roadmap API refuses a personal fatwa before model planning or retrieval", async () => {
+  await withServer(async (origin) => {
+    const response = await fetch(`${origin}/api/research/roadmap`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        topic: "أفطرت متعمدًا فماذا أفعل الآن وهل تجب علي كفارة",
+        target_audience: "حالة شخصية",
+        country_or_context: "السعودية",
+        format: "بحث",
+        duration: "15 دقيقة",
+        official_instruction_state: "none_declared",
+        language: "ar",
+      }),
+    });
+    assert.equal(response.status, 422);
+    const error = await response.json();
+    assert.equal(error.error, "PERSONAL_FATWA_REFERRAL_REQUIRED");
+    assert.equal(error.details.content_level, "d");
+    assert.match(error.details.safe_alternative, /جهة إفتاء/);
+  });
+});
+
 test("roadmap evidence API rejects an invalid roadmap before source access", async () => {
   await withServer(async (origin) => {
     const response = await fetch(`${origin}/api/research/evidence`, {
