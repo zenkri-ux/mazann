@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-05",
+  "commit": "bd35ea5f26b29ee4791a54d115dfb53279902b67",
+  "image": "mazann:bd35ea5",
+  "checks": {
+    "automated_tests": "69/69 pass",
+    "javascript_syntax": "pass",
+    "desktop_panel": "440px inspector; review controls visible while long source details scroll inside",
+    "mobile_panel": "390x844; full decision dock within viewport after evidence loads",
+    "coverage_tone": "neutral purple incomplete-source state and explanatory copy visually checked",
+    "production_container": "healthy",
+    "production_ui_file": "inspector-body present in running image",
+    "public_unauthenticated_http": 401
+  },
+  "limitation": "Usability and scholarly reviewer measurements are still pending; local visual checks used cached demo records."
+}
