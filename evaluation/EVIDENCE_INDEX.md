@@ -45,6 +45,10 @@
 | حالة انتظار الاسترجاع متزنة وتشرح مراحل العمل | فحص بصري 1440×700 | `day2-ux-retrieval-loading.png` | `PASS` |
 | الدليل يوضح الجزء الذي يخدمه قبل القرار | فحص بصري 1440×1200 | `day2-ux-evidence-linked.png` | `PASS` |
 | الحقيبة تتحول إلى هيكل كتابة مرتبط بالمراجع | فحص بصري 1440×1400 و800×1400 | `day2-ux-writing-outline.png`, `day2-ux-writing-outline-responsive.png` | `PASS` |
+| موضوع الأمانة يعيد أدلة قرآنية وحديثية ذات صلة | رحلة API واختبارات regression | commit `8b85d8b` و`day2-reviewer-clean-gate-8b85d8b.json` | `PASS` — 3 قرآن + 3 حديث، دون فشل بحث |
+| اسم السورة والمرجع الظاهر يطابقان كل سجل | اختبار UI ورحلة إنتاج | commit `8b85d8b` و`day2-production-gate-8b85d8b.json` | `PASS` |
+| النسخة النهائية للمراجعين مجتازة للبوابات | اختبارات، تقييمات، بناء ونشر نظيف | `day2-reviewer-clean-gate-8b85d8b.json` | `63/63`؛ القرآن `10/10`؛ المخطط `4/4` |
+| نسخة الإنتاج تطابق المرشح المثبت | فحص صحة ورحلة كاملة داخل الحاوية | `day2-production-gate-8b85d8b.json` | `PASS` — image `mazann:8b85d8b` |
 
 ## اليوم الثالث — 6 أكتوبر 2026
 

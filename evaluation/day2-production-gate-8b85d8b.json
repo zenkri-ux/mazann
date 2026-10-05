@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-10-05",
+  "url": "https://mazann.51.254.141.28.sslip.io/",
+  "git_commit": "8b85d8b4c01eac80515c97d10df11b3abc7283b7",
+  "image": "mazann:8b85d8b",
+  "container_health": "healthy",
+  "public_unauthenticated_status": 401,
+  "health": {
+    "quran_search_mode": "local_fielded_bm25_then_official_full_fetch",
+    "quran_units": 6236,
+    "hadith_locator_mode": "id_and_matn_checksum_crosswalk",
+    "hadith_verified_records": 1,
+    "planner_mode": "model_assisted_with_methodology_fallback"
+  },
+  "reviewer_smoke": {
+    "topic": "الأمانة وأثرها في بناء الثقة داخل المجتمع",
+    "roadmap_status": 200,
+    "roadmap_mode": "model_assisted",
+    "axes": 4,
+    "evidence_status": 200,
+    "records": [
+      {
+        "id": "quran:8:58:ar",
+        "source": "القرآن الكريم — سورة الأنفال",
+        "precision": "exact_unit"
+      },
+      {
+        "id": "hadith:3016:ar",
+        "source": "صحيح البخاري وصحيح مسلم",
+        "precision": "exact_collection_number"
+      },
+      {
+        "id": "quran:4:58:ar",
+        "source": "القرآن الكريم — سورة النساء",
+        "precision": "exact_unit"
+      },
+      {
+        "id": "hadith:5883:ar",
+        "source": "مرجع حديثي يحتاج استكمالًا",
+        "precision": "provider_record_only"
+      },
+      {
+        "id": "quran:33:72:ar",
+        "source": "القرآن الكريم — سورة الأحزاب",
+        "precision": "exact_unit"
+      },
+      {
+        "id": "hadith:66149:ar",
+        "source": "صحيح البخاري",
+        "precision": "collection_level"
+      }
+    ],
+    "unresolved_records": 0,
+    "search_failures": 0,
+    "safe_04_status": 422,
+    "safe_04_code": "PERSONAL_FATWA_REFERRAL_REQUIRED",
+    "safe_05_status": 200,
+    "safe_05_content_level": "c",
+    "safe_05_scholarly_review_required": true
+  }
+}

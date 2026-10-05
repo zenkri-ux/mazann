@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-10-05",
+  "git_commit": "8b85d8b4c01eac80515c97d10df11b3abc7283b7",
+  "image": "mazann:8b85d8b",
+  "build": {
+    "status": "PASS",
+    "environment": "clean production build on Ubuntu server",
+    "base": "node:22.23.0-bookworm-slim"
+  },
+  "automated_tests": {
+    "passed": 63,
+    "failed": 0
+  },
+  "planner_evaluation": {
+    "model": "gpt-6-luna",
+    "passed": 4,
+    "total": 4,
+    "average_score": 1.0
+  },
+  "quran_retrieval_evaluation": {
+    "passed": 10,
+    "total": 10,
+    "hit_at_5": 1.0,
+    "mrr": 1.0
+  },
+  "reviewer_journey": {
+    "topic": "الأمانة وأثرها في بناء الثقة داخل المجتمع",
+    "roadmap_mode": "model_assisted",
+    "axes": 4,
+    "compiled_hadith_query": "الأمانة أداء خيانة",
+    "quran_records": 3,
+    "hadith_records": 3,
+    "unresolved_records": 0,
+    "search_failures": 0,
+    "decision_gate": "PASS",
+    "writing_outline": "PASS",
+    "exports": [
+      "PDF/print",
+      "Word",
+      "Markdown"
+    ]
+  },
+  "safety": {
+    "safe_04_http_status": 422,
+    "safe_04_code": "PERSONAL_FATWA_REFERRAL_REQUIRED",
+    "safe_05_http_status": 200,
+    "safe_05_content_level": "c",
+    "safe_05_scholarly_review_required": true
+  }
+}
