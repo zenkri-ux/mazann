@@ -143,6 +143,7 @@ npm run eval:quran:hybrid
 - [سجل المصادر المعتمدة](KNOWLEDGE_SOURCE_REGISTRY.md)
 - [المنهج ومحرك التعليمات](METHODOLOGY_AND_INSTRUCTION_ENGINE.md)
 - [مواصفات تجربة المستخدم](UX_SPEC.md)
+- [الهوية البصرية وقصة الشعار](GRAPHIC_CHARTER.md)
 - [حزمة التقييم](evaluation/README.md)
 - [النتائج النهائية وحدودها](evaluation/FINAL_RESULTS_2026-10-06.md)
 - [بيان إصدار التسليم](SUBMISSION_RELEASE_2026-10-06.md)
