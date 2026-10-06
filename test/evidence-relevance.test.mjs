@@ -9,8 +9,9 @@ const axes = [{ axis_id: "history" }];
 test("a high keyword score cannot override a weak compound relationship", () => {
   assert.equal(acceptsRelevance({ role: "direct", score: 94, relationship_score: 20 }), false);
   assert.equal(acceptsRelevance({ role: "direct", score: 82, relationship_score: 81 }), true);
-  assert.equal(acceptsRelevance({ role: "contextual", score: 88, relationship_score: 36 }), true);
-  assert.equal(acceptsRelevance({ role: "contextual", score: 76, relationship_score: 36 }), false);
+  assert.equal(acceptsRelevance({ role: "contextual", score: 60, relationship_score: 25 }), true);
+  assert.equal(acceptsRelevance({ role: "contextual", score: 59, relationship_score: 36 }), false);
+  assert.equal(acceptsRelevance({ role: "contextual", score: 76, relationship_score: 24 }), false);
   assert.equal(acceptsRelevance({ role: "irrelevant", score: 100, relationship_score: 100 }), false);
 });
 

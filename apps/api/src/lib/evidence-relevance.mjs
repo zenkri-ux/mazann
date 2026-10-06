@@ -2,7 +2,7 @@
 // calibrated against imam-labelled direct, contextual and false-positive cases.
 export const RELEVANCE_THRESHOLDS = Object.freeze({
   direct: Object.freeze({ score: 75, relationship_score: 65 }),
-  contextual: Object.freeze({ score: 80, relationship_score: 25 }),
+  contextual: Object.freeze({ score: 60, relationship_score: 25 }),
 });
 
 export function validateRelevanceAssessments(assessments, records, axes) {

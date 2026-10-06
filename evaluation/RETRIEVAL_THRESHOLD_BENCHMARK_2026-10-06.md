@@ -1,5 +1,7 @@
 # Title-only retrieval benchmark — 6 October 2026
 
+> Historical baseline: this report describes the original score-80 contextual gate. After reviewing the scored examples, the project owner reported that contextual records at score 60 or above looked useful and those below 60 began to look unrelated. The application now uses 60 as its provisional contextual score cutoff, retaining the relationship-score floor of 25 and the unchanged direct-evidence gate. The 15-title counts below are the original offline sensitivity analysis, not a fresh run of the updated application or expert-labeled precision.
+
 ## Protocol
 
 - Fifteen titles are copied exactly from the user's list in `retrieval-threshold-topics-2026-10-06.json`. No descriptions, intended outcomes, audience changes, or edits to generated axes were supplied. The application filled its standard brief defaults; the benchmark set `official_instruction_state=none_declared` consistently.
