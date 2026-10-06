@@ -2,9 +2,9 @@
 
 **مساعد بحث مسؤول لخطيب الجمعة يحوّل الموضوع إلى خطة بحث مفسّرة وحقيبة أدلة كاملة قابلة للمراجعة، مع بقاء اعتماد الخطة والأدلة والقرار النهائي بيد الخطيب أو المختص.**
 
-[تجربة مَظَانّ مباشرة](https://mazann.51.254.141.28.sslip.io/) · [دليل المحكّم](docs/JUDGE_GUIDE_AR.md) · [النتائج وحدودها](evaluation/FINAL_RESULTS_2026-10-06.md) · [معمارية الحل](SOLUTION_ARCHITECTURE.md)
+[تجربة مَظَانّ مباشرة](https://mazann.51.254.141.28.sslip.io/) · [خريطة معايير التحكيم](docs/JUDGING_CRITERIA_MAP_AR.md) · [دليل المحكّم](docs/JUDGE_GUIDE_AR.md) · [النتائج وحدودها](evaluation/FINAL_RESULTS_2026-10-06.md)
 
-> فيديو العرض: سيضاف هنا رابط YouTube غير المدرج بعد رفع النسخة النهائية وقبل قفل التسليم.
+> قُدّم رابط فيديو العرض النهائي ضمن منصة التحدي. يضاف رابطه العام هنا عند تثبيت نسخة المشاهدة النهائية.
 
 ![واجهة مراجعة الأدلة في مَظَانّ](evaluation/day2-ux-evidence-linked.png)
 
@@ -137,6 +137,7 @@ npm run eval:quran:hybrid
 ## التوثيق
 
 - [دليل المحكّم المصور](docs/JUDGE_GUIDE_AR.md)
+- [خريطة معايير التحكيم والأدلة](docs/JUDGING_CRITERIA_MAP_AR.md)
 - [معمارية الحل](SOLUTION_ARCHITECTURE.md)
 - [آلية الاسترجاع الواعي بالعلاقة](docs/RELATIONSHIP_AWARE_RETRIEVAL.md)
 - [سياسة قاعدة المعرفة](KNOWLEDGE_BASE_POLICY.md)
@@ -146,7 +147,6 @@ npm run eval:quran:hybrid
 - [الهوية البصرية وقصة الشعار](GRAPHIC_CHARTER.md)
 - [حزمة التقييم](evaluation/README.md)
 - [النتائج النهائية وحدودها](evaluation/FINAL_RESULTS_2026-10-06.md)
-- [بيان إصدار التسليم](SUBMISSION_RELEASE_2026-10-06.md)
 - [إشعارات المصادر والمكونات](THIRD_PARTY_NOTICES.md)
 
 ## سجل المنافسة والشفافية
