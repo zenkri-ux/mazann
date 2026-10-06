@@ -36,8 +36,19 @@ function syncInstructionFields(){
   qs('#instruction-fields').hidden=!supplied;
   qsa('#instruction-fields input,#instruction-fields textarea').forEach(field=>field.required=supplied);
   const labels={none_declared:'غير مستخدم — الموضوع من اختيارك',verified:'سيُراعى التعميم في الخطة',unverified:'سيظهر تذكير قبل الاعتماد'};qs('#instruction-summary').textContent=labels[value];
+  syncOptionalSummary();
+}
+function syncOptionalSummary(){
+  const details=[];
+  if(qs('#context-detail').value.trim())details.push('تفصيل الجمهور محفوظ');
+  const instructionState=qs('input[name="instruction-state"]:checked').value;
+  if(instructionState==='verified')details.push('تعميم رسمي مضاف');
+  if(instructionState==='unverified')details.push('وجود التعميم غير مؤكد');
+  qs('#optional-summary').textContent=details.length?details.join(' · '):'يمكنك البدء دون إضافتها';
 }
 qsa('input[name="instruction-state"]').forEach(input=>input.addEventListener('change',syncInstructionFields));
+qs('#context-detail').addEventListener('input',syncOptionalSummary);
+qs('#research-form').addEventListener('invalid',event=>{if(qs('#brief-optional').contains(event.target))qs('#brief-optional').open=true},true);
 syncInstructionFields();
 qs('#research-form').addEventListener('submit',buildRoadmap);
 qs('#approve-plan').addEventListener('click',async()=>{if(!state.roadmap||state.loadingEvidence)return;showView('evidence');await loadRoadmapEvidence()});
@@ -220,7 +231,9 @@ function updateEvidenceCounts(){
   state.reviewed=state.evidence.filter(item=>item.decision).length;
   qs('#reviewed-count').textContent=state.reviewed;
   const next=qs('#evidence-next');const total=state.evidence.length;const assigned=state.evidence.every(item=>item.decision==='excluded'||evidenceAxes(item).length===1);const ready=total>0&&state.reviewed===total&&assigned;
-  next.hidden=total===0||state.loadingEvidence;qs('#evidence-next-count').textContent=`${state.reviewed} / ${total}`;qs('#open-coverage').disabled=!ready;qs('#review-finish').hidden=!ready;
+  next.hidden=total===0||state.loadingEvidence;qs('#evidence-next-count').textContent=`${state.reviewed} / ${total}`;qs('#open-coverage').disabled=!ready;
+  const finish=qs('#review-finish');finish.hidden=total===0||state.loadingEvidence;finish.disabled=!ready;
+  finish.textContent=ready?'اكتملت المراجعة — عرض هيكل الحقيبة':state.reviewed===total&&!assigned?'حدّد موضع الأدلة المعتمدة لعرض الحقيبة':`هيكل الحقيبة بعد المراجعة · ${state.reviewed} من ${total}`;
   qs('#evidence-next-title').textContent=ready?'اكتملت قرارات الأدلة — ابنِ هيكل الكتابة':state.reviewed===total&&!assigned?'حدّد محور كل دليل مدرج قبل بناء الحقيبة':'احسم قرار كل دليل، ثم ابنِ هيكل الكتابة';
   qs('#evidence-next-description').textContent=ready?'سترى كل محور مع وظيفته والأدلة التي اعتمدتها والفجوات التي بقيت.':'اعتمد ما يخدم محاورك واستبعد ما لا يناسبها؛ لا يعني ظهور الدليل أنه دخل الحقيبة.';
   qs('#source-rail h2').textContent=state.evidence.length===2?'موضعان موثقان':`${state.evidence.length} مواضع موثقة`;
@@ -281,7 +294,7 @@ async function loadRoadmapEvidence(){
   }catch(error){
     state.evidence=[];renderEvidence();qs('#retrieval-status').textContent=`تعذر إكمال الاسترجاع: ${error.message}`;
   }finally{
-    state.loadingEvidence=false;stopRetrievalProgress();
+    state.loadingEvidence=false;stopRetrievalProgress();updateEvidenceCounts();
   }
 }
 function startRetrievalProgress(){
@@ -302,7 +315,7 @@ async function loadDemoEvidence(){
   const results=await Promise.allSettled(requests);state.evidence=results.filter(result=>result.status==='fulfilled').map((result,index)=>({...result.value,axis_ids:[index===0?'demo_foundation':'demo_application'],decision:null}));
   const failures=results.filter(result=>result.status==='rejected');const cacheCount=state.evidence.filter(item=>item.retrieval_mode==='cache').length;
   qs('#retrieval-status').textContent=`وصل ${state.evidence.length} سجل كامل صالح${cacheCount?` · ${cacheCount} من النسخة المخزنة`:''}${failures.length?` · تعذر ${failures.length} ولم يُستبدل بمحتوى مولد`:''}.`;
-  renderEvidence();if(state.evidence[0])selectEvidence(state.evidence[0].record.id);state.loadingEvidence=false;
+  renderEvidence();if(state.evidence[0])selectEvidence(state.evidence[0].record.id);state.loadingEvidence=false;updateEvidenceCounts();
 }
 qs('#evidence-axis-select').addEventListener('change',event=>{const item=state.evidence.find(entry=>entry.record.id===state.selectedEvidence);if(!item)return;const id=event.target.value;item.axis_ids=(state.roadmap?.axes||[]).some(axis=>axis.axis_id===id)?[id]:[];item.placement_status=id?'confirmed_by_user':'needs_user_assignment';renderEvidence();selectEvidence(item.record.id)});
 qs('#accept-evidence').addEventListener('click',()=>{const item=state.evidence.find(entry=>entry.record.id===state.selectedEvidence);if(!item)return;if(evidenceAxes(item).length!==1){toast('اختر المحور الذي يخدمه هذا الدليل قبل اعتماده');qs('#evidence-axis-change').open=true;qs('#evidence-axis-select').focus();return}const complete=item.record.reference?.primary_locator_available!==false;item.decision=complete?'accepted':'needs_reference';item.placement_status='confirmed_by_user';renderEvidence();selectEvidence(item.record.id);toast(complete?'أُضيف السجل الكامل إلى الحقيبة مع مرجعه وبصمته':'حُفظ مبدئيًا، ولن يعد مرجعًا نهائيًا حتى يستكمل موضعه في الكتاب')});

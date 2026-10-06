@@ -39,6 +39,9 @@ test("evidence review has sequential navigation, preserves filters, and prioriti
   assert.match(html, /id="review-next"/);
   assert.match(html, /id="review-position" aria-live="polite"/);
   assert.match(html, /id="review-finish"[^>]*hidden/);
+  assert.match(script, /finish\.hidden=total===0\|\|state\.loadingEvidence;finish\.disabled=!ready/);
+  assert.match(script, /هيكل الحقيبة بعد المراجعة · \$\{state\.reviewed\} من \$\{total\}/);
+  assert.match(script, /state\.loadingEvidence=false;stopRetrievalProgress\(\);updateEvidenceCounts\(\)/);
   assert.ok(html.indexOf('id="source-inspector"') < html.indexOf('id="evidence-feed"'));
   assert.match(script, /function visibleEvidenceItems\(\)/);
   assert.match(script, /function navigateEvidence\(delta\)/);
