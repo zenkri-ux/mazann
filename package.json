@@ -2,6 +2,7 @@
   "name": "@mazann/monorepo",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "مَظَانّ — evidence-grounded research assistant for Friday preachers",
   "workspaces": [

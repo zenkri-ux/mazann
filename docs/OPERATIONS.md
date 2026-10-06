@@ -49,3 +49,16 @@ Deploy images tagged with the Git commit. Roll back by redeploying the previous 
 ## Backup and retention
 
 Before submission, retain the final Git commit, source manifest, immutable cache, deck, video and deployment configuration together. Runtime cache is reproducible and not the source of truth.
+
+## Cost, dependencies and ownership
+
+| Dependency | Cost basis | Failure plan | Operational owner |
+|---|---|---|---|
+| Linux host and Caddy | Existing server capacity; record the actual monthly allocation before institutional adoption | Redeploy the previous commit-tagged image on the same or replacement Docker host | Product operator |
+| OpenAI planner, embeddings and relevance assessment | Usage-based API calls; enforce project spending limits and monitor request volume | Visible methodology fallback for planning; lexical retrieval remains available; unassessed relevance batches fail closed | Product operator, with model-quality review by the content lead |
+| Islamic Content MCP / publisher APIs | External network and availability dependency | Versioned cache for records already verified; otherwise explicit `EVIDENCE_UNAVAILABLE` | Connector maintainer and content lead |
+| Source indexes and manifests | Rebuild time plus optional embedding API usage | Preserve the immutable release indexes and manifests with each deployment | Retrieval maintainer |
+
+The competition deployment shares existing infrastructure, so this repository does not publish an invented per-user or monthly amount. Before production adoption, record one month of host allocation, API requests and tokens, cache-hit rate, and maintenance hours, then publish the calculation with its date and traffic assumptions.
+
+Content maintenance requires two distinct owners: an engineer for connectors, indexes and rollback, and a qualified content reviewer for source policy, disputed cases and release approval. A technical health check cannot substitute for content review.
