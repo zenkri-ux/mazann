@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="2100" viewBox="0 0 1400 2100" role="img" aria-labelledby="title desc">
+  <title id="title">كيف يسترجع مَظَانّ الأدلة؟</title>
+  <desc id="desc">مخطط يبين مراحل تخطيط البحث، وصياغة الاستعلامات، والبحث الهجين، وجلب السجلات الكاملة، وتقييم الصلة، ومراجعة الخطيب.</desc>
+  <defs>
+    <linearGradient id="background" x2="1" y2="1"><stop stop-color="#111b3f"/><stop offset="1" stop-color="#1d2150"/></linearGradient>
+    <linearGradient id="accent" x2="1"><stop stop-color="#6c5df6"/><stop offset="1" stop-color="#20ddbf"/></linearGradient>
+    <linearGradient id="card" x2="1" y2="1"><stop stop-color="#28335c"/><stop offset="1" stop-color="#22294e"/></linearGradient>
+    <pattern id="geometry" width="96" height="96" patternUnits="userSpaceOnUse"><path d="M48 4L92 48 48 92 4 48Z M48 24L72 48 48 72 24 48Z" fill="none" stroke="#8b88c7" stroke-opacity=".075" stroke-width="2"/></pattern>
+    <filter id="shadow" x="-15%" y="-20%" width="130%" height="145%"><feDropShadow dx="0" dy="12" stdDeviation="17" flood-color="#070d29" flood-opacity=".27"/></filter>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="4.5" refY="4.5" orient="auto"><path d="M0 0L9 4.5 0 9Z" fill="#34debf"/></marker>
+    <style>
+      text{font-family:"Cairo","Noto Kufi Arabic","Noto Sans Arabic","Tahoma",sans-serif;direction:rtl;unicode-bidi:plaintext}
+      .title{font-size:58px;font-weight:800;fill:#f9f8ff}
+      .subtitle{font-size:25px;fill:#b9c4e2}
+      .step{font-size:32px;font-weight:800;fill:#fff}
+      .detail{font-size:23px;fill:#c6cee9}
+      .small{font-size:22px;font-weight:700;fill:#e9ecff}
+      .pill{font-size:20px;font-weight:800;fill:#1a2446}
+      .num{font-size:28px;font-weight:900;fill:#13213c;text-anchor:middle;direction:ltr}
+      .line{stroke:#34debf;stroke-width:5;stroke-linecap:round;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1400" height="2100" fill="url(#background)"/>
+  <rect width="1400" height="2100" fill="url(#geometry)"/>
+  <rect x="132" y="74" width="12" height="99" rx="6" fill="url(#accent)"/>
+  <text x="1260" y="126" class="title" text-anchor="start">كيف يسترجع مَظَانّ الأدلة؟</text>
+  <text x="1260" y="169" class="subtitle" text-anchor="start">من موضوع الخطبة إلى حقيبة أدلة قابلة للمراجعة</text>
+
+  <g filter="url(#shadow)">
+    <rect x="130" y="225" width="1140" height="177" rx="32" fill="url(#card)" stroke="#56628f" stroke-opacity=".42"/>
+    <circle cx="1206" cy="284" r="34" fill="#28dfbd"/><text x="1206" y="294" class="num">1</text>
+    <text x="1144" y="287" class="step" text-anchor="start">موضوع الخطبة ومحاورها</text>
+    <text x="1144" y="343" class="detail" text-anchor="start">الخطيب يحدد الموضوع والجمهور، ثم يراجع خطة البحث وأسئلتها</text>
+
+    <rect x="130" y="462" width="1140" height="177" rx="32" fill="url(#card)" stroke="#56628f" stroke-opacity=".42"/>
+    <circle cx="1206" cy="521" r="34" fill="#28dfbd"/><text x="1206" y="531" class="num">2</text>
+    <text x="1144" y="524" class="step" text-anchor="start">صياغة استعلامات تحفظ العلاقة</text>
+    <text x="1144" y="580" class="detail" text-anchor="start">تُصاغ عبارات بحث من الموضوع والمحور، لا كلمات منفصلة فقط</text>
+
+    <rect x="130" y="699" width="1140" height="269" rx="32" fill="url(#card)" stroke="#56628f" stroke-opacity=".42"/>
+    <circle cx="1206" cy="758" r="34" fill="#28dfbd"/><text x="1206" y="768" class="num">3</text>
+    <text x="1144" y="761" class="step" text-anchor="start">بحث هجين في القرآن والحديث</text>
+    <text x="1144" y="807" class="detail" text-anchor="start">يمزج التطابق اللفظي بالمعنى؛ ويُرجّح التطابق اللفظي القوي</text>
+    <rect x="720" y="844" width="465" height="74" rx="21" fill="#35436d" stroke="#28dfbd" stroke-opacity=".6"/>
+    <rect x="215" y="844" width="465" height="74" rx="21" fill="#35436d" stroke="#8c7cff" stroke-opacity=".75"/>
+    <text x="1155" y="891" class="small" text-anchor="start">القرآن: لفظي + دلالي</text>
+    <text x="650" y="891" class="small" text-anchor="start">الحديث: لفظي + دلالي</text>
+
+    <rect x="130" y="1028" width="1140" height="177" rx="32" fill="url(#card)" stroke="#56628f" stroke-opacity=".42"/>
+    <circle cx="1206" cy="1087" r="34" fill="#28dfbd"/><text x="1206" y="1097" class="num">4</text>
+    <text x="1144" y="1090" class="step" text-anchor="start">قائمة مرشحات متنوعة</text>
+    <text x="1144" y="1146" class="detail" text-anchor="start">تُختار نتائج من المحاور والمصدرين؛ لا تُعرض بعدُ بوصفها أدلة</text>
+
+    <rect x="130" y="1265" width="1140" height="177" rx="32" fill="url(#card)" stroke="#56628f" stroke-opacity=".42"/>
+    <circle cx="1206" cy="1324" r="34" fill="#28dfbd"/><text x="1206" y="1334" class="num">5</text>
+    <text x="1144" y="1327" class="step" text-anchor="start">جلب النص الكامل والتحقق</text>
+    <text x="1144" y="1383" class="detail" text-anchor="start">آية كاملة أو حديث كامل، مع المصدر والموضع وفحص المطابقة</text>
+
+    <rect x="130" y="1502" width="1140" height="217" rx="32" fill="url(#card)" stroke="#56628f" stroke-opacity=".42"/>
+    <circle cx="1206" cy="1561" r="34" fill="#28dfbd"/><text x="1206" y="1571" class="num">6</text>
+    <text x="1144" y="1564" class="step" text-anchor="start">تقييم الصلة والعتبات</text>
+    <text x="1144" y="1610" class="detail" text-anchor="start">يُفحص النص الكامل وصلته المركبة، ويُقترح له محور واحد</text>
+    <rect x="865" y="1640" width="236" height="47" rx="23" fill="#27d9b4"/><text x="983" y="1671" class="pill" text-anchor="middle">مباشر</text>
+    <rect x="586" y="1640" width="236" height="47" rx="23" fill="#9f8df9"/><text x="704" y="1671" class="pill" text-anchor="middle">سياقي</text>
+    <rect x="307" y="1640" width="236" height="47" rx="23" fill="#505979"/><text x="425" y="1671" class="small" text-anchor="middle">غير ذي صلة ×</text>
+
+    <rect x="130" y="1779" width="1140" height="177" rx="32" fill="#294462" stroke="#27dfba" stroke-width="3"/>
+    <circle cx="1206" cy="1838" r="34" fill="#28dfbd"/><text x="1206" y="1848" class="num">7</text>
+    <text x="1144" y="1841" class="step" text-anchor="start">مراجعة الخطيب والحقيبة</text>
+    <text x="1144" y="1897" class="detail" text-anchor="start">يعتمد الخطيب الدليل أو يستبعده، ثم يستخدمه في هيكل الكتابة</text>
+  </g>
+
+  <path class="line" d="M700 410V449"/><path class="line" d="M700 647V686"/>
+  <path class="line" d="M700 976V1015"/><path class="line" d="M700 1213V1252"/>
+  <path class="line" d="M700 1450V1489"/><path class="line" d="M700 1727V1766"/>
+
+  <rect x="130" y="1991" width="1140" height="76" rx="25" fill="#111936" stroke="#65709e" stroke-opacity=".5"/>
+  <text x="1225" y="2022" class="detail" text-anchor="start">التفسير: روابط سياقية موثقة، وليس فهرس نصوص مستقلًا حاليًا</text>
+  <text x="1225" y="2052" class="detail" text-anchor="start">النتائج المقترحة تحتاج مراجعة الخطيب</text>
+</svg>

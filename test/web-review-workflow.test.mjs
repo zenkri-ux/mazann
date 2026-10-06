@@ -57,9 +57,11 @@ test("desktop review keeps decisions in view and incomplete coverage is neutral"
   assert.match(styles, /\.evidence-screen\.active:has\(\.evidence-card\) \.inspector-controls\{position:fixed/);
   assert.match(styles, /\.source-inspector\.motion-item\{animation:none!important/);
   assert.match(styles, /\.gap\{background:#a9a5df!important\}/);
-  assert.match(html, /قابل للاستكمال/);
-  assert.match(html, /تغطية المصادر المطلوبة/);
-  assert.match(script, /عدم توفر دليل من هذا النوع ليس خطأً بحد ذاته/);
+  assert.match(html, /استكمال اختياري/);
+  assert.match(html, /أدلة مدرجة في الحقيبة/);
+  assert.match(script, /هذا ليس تقييمًا سلبيًا/);
+  assert.doesNotMatch(html, /تغطية المصادر المطلوبة/);
+  assert.doesNotMatch(script, /model\.score|row\.percent/);
 });
 
 test("review keeps secondary provenance details optional and returns to the next record", () => {
@@ -80,6 +82,10 @@ test("coverage renders an evidence-linked writing outline without claiming a gen
   assert.match(script, /item\.record\.source_family==='quran'\?item\.record\.text:evidenceTitle\(item\)/);
   assert.match(script, /ids\.length===1\?ids:\[\]/);
   assert.doesNotMatch(script, /return `سورة النساء، الآية \$\{item\.record\.metadata\.ayah\}`/);
+  assert.match(script, /const openAxes=rows\.filter\(row=>!row\.included\.length\)/);
+  assert.match(script, /evidenceAxes\(item\)\.length===1&&item\.axis_ids\?\.\[0\]===axis\.axis_id/);
+  assert.match(script, /الأدلة المدرجة في الحقيبة/);
+  assert.doesNotMatch(script, /تغطية المحور:|جاهزية الأدلة/);
 });
 
 test("user-facing exports include print-PDF and Word while retaining Markdown for audit", () => {
